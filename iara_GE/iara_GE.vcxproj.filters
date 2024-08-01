@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="iara">
+      <UniqueIdentifier>{024F987C-EE85-990D-9772-7F108388150F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="iara\events">
+      <UniqueIdentifier>{C6D8E7A0-328E-6096-BB82-5A6D2737579A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\iara.h" />
+    <ClInclude Include="src\iara\Application.h">
+      <Filter>iara</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\EntryPoint.h">
+      <Filter>iara</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Log.h">
+      <Filter>iara</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\core.h">
+      <Filter>iara</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\events\AppEvent.h">
+      <Filter>iara\events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\events\Event.h">
+      <Filter>iara\events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\events\KeyEvent.h">
+      <Filter>iara\events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\events\MouseEvent.h">
+      <Filter>iara\events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ir_pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\iara\Application.cpp">
+      <Filter>iara</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Log.cpp">
+      <Filter>iara</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ir_pch.cpp" />
+  </ItemGroup>
+</Project>
