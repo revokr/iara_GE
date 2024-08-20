@@ -544,6 +544,7 @@
     <ClCompile Include="src\Windows\Window_Win.cpp" />
     <ClCompile Include="src\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\iara\Application.cpp" />
+    <ClCompile Include="src\iara\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\iara\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\iara\Layer.cpp" />
     <ClCompile Include="src\iara\LayerStack.cpp" />

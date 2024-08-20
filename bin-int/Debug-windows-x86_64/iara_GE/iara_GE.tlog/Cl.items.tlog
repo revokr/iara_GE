@@ -1,6 +1,7 @@
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\Windows\Window_Win.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Window_Win.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\Windows\WindowsInput.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\WindowsInput.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Application.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Application.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\ImGui\ImGuiBuild.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\ImGuiBuild.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\ImGui\ImGuiLayer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\ImGuiLayer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Layer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Layer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\LayerStack.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\LayerStack.obj

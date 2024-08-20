@@ -1,3 +1,6 @@
 [submodule "glfw"]
 	path = glfw
 	url = https://github.com/TheCherno/glfw.git
+[submodule "iara_GE/vendor/imgui2/imgui"]
+	path = iara_GE/vendor/imgui2/imgui
+	url = https://github.com/ocornut/imgui.git

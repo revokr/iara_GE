@@ -1364,6 +1364,9 @@
     <ClCompile Include="src\iara\Application.cpp">
       <Filter>src\iara</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\ImGui\ImGuiBuild.cpp">
+      <Filter>src\iara\ImGui</Filter>
+    </ClCompile>
     <ClCompile Include="src\iara\ImGui\ImGuiLayer.cpp">
       <Filter>src\iara\ImGui</Filter>
     </ClCompile>
