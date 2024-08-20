@@ -12,12 +12,12 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 IncludeDir["GLFW"] = "iara_GE/vendor/glfw/include"
 IncludeDir["GLAD"] = "iara_GE/vendor/glad/include"
-IncludeDir["IMGUI"] = "iara_GE/vendor/imgui/"
+--IncludeDir["IMGUI"] = "iara_GE/vendor/imgui/"
 IncludeDir["GLM"] = "iara_GE/vendor/glm/"
 
 include "iara_GE/vendor/glfw"
 include "iara_GE/vendor/glad"
-include "iara_GE/vendor/imgui"
+--include "iara_GE/vendor/imgui"
 
 project "iara_GE" 
 	location "iara_GE"
@@ -34,9 +34,9 @@ project "iara_GE"
 	files 
 	{
 		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp",
-		"%{prj.name}/vendor/glm/glm/**.hpp",
-		"%{prj.name}/vendor/glm/glm/**.inl"
+		"%{prj.name}/src/**.cpp"
+		--"%{prj.name}/vendor/glm/glm/**.hpp",
+		--"%{prj.name}/vendor/glm/glm/**.inl"
 	}
 
 	includedirs
@@ -45,14 +45,14 @@ project "iara_GE"
 		"%{prj.name}/src",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.GLAD}",
-		"%{IncludeDir.IMGUI}",
+		--"%{IncludeDir.IMGUI}",
 		"%{IncludeDir.GLM}"
 	}
 
 	links {
 		"GLFW",
 		"GLAD",
-		"IMGUI",
+		--"IMGUI",
 		"opengl32.lib",
 		"dwmapi.lib"
 	}
