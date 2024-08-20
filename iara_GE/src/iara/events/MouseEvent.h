@@ -79,9 +79,9 @@ namespace iara {
 		EVENT_CLASS_TYPE(MouseButtonPressed)
 	};
 
-	class IARA_API MouseButtonPressedEvent : public MouseButtonEvent {
+	class IARA_API MouseButtonReleasedEvent : public MouseButtonEvent {
 	public:
-		MouseButtonPressedEvent(int button) :
+		MouseButtonReleasedEvent(int button) :
 			MouseButtonEvent(button) {}
 
 		std::string ToString() const override {

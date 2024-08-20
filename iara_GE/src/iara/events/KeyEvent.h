@@ -36,7 +36,7 @@ namespace iara {
 
 	class IARA_API KeyReleaseEvent : public KeyEvent {
 	public:
-		KeyReleaseEvent(int keycode, int repeatCount) :
+		KeyReleaseEvent(int keycode) :
 			KeyEvent(keycode) {}
 	
 		std::string ToString() const override {
@@ -46,6 +46,21 @@ namespace iara {
 		}
 
 		EVENT_CLASS_TYPE(KeyReleased)
+
+	};
+
+	class IARA_API KeyTypedEvent : public KeyEvent {
+	public:
+		KeyTypedEvent(int keycode) :
+			KeyEvent(keycode) {}
+
+		std::string ToString() const override {
+			std::stringstream ss;
+			ss << "KeyTypedEvent : " << m_KeyCode;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(KeyTyped)
 
 	};
 }

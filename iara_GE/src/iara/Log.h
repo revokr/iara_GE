@@ -23,6 +23,7 @@ namespace iara {
 }
 
 
+
 // Core log macros
 #define IARA_CORE_FATAL(...)   ::iara::Log::getCoreLogger()->fatal(__VA_ARGS__)
 #define IARA_CORE_ERROR(...)   ::iara::Log::getCoreLogger()->error(__VA_ARGS__)

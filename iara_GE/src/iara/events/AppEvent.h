@@ -28,6 +28,7 @@ namespace iara {
 	};
 
 	class IARA_API WindowCloseEvent : public Event {
+	public:
 		WindowCloseEvent() {}
 
 		EVENT_CLASS_TYPE(WindowClose)
@@ -37,6 +38,7 @@ namespace iara {
 	};
 
 	class IARA_API AppTickEvent : public Event {
+	public:
 		AppTickEvent() {}
 
 		EVENT_CLASS_TYPE(AppTick)
@@ -55,6 +57,7 @@ namespace iara {
 	};
 
 	class IARA_API AppRenderEvent : public Event {
+	public:
 		AppRenderEvent() {}
 
 		EVENT_CLASS_TYPE(AppRender)

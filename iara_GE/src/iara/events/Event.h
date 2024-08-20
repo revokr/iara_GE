@@ -8,7 +8,7 @@ namespace iara {
 		None = 0, 
 		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
 		AppTick, AppUpdate, AppRender,
-		KeyPressed, KeyReleased, 
+		KeyPressed, KeyReleased, KeyTyped,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
 	};
 
@@ -32,13 +32,12 @@ namespace iara {
 		virtual EventType getEventType() const = 0;
 		virtual const char* getName() const = 0;
 		virtual int getCategoryFlags() const = 0;
-		virtual std::string ToString() const { return getName(); }
+		virtual std::string ToString() const { return ""; };
 
 		inline bool isInCategory(EventCategory category) {
 			return getCategoryFlags() & category;
 		}
 
-	protected:
 		bool m_Handled = false;
 	};
 
@@ -50,20 +49,20 @@ namespace iara {
 		EventDispatcher(Event& event) :
 			m_Event{ event } {}
 
-		/*template<typename T>
+		template<typename T>
 		bool Dispatch(EventFn<T> func) {
 			if (m_Event.getEventType() == T::getStaticType()) {
-				m_Event.m_Handled = func(*(T*)&m_Event);
+				m_Event.m_Handled |= func(static_cast<T&>(m_Event));
 				return true;
 			}
 			return false;
-		}*/
+		}
 
 	private:
 		Event& m_Event;
 	};
 
-	inline std::ostream& operator<<(std::ostream& o, Event& e) {
+	inline std::ostream& operator<<(std::ostream& o, const Event& e) {
 		return o << e.ToString();
 	}
 

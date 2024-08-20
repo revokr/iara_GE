@@ -1,5 +1,7 @@
 #pragma once
 
+#include "iara/Log.h"
+
 #include <memory>
 #include <functional>
 #include <utility>

@@ -9,3 +9,17 @@
 #endif 
 
 #define BIT(x) (1 << x)
+
+#ifdef IARA_ASSERTS
+	#define IARA_ASSERT(x, ...) { if (!(x)) { 
+		IARA_ERROR("Assertion failed {0}", __VA_ARGS__);
+		__debugbreak(); }}
+	#define IARA_CORE_ASSERT(x, ...) { if (!(x)) { 
+			IARA_CORE_ERROR("Assertion failed {0}", __VA_ARGS__);
+			__debugbreak(); }}
+#else 
+	#define IARA_ASSERT(x, ...)
+	#define IARA_CORE_ASSERT(x, ...)
+#endif
+
+#define IARA_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
