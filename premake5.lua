@@ -7,6 +7,8 @@ workspace "iara_GE"
 		"Release"
 	}
 
+	startproject "sandbox"
+
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}

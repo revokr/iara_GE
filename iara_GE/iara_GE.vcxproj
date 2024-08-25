@@ -99,25 +99,13 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\iara\Core\Timestep.h" />
-    <ClInclude Include="src\iara\Renderer\Camera.h" />
-    <ClInclude Include="src\iara\Renderer\GraphicsContext.h" />
-    <ClInclude Include="src\iara\Renderer\RenderCommand.h" />
-    <ClInclude Include="src\iara\Renderer\Renderer.h" />
-    <ClInclude Include="src\iara\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\iara\Renderer\shader.h" />
-    <ClInclude Include="src\iara\Renderer\Buffer.h" />
-    <ClInclude Include="src\iara\Renderer\VertexArray.h" />
-    <ClInclude Include="src\platform\openGL\OpenGLBuffer.h" />
-    <ClInclude Include="src\platform\openGL\OpenGLContext.h" />
-    <ClInclude Include="src\platform\openGL\OpenGLRendererAPI.h" />
-    <ClInclude Include="src\platform\openGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Windows\Platform.h" />
-    <ClInclude Include="src\Windows\WindowsPlatform.h" />
     <ClInclude Include="src\Windows\Window_Win.h" />
     <ClInclude Include="src\Windows\WindowsInput.h" />
+    <ClInclude Include="src\Windows\WindowsPlatform.h" />
     <ClInclude Include="src\iara.h" />
     <ClInclude Include="src\iara\Application.h" />
+    <ClInclude Include="src\iara\Core\Timestep.h" />
     <ClInclude Include="src\iara\EntryPoint.h" />
     <ClInclude Include="src\iara\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\iara\Input.h" />
@@ -126,6 +114,14 @@
     <ClInclude Include="src\iara\LayerStack.h" />
     <ClInclude Include="src\iara\Log.h" />
     <ClInclude Include="src\iara\MouseButtonCodes.h" />
+    <ClInclude Include="src\iara\Renderer\Buffer.h" />
+    <ClInclude Include="src\iara\Renderer\Camera.h" />
+    <ClInclude Include="src\iara\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\iara\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\iara\Renderer\Renderer.h" />
+    <ClInclude Include="src\iara\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\iara\Renderer\VertexArray.h" />
+    <ClInclude Include="src\iara\Renderer\shader.h" />
     <ClInclude Include="src\iara\core.h" />
     <ClInclude Include="src\iara\events\AppEvent.h" />
     <ClInclude Include="src\iara\events\Event.h" />
@@ -133,6 +129,10 @@
     <ClInclude Include="src\iara\events\MouseEvent.h" />
     <ClInclude Include="src\iara\window.h" />
     <ClInclude Include="src\ir_pch.h" />
+    <ClInclude Include="src\platform\openGL\OpenGLBuffer.h" />
+    <ClInclude Include="src\platform\openGL\OpenGLContext.h" />
+    <ClInclude Include="src\platform\openGL\OpenGLRendererAPI.h" />
+    <ClInclude Include="src\platform\openGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\platform\openGL\imgui_impl_opengl3.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
     <ClInclude Include="vendor\glm\glm\detail\_features.hpp" />
@@ -552,30 +552,29 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\iara\Renderer\Buffer.cpp" />
-    <ClCompile Include="src\iara\Renderer\Camera.cpp" />
-    <ClCompile Include="src\iara\Renderer\RenderCommand.cpp" />
-    <ClCompile Include="src\iara\Renderer\Renderer.cpp" />
-    <ClCompile Include="src\iara\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\iara\Renderer\shader.cpp" />
-    <ClCompile Include="src\iara\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\iara\test.h" />
-    <ClCompile Include="src\platform\openGL\OpenGLBuffer.cpp" />
-    <ClCompile Include="src\platform\openGL\OpenGLContext.cpp" />
-    <ClCompile Include="src\platform\openGL\OpenGLRendererAPI.cpp" />
-    <ClCompile Include="src\platform\openGL\OpenGLVertexArray.cpp" />
-    <ClCompile Include="src\Windows\WindowsPlatform.cpp" />
     <ClCompile Include="src\Windows\Window_Win.cpp" />
     <ClCompile Include="src\Windows\WindowsInput.cpp" />
+    <ClCompile Include="src\Windows\WindowsPlatform.cpp" />
     <ClCompile Include="src\iara\Application.cpp" />
     <ClCompile Include="src\iara\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\iara\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\iara\Layer.cpp" />
     <ClCompile Include="src\iara\LayerStack.cpp" />
     <ClCompile Include="src\iara\Log.cpp" />
+    <ClCompile Include="src\iara\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\iara\Renderer\Camera.cpp" />
+    <ClCompile Include="src\iara\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="src\iara\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\iara\Renderer\RendererAPI.cpp" />
+    <ClCompile Include="src\iara\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\iara\Renderer\shader.cpp" />
     <ClCompile Include="src\ir_pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\platform\openGL\OpenGLBuffer.cpp" />
+    <ClCompile Include="src\platform\openGL\OpenGLContext.cpp" />
+    <ClCompile Include="src\platform\openGL\OpenGLRendererAPI.cpp" />
+    <ClCompile Include="src\platform\openGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\platform\openGL\imgui_impl_opengl3.cpp" />
   </ItemGroup>
   <ItemGroup>
