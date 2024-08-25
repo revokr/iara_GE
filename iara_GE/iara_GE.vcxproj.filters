@@ -1412,5 +1412,6 @@
     <ClCompile Include="src\platform\openGL\OpenGLRendererAPI.cpp" />
     <ClCompile Include="src\iara\Renderer\Camera.cpp" />
     <ClCompile Include="src\Windows\WindowsPlatform.cpp" />
+    <ClCompile Include="src\iara\test.h" />
   </ItemGroup>
 </Project>

@@ -559,6 +559,7 @@
     <ClCompile Include="src\iara\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\iara\Renderer\shader.cpp" />
     <ClCompile Include="src\iara\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\iara\test.h" />
     <ClCompile Include="src\platform\openGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\platform\openGL\OpenGLContext.cpp" />
     <ClCompile Include="src\platform\openGL\OpenGLRendererAPI.cpp" />
