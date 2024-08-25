@@ -4,3 +4,6 @@
 [submodule "iara_GE/vendor/imgui2/imgui"]
 	path = iara_GE/vendor/imgui2/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "iara_GE/vendor/imgui"]
+	path = iara_GE/vendor/imgui
+	url = https://github.com/ocornut/imgui.git

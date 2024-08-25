@@ -3,9 +3,17 @@
 #include "Log.h"
 #include "window.h"
 #include "LayerStack.h"
+#include "Renderer/shader.h"
 
+#include "iara/Core/Timestep.h"
 #include "iara/events/Event.h"
 #include "iara/events/AppEvent.h"
+#include "iara/ImGui/ImGuiLayer.h"
+#include "iara/Renderer/Buffer.h"
+#include "iara/Renderer/VertexArray.h"
+#include "iara/Renderer/Renderer.h"
+
+#include "Windows/Platform.h"
 
 namespace iara {
 
@@ -14,21 +22,24 @@ namespace iara {
 		Application();
 		virtual ~Application();
 
-		void Run();
+		virtual void Run();
 
-		void onEvent(Event& e);
+		virtual void onEvent(Event& e);
 
 		inline Window& getWindow() { return *m_Window; }
 		inline static Application& Get(	) { return *s_Instance; }
 
-		void pushLayer(Layer* layer);
-		void pushOverlay(Layer* overlay);
+		virtual void pushLayer(Layer* layer);
+		virtual void pushOverlay(Layer* overlay);
+
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
-
+	private:
 		std::unique_ptr<Window> m_Window;
+		ImGuiLayer* m_imgui_layer;
 		bool m_Running = true;
 		LayerStack m_LayerStack;
+		float m_last_frame_time = 0.0f;
 
 		static Application* s_Instance;
 	};

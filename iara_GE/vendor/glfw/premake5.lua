@@ -50,11 +50,11 @@ project "GLFW"
 			"_CRT_SECURE_NO_WARNINGS"
 		}
 
-	filter "configurations:Debug"
-		runtime "Debug"
+	filter "configurations:Debug" 
 		symbols "on"
+		runtime "Debug"
 
-	filter "configurations:Release"
+	filter "configurations:Release" 
 		runtime "Release"
-		optimize "speed"
+		optimize "on"
 

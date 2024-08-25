@@ -12,19 +12,12 @@ namespace iara {
 		ImGuiLayer();
 		~ImGuiLayer();
 
-		void onAttach();
-		void onDetach();
-		void onUpdate();
-		void onEvent(Event& event);
-	private:
-		bool onMouseButtonPressed(MouseButtonPressedEvent& ev);
-		bool onMouseButtonReleased(MouseButtonReleasedEvent& ev);
-		bool onMouseMoved(MouseMovedEvent& ev);
-		bool onMouseScrolled(MouseScrolledEvent& ev);
-		bool onKeyPressed(KeyPressedEvent& ev);
-		bool onKeyTyped(KeyTypedEvent& ev);
-		bool onKeyReleased(KeyReleaseEvent& ev);
-		bool onWindowResize(WindowResizeEvent& ev);
+		virtual void onAttach() override;
+		virtual void onDetach() override;
+		virtual void onImGuiRender() override;
+
+		void begin();
+		void end();
 	private:
 
 

@@ -2,9 +2,6 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\rafael\source\repos\iara_GE\bin\Debug-windows-x86_64\iara_GE\iara_GE.dll</FullPath>
-    </ProjectOutput>
-    <ProjectOutput>
       <FullPath>C:\Users\rafael\source\repos\iara_GE\bin\Debug-windows-x86_64\sandbox\sandbox.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>

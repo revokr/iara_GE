@@ -1,6 +1,8 @@
 #include "ir_pch.h"
 #include "Window_Win.h"
 
+#include "platform/openGL/OpenGLContext.h"
+
 namespace iara {
 
 	static bool s_GLFWInit = false;
@@ -23,7 +25,7 @@ namespace iara {
 
 	void Window_Win::onUpdate() {
 		glfwPollEvents();
-		glfwSwapBuffers(m_Window); 
+		m_context->SwapBuffers();
 	}
 
 	void Window_Win::SetVSync(bool enabled) {
@@ -43,6 +45,7 @@ namespace iara {
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
 
+
 		IARA_CORE_INFO("Creating window {0} ({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
 
 		if (!s_GLFWInit) {
@@ -53,9 +56,10 @@ namespace iara {
 		}
 
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, props.Title.c_str(), nullptr, nullptr);
-		glfwMakeContextCurrent(m_Window);
-		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-		IARA_CORE_ASSERT(status, "Failed to load Glad!!");
+
+		m_context = new OpenGLContext(m_Window);
+		m_context->Init();
+
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 

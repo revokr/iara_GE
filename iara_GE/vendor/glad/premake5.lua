@@ -14,17 +14,20 @@ project "GLAD"
 		"src/glad.c"
 	}
 
-	includedirs {
+	includedirs 
+	{
 		"include"
 	}
+
 	filter "system:windows"
 		systemversion "latest"
 
-	filter "configurations:Debug"
-		runtime "Debug"
+	filter "configurations:Debug" 
 		symbols "on"
+		runtime "Debug"
 
-	filter "configurations:Release"
+	filter "configurations:Release" 
 		runtime "Release"
-		optimize "speed"
+		optimize "on"
+
 

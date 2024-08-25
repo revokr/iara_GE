@@ -3,6 +3,7 @@
 #include "core.h"
 #include "events/Event.h"
 #include "ir_pch.h"
+#include "iara/Core/Timestep.h"
 
 namespace iara {
 
@@ -14,7 +15,8 @@ namespace iara {
 
 		virtual void onAttach() {}
 		virtual void onDetach() {}
-		virtual void onUpdate() {}
+		virtual void onUpdate(Timestep ts) {}
+		virtual void onImGuiRender() {}
 		virtual void onEvent(Event& event) {}
 
 		const std::string& GetName() const { return m_Name; }

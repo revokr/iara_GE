@@ -3,9 +3,9 @@
 #include "iara/events/AppEvent.h"
 #include "iara/events/KeyEvent.h"
 #include "iara/events/MouseEvent.h"
+#include "iara/Renderer/GraphicsContext.h"
 #include "iara/window.h"
 #include <GLFW/glfw3.h>
-#include <glad/glad.h>
 
 
 namespace iara {
@@ -31,6 +31,8 @@ namespace iara {
 		virtual void Shutdown();
 	private:
 		GLFWwindow* m_Window;
+
+		GraphicsContext* m_context;
 
 		struct WindowData {
 			std::string Title;
