@@ -5,109 +5,69 @@
 
 namespace iara {
 
-	Shader::Shader(const std::string& vertexSrc, const std::string& fragmentSrc) {
+	shader_prog_src Shader::parse_shader(const std::string& file_path_v, const std::string& file_path_f) {
+		std::stringstream ss[2];
+		std::string line;
 
-		// Create an empty vertex shader handle
-		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-		// Send the vertex shader source code to GL
-		// Note that std::string's .c_str is NULL character terminated.
-		const GLchar* source = vertexSrc.c_str();
-		glShaderSource(vertexShader, 1, &source, 0);
-
-		// Compile the vertex shader
-		glCompileShader(vertexShader);
-
-		GLint isCompiled = 0;
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
-		if (isCompiled == GL_FALSE)
-		{
-			GLint maxLength = 0;
-			glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-			// The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
-
-			// We don't need the shader anymore.
-			glDeleteShader(vertexShader);
-
-			IARA_CORE_ERROR("Vertex shader compilationd failed!!");
-			IARA_CORE_ERROR("{0}", infoLog.data());
-			return;
+		std::ifstream stream(file_path_v);
+		while (getline(stream, line)) {
+			ss[0] << line << '\n';
 		}
 
-		// Create an empty fragment shader handle
-		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-		// Send the fragment shader source code to GL
-		// Note that std::string's .c_str is NULL character terminated.
-		source = fragmentSrc.c_str();
-		glShaderSource(fragmentShader, 1, &source, 0);
-
-		// Compile the fragment shader
-		glCompileShader(fragmentShader);
-
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
-		if (isCompiled == GL_FALSE)
-		{
-			GLint maxLength = 0;
-			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-			// The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
-
-			// We don't need the shader anymore.
-			glDeleteShader(fragmentShader);
-			// Either of them. Don't leak shaders.
-			glDeleteShader(vertexShader);
-
-			IARA_CORE_ERROR("Fragment shader compilationd failed!!");
-			IARA_CORE_ERROR("{0}", infoLog.data());
-			return;
+		std::ifstream stream2(file_path_f);
+		while (getline(stream2, line)) {
+			ss[1] << line << '\n';
 		}
 
-		// Vertex and fragment shaders are successfully compiled.
-		// Now time to link them together into a program.
-		// Get a program object.
-		m_RendererID = glCreateProgram();
-		GLuint program = m_RendererID;
+		return { ss[0].str(), ss[1].str() };
+	}
 
-		// Attach our shaders to our program
-		glAttachShader(program, vertexShader);
-		glAttachShader(program, fragmentShader);
+	unsigned int Shader::create_shader(const std::string& vertex_shader, const std::string& fragment_shader) {
+		unsigned int prog = glCreateProgram();
+		unsigned int vs = compile_shader(GL_VERTEX_SHADER, vertex_shader);
+		unsigned int fs = compile_shader(GL_FRAGMENT_SHADER, fragment_shader);
+		glAttachShader(prog, vs);
+		glAttachShader(prog, fs);
+		glLinkProgram(prog);
+		glValidateProgram(prog);
 
-		// Link our program
-		glLinkProgram(program);
+		glDeleteShader(vs);
+		glDeleteShader(fs);
 
-		// Note the different functions here: glGetProgram* instead of glGetShader*.
-		GLint isLinked = 0;
-		glGetProgramiv(program, GL_LINK_STATUS, (int*)&isLinked);
-		if (isLinked == GL_FALSE)
-		{
-			GLint maxLength = 0;
-			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+		return prog;
+	}
 
-			// The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+	unsigned int Shader::compile_shader(unsigned int type, const std::string& source) {
 
-			// We don't need the program anymore.
-			glDeleteProgram(program);
-			// Don't leak shaders either.
-			glDeleteShader(vertexShader);
-			glDeleteShader(fragmentShader);
+		unsigned int id = glCreateShader(type);
+		const char* src = source.c_str(); // &source[0]
+		glShaderSource(id, 1, &src, nullptr);
+		glCompileShader(id);
 
-			// Use the infoLog as you see fit.
+		int result;
+		glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+		if (result == false) {
+			int length;
+			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+			char* message = (char*)alloca(length * sizeof(char));
+			glGetShaderInfoLog(id, length, &length, message);
 
-			// In this simple program, we'll just leave
-			return;
+			std::cout << "Failed to compile " <<
+				(type == GL_VERTEX_SHADER ? "vertex" : "fragment")
+				<< " shader!!\n";
+			std::cout << message << '\n';
 		}
+		return id;
+	}
 
-		// Always detach shaders after a successful link.
-		glDetachShader(program, vertexShader);
-		glDetachShader(program, fragmentShader);
+
+	Shader::Shader(const std::string& filepath_v, const std::string& filepath_f) : m_filepath_vert{ filepath_v },
+		m_filepath_frag{filepath_f}
+	{
+		shader_prog_src src = parse_shader(filepath_v, filepath_f);
+		//std::cout << src.vertex_source << '\n';
+		//std::cout << src.fragment_source << '\n';
+		m_RendererID = create_shader(src.vertex_source, src.fragment_source);
 	}
 
 	Shader::~Shader() {
@@ -134,6 +94,11 @@ namespace iara {
 
 	void Shader::setUniformMat4f(const std::string& name, const glm::mat4& matrix) {
 		glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
+	}
+
+	void Shader::setUniform4f(const std::string& name,
+		const glm::vec4& vec) {
+		glUniform4f(getUniformLocation(name), vec.r, vec.g, vec.b, vec.a);
 	}
 
 }
