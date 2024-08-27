@@ -40,7 +40,7 @@ namespace iara {
 		glBindVertexArray(0);
 	}
 
-	void OpenGLVertexArray::AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) {
+	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) {
 		IARA_CORE_ASSERT(vertexBuffer->getLayout().getElems().size(), "Vertex Buffer has no layout!");
 
 		glBindVertexArray(m_RendererID);
@@ -59,18 +59,18 @@ namespace iara {
 		m_vertexbuffers.push_back(vertexBuffer);
 	}
 
-	void OpenGLVertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) {
+	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer) {
 		glBindVertexArray(m_RendererID);
 		indexBuffer->bind();
 
 		m_indexbuffer = indexBuffer;
 	}
 
-	const std::shared_ptr<IndexBuffer>& OpenGLVertexArray::getIndexBuffer() const {
+	const Ref<IndexBuffer>& OpenGLVertexArray::getIndexBuffer() const {
 		return m_indexbuffer;
 	}
 
-	const std::vector<std::shared_ptr<VertexBuffer>>& OpenGLVertexArray::getVertexBuffers() const
+	const std::vector<Ref<VertexBuffer>>& OpenGLVertexArray::getVertexBuffers() const
 	{
 		return m_vertexbuffers;
 	}

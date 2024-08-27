@@ -49,6 +49,9 @@
     <Filter Include="vendor\glm\glm\gtx">
       <UniqueIdentifier>{B3A6A76B-9F8A-68C1-08EB-6214F4ED5243}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\stb_image">
+      <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Windows\Platform.h">
@@ -114,6 +117,9 @@
     <ClInclude Include="src\iara\Renderer\RendererAPI.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Renderer\Texture.h">
+      <Filter>src\iara\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\iara\Renderer\VertexArray.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
@@ -148,6 +154,12 @@
       <Filter>src\platform\openGL</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\openGL\OpenGLRendererAPI.h">
+      <Filter>src\platform\openGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\openGL\OpenGLShader.h">
+      <Filter>src\platform\openGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\openGL\OpenGLTexture.h">
       <Filter>src\platform\openGL</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\openGL\OpenGLVertexArray.h">
@@ -1404,6 +1416,10 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\stb_image\stb_image.h">
+      <Filter>vendor\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\Utils\array_2D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Windows\Window_Win.cpp">
@@ -1448,6 +1464,9 @@
     <ClCompile Include="src\iara\Renderer\RendererAPI.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\Renderer\Texture.cpp">
+      <Filter>src\iara\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\iara\Renderer\VertexArray.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
@@ -1466,11 +1485,20 @@
     <ClCompile Include="src\platform\openGL\OpenGLRendererAPI.cpp">
       <Filter>src\platform\openGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\platform\openGL\OpenGLShader.cpp">
+      <Filter>src\platform\openGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\openGL\OpenGLTexture.cpp">
+      <Filter>src\platform\openGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\platform\openGL\OpenGLVertexArray.cpp">
       <Filter>src\platform\openGL</Filter>
     </ClCompile>
     <ClCompile Include="src\platform\openGL\imgui_impl_opengl3.cpp">
       <Filter>src\platform\openGL</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\stb_image\stb_image.cpp">
+      <Filter>vendor\stb_image</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

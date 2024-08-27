@@ -1,9 +1,14 @@
 #include "ir_pch.h"
 #include "Renderer.h"
+#include "platform/openGL/OpenGLShader.h"
 
 namespace iara {
 
     Renderer::SceneData* Renderer::s_sceneData = new Renderer::SceneData;
+
+    void Renderer::Init() {
+        RenderCommand::Init();
+    }
 
     void Renderer::BeginScene(PerspectiveCamera& camera) {
         s_sceneData->ViewProj = camera.getVP();
@@ -13,10 +18,10 @@ namespace iara {
 
     }
 
-    void Renderer::Submit(const std::shared_ptr<Shader>& shdr, const std::shared_ptr<VertexArray>& vertexArray, const glm::mat4& transform) {
+    void Renderer::Submit(const Ref<Shader>& shdr, const Ref<VertexArray>& vertexArray, const glm::mat4& transform) {
         shdr->bind();
-        shdr->setUniformMat4f("u_VP", s_sceneData->ViewProj);
-        shdr->setUniformMat4f("u_transform", transform);
+        std::dynamic_pointer_cast<OpenGLShader>(shdr)->setUniformMat4f("u_VP", s_sceneData->ViewProj);
+        std::dynamic_pointer_cast<OpenGLShader>(shdr)->setUniformMat4f("u_transform", transform);
 
         vertexArray->bind();
         RenderCommand::DrawIndexed(vertexArray);

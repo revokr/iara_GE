@@ -1,16 +1,15 @@
 #include "ir_pch.h"
-#include "shader.h"
-#include "Renderer.h"
+#include "Texture.h"
 
-#include "glad/glad.h"
-#include "platform/openGL/OpenGLShader.h"
+#include "Renderer.h"
+#include "platform/openGL/OpenGLTexture.h"
 
 namespace iara {
 
-	Shader* Shader::Create(const std::string& vertSrc, const std::string& fragSrc) {
+	Ref<Texture2D> Texture2D::Create(const std::string& path) {
         switch (Renderer::getRendererAPI()) {
         case RendererAPI::API::None:     IARA_CORE_ASSERT(false, "RendererAPI::None is not supported!!");
-        case RendererAPI::API::OpenGL:   return new OpenGLShader(vertSrc, fragSrc);
+        case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLTexture2D>(path);
         }
 
         IARA_CORE_ASSERT(false, "Unknown renderer API");

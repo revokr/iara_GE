@@ -19,6 +19,8 @@ namespace iara {
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(std::bind(&Application::onEvent, this, std::placeholders::_1));
 		m_Window->SetVSync(true);
+
+		Renderer::Init();
 	
 		m_imgui_layer = new ImGuiLayer();
 		pushOverlay(m_imgui_layer);

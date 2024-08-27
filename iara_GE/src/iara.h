@@ -13,6 +13,7 @@
 // ---- Renderer -----
 #include "iara/Renderer/Camera.h"
 #include "iara/Renderer/Shader.h"
+#include "iara/Renderer/Texture.h"
 #include "iara/Renderer/Renderer.h"
 #include "iara/Renderer/RenderCommand.h"
 #include "iara/Renderer/VertexArray.h"

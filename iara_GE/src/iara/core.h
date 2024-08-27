@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #ifdef IARA_PLATFORM_WINDOWS
 #if IARA_DYNAMIC_LINK
 	#ifdef IARA_BUILD_DLL
@@ -27,3 +29,13 @@
 #endif
 
 #define IARA_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+
+namespace iara {
+
+	template<typename T>
+	using Scope = std::unique_ptr<T>;
+
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+
+}

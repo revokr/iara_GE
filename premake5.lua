@@ -16,6 +16,7 @@ IncludeDir["GLFW"] = "iara_GE/vendor/glfw/include"
 IncludeDir["GLAD"] = "iara_GE/vendor/glad/include"
 IncludeDir["IMGUI"] = "iara_GE/vendor/imgui/"
 IncludeDir["GLM"] = "iara_GE/vendor/glm/"
+IncludeDir["STB"] = "iara_GE/vendor/stb_image/"
 
 include "iara_GE/vendor/glfw"
 include "iara_GE/vendor/glad"
@@ -38,6 +39,8 @@ project "iara_GE"
 	{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/vendor/stb_image/**.h",
+		"%{prj.name}/vendor/stb_image/**.cpp",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl"
 	}
@@ -49,7 +52,8 @@ project "iara_GE"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.GLAD}",
 		"%{IncludeDir.IMGUI}",
-		"%{IncludeDir.GLM}"
+		"%{IncludeDir.GLM}",
+		"%{IncludeDir.STB}"
 	}
 
 	links {
