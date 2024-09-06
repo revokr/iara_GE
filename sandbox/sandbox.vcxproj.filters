@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Game_Test">
+      <UniqueIdentifier>{7E559D7E-EABF-51F5-33FE-029B9FA72F4A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Game_Test\GameLayer.h">
+      <Filter>Game_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game_Test\Level.h">
+      <Filter>Game_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game_Test\Player.h">
+      <Filter>Game_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game_Test\Random.h">
+      <Filter>Game_Test</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sandbox2D.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Game_Test\GameLayer.cpp">
+      <Filter>Game_Test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game_Test\Level.cpp">
+      <Filter>Game_Test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game_Test\Player.cpp">
+      <Filter>Game_Test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game_Test\Random.cpp">
+      <Filter>Game_Test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sandbox2D.cpp" />
+    <ClCompile Include="src\SandboxApp.cpp" />
+  </ItemGroup>
+</Project>
