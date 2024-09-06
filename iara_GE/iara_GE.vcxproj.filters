@@ -4,6 +4,9 @@
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Debug">
+      <UniqueIdentifier>{63A3C3B2-CF0D-7829-184C-29CF84F5557E}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Windows">
       <UniqueIdentifier>{6732F132-D3E7-6928-5CDC-63FFC890602C}</UniqueIdentifier>
     </Filter>
@@ -54,6 +57,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Debug\Instrumentor.h">
+      <Filter>src\Debug</Filter>
+    </ClInclude>
     <ClInclude Include="src\Windows\Platform.h">
       <Filter>src\Windows</Filter>
     </ClInclude>
@@ -69,40 +75,49 @@
     <ClInclude Include="src\iara.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\iara\Application.h">
-      <Filter>src\iara</Filter>
+    <ClInclude Include="src\iara\Core\Application.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Core\EntryPoint.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Core\Input.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Core\KeyCodes.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Core\Layer.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Core\LayerStack.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Core\Log.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Core\MouseButtonCodes.h">
+      <Filter>src\iara\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Core\Timestep.h">
       <Filter>src\iara\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\iara\EntryPoint.h">
-      <Filter>src\iara</Filter>
+    <ClInclude Include="src\iara\Core\core.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Core\window.h">
+      <Filter>src\iara\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\ImGui\ImGuiLayer.h">
       <Filter>src\iara\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\iara\Input.h">
-      <Filter>src\iara</Filter>
-    </ClInclude>
-    <ClInclude Include="src\iara\KeyCodes.h">
-      <Filter>src\iara</Filter>
-    </ClInclude>
-    <ClInclude Include="src\iara\Layer.h">
-      <Filter>src\iara</Filter>
-    </ClInclude>
-    <ClInclude Include="src\iara\LayerStack.h">
-      <Filter>src\iara</Filter>
-    </ClInclude>
-    <ClInclude Include="src\iara\Log.h">
-      <Filter>src\iara</Filter>
-    </ClInclude>
-    <ClInclude Include="src\iara\MouseButtonCodes.h">
-      <Filter>src\iara</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\Buffer.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\Camera.h">
+      <Filter>src\iara\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Renderer\CameraController.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\GraphicsContext.h">
@@ -112,6 +127,9 @@
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\Renderer.h">
+      <Filter>src\iara\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Renderer\Renderer2D.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\RendererAPI.h">
@@ -126,9 +144,6 @@
     <ClInclude Include="src\iara\Renderer\shader.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\iara\core.h">
-      <Filter>src\iara</Filter>
-    </ClInclude>
     <ClInclude Include="src\iara\events\AppEvent.h">
       <Filter>src\iara\events</Filter>
     </ClInclude>
@@ -140,9 +155,6 @@
     </ClInclude>
     <ClInclude Include="src\iara\events\MouseEvent.h">
       <Filter>src\iara\events</Filter>
-    </ClInclude>
-    <ClInclude Include="src\iara\window.h">
-      <Filter>src\iara</Filter>
     </ClInclude>
     <ClInclude Include="src\ir_pch.h">
       <Filter>src</Filter>
@@ -1419,7 +1431,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="vendor\Utils\array_2D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Windows\Window_Win.cpp">
@@ -1431,8 +1442,17 @@
     <ClCompile Include="src\Windows\WindowsPlatform.cpp">
       <Filter>src\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\iara\Application.cpp">
-      <Filter>src\iara</Filter>
+    <ClCompile Include="src\iara\Core\Application.cpp">
+      <Filter>src\iara\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Core\Layer.cpp">
+      <Filter>src\iara\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Core\LayerStack.cpp">
+      <Filter>src\iara\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Core\Log.cpp">
+      <Filter>src\iara\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\ImGui\ImGuiBuild.cpp">
       <Filter>src\iara\ImGui</Filter>
@@ -1440,25 +1460,22 @@
     <ClCompile Include="src\iara\ImGui\ImGuiLayer.cpp">
       <Filter>src\iara\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\iara\Layer.cpp">
-      <Filter>src\iara</Filter>
-    </ClCompile>
-    <ClCompile Include="src\iara\LayerStack.cpp">
-      <Filter>src\iara</Filter>
-    </ClCompile>
-    <ClCompile Include="src\iara\Log.cpp">
-      <Filter>src\iara</Filter>
-    </ClCompile>
     <ClCompile Include="src\iara\Renderer\Buffer.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\Camera.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\Renderer\CameraController.cpp">
+      <Filter>src\iara\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\iara\Renderer\RenderCommand.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\Renderer.cpp">
+      <Filter>src\iara\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Renderer\Renderer2D.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\RendererAPI.cpp">

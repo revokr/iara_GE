@@ -1,6 +1,7 @@
 #pragma once
 
-#include "iara/Log.h"
+#include "iara/Core/Log.h"
+#include "Debug/Instrumentor.h"
 
 #include <memory>
 #include <functional>

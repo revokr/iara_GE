@@ -1,6 +1,6 @@
 #pragma once
 
-#include "iara/Layer.h"
+#include "iara/Core/Layer.h"
 #include "iara/events/MouseEvent.h"
 #include "iara/events/KeyEvent.h"
 #include "iara/events/AppEvent.h"
@@ -14,7 +14,6 @@ namespace iara {
 
 		virtual void onAttach() override;
 		virtual void onDetach() override;
-		virtual void onImGuiRender() override;
 
 		void begin();
 		void end();

@@ -11,8 +11,8 @@ namespace iara {
 		IARA_CORE_ERROR("GLFW error ({0}): {1}", error, desc);
 	}
 
-	Window* Window::Create(const WindowProps& props) {
-		return new Window_Win(props);
+	Scope<Window> Window::Create(const WindowProps& props) {
+		return CreateScope<Window_Win>(props);
 	}
 
 	Window_Win::Window_Win(const WindowProps& props) {
@@ -24,6 +24,8 @@ namespace iara {
 	}
 
 	void Window_Win::onUpdate() {
+		IARA_PROFILE_FUNCTION();
+
 		glfwPollEvents();
 		m_context->SwapBuffers();
 	}
@@ -41,6 +43,8 @@ namespace iara {
 	}
 
 	void Window_Win::Init(const WindowProps& props) {
+		IARA_PROFILE_FUNCTION();
+
 		m_Data.Title = props.Title;
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
@@ -145,6 +149,8 @@ namespace iara {
 	}
 
 	void Window_Win::Shutdown(){
+		IARA_PROFILE_FUNCTION();
+
 		glfwDestroyWindow(m_Window);
 	}
 

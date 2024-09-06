@@ -12,6 +12,8 @@ namespace iara {
 	}
 
 	void OpenGLContext::Init() {
+		IARA_PROFILE_FUNCTION();
+
 		glfwMakeContextCurrent(m_wndHandle);
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		IARA_CORE_ASSERT(status, "Failed to load Glad!!");
@@ -30,7 +32,6 @@ namespace iara {
 
 	void OpenGLContext::SwapBuffers() {
 		glfwSwapBuffers(m_wndHandle);
-
 	}
 
 }

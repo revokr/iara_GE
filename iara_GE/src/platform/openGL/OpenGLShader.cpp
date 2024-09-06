@@ -61,9 +61,11 @@ namespace iara {
 	}
 
 
-	OpenGLShader::OpenGLShader(const std::string& filepath_v, const std::string& filepath_f) : m_filepath_vert{ filepath_v },
-		m_filepath_frag{ filepath_f }
+	OpenGLShader::OpenGLShader(const std::string& name, const std::string& filepath_v, const std::string& filepath_f) : m_filepath_vert{ filepath_v },
+		m_filepath_frag{ filepath_f }, m_name{name}
 	{
+		IARA_PROFILE_FUNCTION();
+
 		shader_prog_src src = parse_shader(filepath_v, filepath_f);
 		//std::cout << src.vertex_source << '\n';
 		//std::cout << src.fragment_source << '\n';
@@ -80,6 +82,10 @@ namespace iara {
 
 	void OpenGLShader::unbind() const {
 		glUseProgram(0);
+	}
+
+	const std::string OpenGLShader::getName() {
+		return m_name;
 	}
 
 	int OpenGLShader::getUniformLocation(const std::string& name) const {
@@ -103,6 +109,10 @@ namespace iara {
 
 	void OpenGLShader::setUniformInt(const std::string& name, int v0) {
 		glUniform1i(getUniformLocation(name), v0);
+	}
+
+	void OpenGLShader::setUniformFloat(const std::string& name, float val) {
+		glUniform1f(getUniformLocation(name), val);
 	}
 
 }

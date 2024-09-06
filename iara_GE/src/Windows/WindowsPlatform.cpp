@@ -8,7 +8,7 @@ namespace iara {
 	Platform* Platform::s_Instance = new WindowsPlatform;
 
 	float WindowsPlatform::getTimeImpl() {
-		return glfwGetTime();
+		return (float)glfwGetTime();
 	}
 
 }

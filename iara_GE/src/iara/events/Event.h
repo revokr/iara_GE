@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core.h"
+#include "iara/Core/core.h"
 
 namespace iara {
 

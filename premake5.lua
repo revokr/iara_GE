@@ -42,7 +42,9 @@ project "iara_GE"
 		"%{prj.name}/vendor/stb_image/**.h",
 		"%{prj.name}/vendor/stb_image/**.cpp",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
-		"%{prj.name}/vendor/glm/glm/**.inl"
+		"%{prj.name}/vendor/glm/glm/**.inl",
+		"%{prj.name}/vendor/Utils/**.h",
+		"%{prj.name}/vendor/Utils/**.save"
 	}
 
 	includedirs
@@ -53,7 +55,8 @@ project "iara_GE"
 		"%{IncludeDir.GLAD}",
 		"%{IncludeDir.IMGUI}",
 		"%{IncludeDir.GLM}",
-		"%{IncludeDir.STB}"
+		"%{IncludeDir.STB}",
+		"%{prj.name}/vendor/Utils/"
 	}
 
 	links {
@@ -129,6 +132,11 @@ project "sandbox"
 		defines "IARA_DEBUG"
 		symbols "on"
 		runtime "Debug"
+
+		defines 
+		{
+			"IARA_PROFILE"
+		}
 
 	filter "configurations:Release" 
 		defines "IARA_RELEASE"

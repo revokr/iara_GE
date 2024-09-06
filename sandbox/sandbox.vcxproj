@@ -58,7 +58,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_DEBUG;IARA_PROFILE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
@@ -93,6 +93,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Game_Test\GameLayer.h" />
+    <ClInclude Include="src\Game_Test\Level.h" />
+    <ClInclude Include="src\Game_Test\Player.h" />
+    <ClInclude Include="src\Game_Test\Random.h" />
+    <ClInclude Include="src\Sandbox2D.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Game_Test\GameLayer.cpp" />
+    <ClCompile Include="src\Game_Test\Level.cpp" />
+    <ClCompile Include="src\Game_Test\Player.cpp" />
+    <ClCompile Include="src\Game_Test\Random.cpp" />
+    <ClCompile Include="src\Sandbox2D.cpp" />
     <ClCompile Include="src\SandboxApp.cpp" />
   </ItemGroup>
   <ItemGroup>

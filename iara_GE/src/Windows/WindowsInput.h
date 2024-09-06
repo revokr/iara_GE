@@ -1,6 +1,6 @@
 #pragma once
 
-#include "iara/Input.h"
+#include "iara/Core/Input.h"
 
 namespace iara {
 

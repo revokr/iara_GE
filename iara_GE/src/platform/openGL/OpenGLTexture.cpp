@@ -1,14 +1,31 @@
 #include "ir_pch.h"
 #include "OpenGLTexture.h"
 
-#include <glad/glad.h>
 #include <stb_image.h>
 
 namespace iara {
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height)
+		: m_width{width}, m_height{height}
+	{
+		IARA_PROFILE_FUNCTION();
 
+		m_internal_format = GL_RGBA8;
+		m_data_format = GL_RGBA;
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+		glTextureStorage2D(m_RendererID, 1, m_internal_format, m_width, m_height);
+
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
 		: m_path{ path }
 	{
+		IARA_PROFILE_FUNCTION();
+
 		stbi_set_flip_vertically_on_load(1);
 		int width, height, channels;
 		stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -50,6 +67,12 @@ namespace iara {
 
 	void OpenGLTexture2D::unbind() const {
 		glBindTextureUnit(0, 0);
+	}
+
+	void OpenGLTexture2D::setData(void* data, uint32_t size) {
+		uint32_t bpp = m_data_format == GL_RGBA ? 4 : 3;
+		IARA_CORE_ASSERT(size == m_width * m_height * bpp, "Data must be entire texture!");
+		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_width, m_height, m_data_format, GL_UNSIGNED_BYTE, data);
 	}
 
 }

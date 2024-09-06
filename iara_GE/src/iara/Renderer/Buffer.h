@@ -29,7 +29,7 @@ namespace iara {
 	struct BufferElem {
 		std::string name;	
 		ShaderDataType type;
-		uint32_t offset;
+		size_t offset;
 		uint32_t size;
 		bool normalized;
 

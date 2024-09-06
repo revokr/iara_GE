@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Event.h"
-#include "../core.h"
+#include "iara/Core/core.h"
 
 namespace iara {
 

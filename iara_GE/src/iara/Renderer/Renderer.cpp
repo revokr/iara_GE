@@ -1,6 +1,7 @@
 #include "ir_pch.h"
 #include "Renderer.h"
 #include "platform/openGL/OpenGLShader.h"
+#include "Renderer2D.h"
 
 namespace iara {
 
@@ -8,9 +9,18 @@ namespace iara {
 
     void Renderer::Init() {
         RenderCommand::Init();
+        Renderer2D::Init();
+    }
+
+    void Renderer::onWindowResize(uint32_t width, uint32_t height) {
+        RenderCommand::setViewPort(0, 0, width, height);
     }
 
     void Renderer::BeginScene(PerspectiveCamera& camera) {
+        s_sceneData->ViewProj = camera.getVP();
+    }
+
+    void Renderer::BeginScene(OrthographicCamera& camera) {
         s_sceneData->ViewProj = camera.getVP();
     }
 
@@ -19,7 +29,7 @@ namespace iara {
     }
 
     void Renderer::Submit(const Ref<Shader>& shdr, const Ref<VertexArray>& vertexArray, const glm::mat4& transform) {
-        shdr->bind();
+        std::dynamic_pointer_cast<OpenGLShader>(shdr)->bind();
         std::dynamic_pointer_cast<OpenGLShader>(shdr)->setUniformMat4f("u_VP", s_sceneData->ViewProj);
         std::dynamic_pointer_cast<OpenGLShader>(shdr)->setUniformMat4f("u_transform", transform);
 

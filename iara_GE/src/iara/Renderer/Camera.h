@@ -6,6 +6,7 @@ namespace iara {
 
 	class OrthographicCamera {
 	public:
+		//OrthographicCamera() {}
 		OrthographicCamera(float left, float right, float bot, float top);
 
 		float getRotation() const { return m_rotation; }
@@ -13,6 +14,8 @@ namespace iara {
 
 		const glm::vec3& getPosition() const { return m_position; }
 		void setPosition(const glm::vec3& pos) { m_position = pos; recalculateView(); }
+
+		void setProj(float left, float right, float bot, float top);
 			
 		const glm::mat4& getProj() const { return m_proj; }
 		const glm::mat4& getView() const { return m_view; }
@@ -37,6 +40,8 @@ namespace iara {
 
 		const glm::vec3& getPosition() const { return m_position; }
 		void setPosition(const glm::vec3& pos) { m_position = pos; recalculateView(); }
+
+		void setProj(float width, float height, float degrees, float close, float farr);
 
 		const glm::mat4& getProj() const { return m_proj; }
 		const glm::mat4& getView() const { return m_view; }

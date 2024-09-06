@@ -1,6 +1,6 @@
 #include "ir_pch.h"
 #include "WindowsInput.h"
-#include "iara/Application.h"
+#include "iara/Core/Application.h"
 #include <GLFW/glfw3.h>
 
 namespace iara {

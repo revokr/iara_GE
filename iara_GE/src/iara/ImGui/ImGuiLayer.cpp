@@ -7,7 +7,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
-#include "../Application.h"
+#include "iara/Core/Application.h"
 
 namespace iara {
 
@@ -56,21 +56,16 @@ namespace iara {
 		ImGui::DestroyContext();
 	}
 
-	void ImGuiLayer::onImGuiRender() {
-		static bool show = true;
-		ImGui::ShowDemoWindow(&show);
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-			1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
-
 	void ImGuiLayer::begin() {
+		IARA_PROFILE_SCOPE("Imgui Begin");
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
 
 	void ImGuiLayer::end() {
+		IARA_PROFILE_SCOPE("Imgui End");
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
 		io.DisplaySize = ImVec2((float)app.getWindow().GetWidth(), (float)app.getWindow().GetHeight());

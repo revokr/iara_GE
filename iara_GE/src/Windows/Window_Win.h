@@ -4,7 +4,7 @@
 #include "iara/events/KeyEvent.h"
 #include "iara/events/MouseEvent.h"
 #include "iara/Renderer/GraphicsContext.h"
-#include "iara/window.h"
+#include "iara/Core/window.h"
 #include <GLFW/glfw3.h>
 
 

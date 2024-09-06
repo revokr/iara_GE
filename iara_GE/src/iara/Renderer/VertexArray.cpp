@@ -6,10 +6,10 @@
 
 namespace iara {
 
-	VertexArray* VertexArray::Create() {
+	Ref<VertexArray> VertexArray::Create() {
         switch (Renderer::getRendererAPI()) {
         case RendererAPI::API::None:     IARA_CORE_ASSERT(false, "RendererAPI::None is not supported!!");
-        case RendererAPI::API::OpenGL:   return new OpenGLVertexArray();
+        case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLVertexArray>();
         }
 
         IARA_CORE_ASSERT(false, "Unknown renderer API");
