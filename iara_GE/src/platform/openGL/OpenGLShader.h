@@ -24,6 +24,7 @@ namespace iara {
 		void setUniform4f(const std::string& name,
 			const glm::vec4& vec) override;
 		void setUniformInt(const std::string& name,int v0) override;
+		void setUniformIntArray(const std::string& name, int* v, uint32_t count) override;
 		void setUniformFloat(const std::string& name, float val) override;
 	private:
 		int getUniformLocation(const std::string& name) const;

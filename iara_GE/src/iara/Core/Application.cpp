@@ -20,7 +20,7 @@ namespace iara {
 
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(std::bind(&Application::onEvent, this, std::placeholders::_1));
-		m_Window->SetVSync(true);
+		m_Window->SetVSync(false);
 
 		Renderer::Init();
 	
@@ -84,6 +84,10 @@ namespace iara {
 			}
 			m_Window->onUpdate();
 		}
+	}
+
+	void Application::Close() {
+		m_Running = false;
 	}
 
 	bool Application::onWindowClose(WindowCloseEvent& e) {

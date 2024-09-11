@@ -7,8 +7,9 @@ namespace iara {
 
 	OrthographicCameraController::OrthographicCameraController(float aspectRatio, bool rotation)
 		: m_aspectRatio{aspectRatio},
-		m_camera{-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel},
-		m_rotation{rotation}
+		m_rotation{rotation},
+		m_bounds{ -m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel },
+		m_camera{ m_bounds.left, m_bounds.right, m_bounds.bot, m_bounds.top }
 	{
 
 	}
@@ -54,13 +55,17 @@ namespace iara {
 	bool OrthographicCameraController::onMouseScroll(MouseScrolledEvent& e)	{
 		if (e.getOffsetY() < 0) m_zoomLevel -= -0.15f;
 		else m_zoomLevel -= 0.15f;
-		m_camera.setProj(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+		//m_camera.setProj(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+		m_bounds = { -m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel };
+		m_camera.setProj(m_bounds.left, m_bounds.right, m_bounds.bot, m_bounds.top);
 		return false;
 	}
 
 	bool OrthographicCameraController::onWindowResize(WindowResizeEvent& e) {
 		m_aspectRatio = ((float)e.getWidth() / (float)e.getHeight());
-		m_camera.setProj(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+		//m_camera.setProj(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+		m_bounds = { -m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel };
+		m_camera.setProj(m_bounds.left, m_bounds.right, m_bounds.bot, m_bounds.top);
 		return false;
 	}
 

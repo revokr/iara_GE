@@ -18,6 +18,11 @@ namespace iara {
 
 		virtual const uint32_t getWidth() const override { return m_width; }
 		virtual const uint32_t getHeight() const override { return m_height; }
+		virtual const uint32_t getRendererID() const override { return m_RendererID; }
+
+		virtual bool operator==(const Texture& other) const override {
+			return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
+		}
 	private:
 		std::string m_path;
 

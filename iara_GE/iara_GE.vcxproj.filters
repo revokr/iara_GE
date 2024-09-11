@@ -120,6 +120,9 @@
     <ClInclude Include="src\iara\Renderer\CameraController.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Renderer\Framebuffer.h">
+      <Filter>src\iara\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\iara\Renderer\GraphicsContext.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
@@ -163,6 +166,9 @@
       <Filter>src\platform\openGL</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\openGL\OpenGLContext.h">
+      <Filter>src\platform\openGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\openGL\OpenGLFramebuffer.h">
       <Filter>src\platform\openGL</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\openGL\OpenGLRendererAPI.h">
@@ -1469,6 +1475,9 @@
     <ClCompile Include="src\iara\Renderer\CameraController.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\Renderer\Framebuffer.cpp">
+      <Filter>src\iara\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\iara\Renderer\RenderCommand.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
@@ -1497,6 +1506,9 @@
       <Filter>src\platform\openGL</Filter>
     </ClCompile>
     <ClCompile Include="src\platform\openGL\OpenGLContext.cpp">
+      <Filter>src\platform\openGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\openGL\OpenGLFramebuffer.cpp">
       <Filter>src\platform\openGL</Filter>
     </ClCompile>
     <ClCompile Include="src\platform\openGL\OpenGLRendererAPI.cpp">

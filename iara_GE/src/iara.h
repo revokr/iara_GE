@@ -15,6 +15,7 @@
 #include "iara/Renderer/CameraController.h"
 #include "iara/Renderer/Shader.h"
 #include "iara/Renderer/Texture.h"
+#include "iara/Renderer/Framebuffer.h"
 #include "iara/Renderer/Renderer.h"
 #include "iara/Renderer/Renderer2D.h"
 #include "iara/Renderer/RenderCommand.h"

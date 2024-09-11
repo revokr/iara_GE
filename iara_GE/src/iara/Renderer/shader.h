@@ -17,6 +17,7 @@ namespace iara {
 		virtual void setUniformMat4f(const std::string& name, const glm::mat4& mat) = 0;
 		virtual void setUniform4f(const std::string& name, const glm::vec4& value) = 0;
 		virtual void setUniformInt(const std::string& name, int value) = 0;
+		virtual void setUniformIntArray(const std::string& name, int* v, uint32_t count) = 0;
 		virtual void setUniformFloat(const std::string& name, float val) = 0;
 	
 		static Ref<Shader> Create(const std::string& name, const std::string& vertSrc, const std::string& fragSrc);

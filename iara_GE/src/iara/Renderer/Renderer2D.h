@@ -12,6 +12,8 @@ namespace iara {
 
 		static void BeginScene(const OrthographicCamera& camera);
 		static void EndScene();
+		static void Flush();
+		static void Reset();
 
 		// Primitives
 		static void drawQuadC(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color);
@@ -26,6 +28,16 @@ namespace iara {
 		static void drawQuadTC(const glm::vec3& pos, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult = 1.0f);
 		static void drawQuadRT(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tiling_m = 1.0f);
 		static void drawQuadRT(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tiling_m = 1.0f);
+	
+		struct Statistics {
+			uint32_t draw_calls = 0;
+			uint32_t quad_count = 0;
+
+			uint32_t GetVertices() { return quad_count * 4; }
+			uint32_t GetIndices() { return quad_count * 6; }
+		};
+		static void ResetStats();
+		static Statistics getStats();
 	};
 
 }

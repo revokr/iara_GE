@@ -18,7 +18,10 @@ public:
 		m_perspective_camera_ctrl{1280.0f, 720.0f, 45.0f, 0.01f, 2000.0f},
 		m_customcolor{0.0f} 
 	{
-
+		iara::FramebufferSpecification fb_spec;
+		fb_spec.width = 300;
+		fb_spec.height = 150;
+		m_fb = iara::Framebuffer::Create(fb_spec);
 		m_vertexArray = (iara::VertexArray::Create());
 
 		float vert[] = {
@@ -29,7 +32,7 @@ public:
 		};
 
 		iara::Ref<iara::VertexBuffer> vertexBuffer;
-		vertexBuffer.reset(iara::VertexBuffer::Create(vert, sizeof(vert)));
+		vertexBuffer = (iara::VertexBuffer::Create(vert, sizeof(vert)));
 
 		iara::BufferLayout layout({
 			{ iara::ShaderDataType::Float3, "a_pos" }
@@ -44,7 +47,7 @@ public:
 		};
 
 		iara::Ref<iara::IndexBuffer> indexBuffer;
-		indexBuffer.reset(iara::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		indexBuffer = (iara::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 
 		m_vertexArray->SetIndexBuffer(indexBuffer);
 
@@ -57,7 +60,7 @@ public:
 		};
 
 		iara::Ref<iara::VertexBuffer> trVertBuff;
-		trVertBuff.reset(iara::VertexBuffer::Create(trianglevert, sizeof(trianglevert)));
+		trVertBuff = (iara::VertexBuffer::Create(trianglevert, sizeof(trianglevert)));
 		trVertBuff->setLayout({
 			{iara::ShaderDataType::Float3, "a_pos"},
 		    { iara::ShaderDataType::Float2, "a_tex" }
@@ -69,7 +72,7 @@ public:
 			1, 3, 2
 		};
 		iara::Ref<iara::IndexBuffer> trIndexBuff;
-		trIndexBuff.reset(iara::IndexBuffer::Create(indicesTriangle, sizeof(indicesTriangle) / sizeof(uint32_t)));
+		trIndexBuff = (iara::IndexBuffer::Create(indicesTriangle, sizeof(indicesTriangle) / sizeof(uint32_t)));
 		m_vertexArraySquare->SetIndexBuffer(trIndexBuff);
 
 
@@ -157,6 +160,7 @@ private:
 	iara::Ref<iara::Shader>	m_shader2;
 
 	iara::Ref<iara::Texture2D> m_texture, m_checkers;
+	iara::Ref<iara::Framebuffer> m_fb;
 
 	iara::OrthographicCameraController m_camera_ctrl;
 	iara::PerspectiveCameraController m_perspective_camera_ctrl;
@@ -172,8 +176,8 @@ class Sandbox : public iara::Application {
 public:
 	Sandbox() {
 		//pushLayer(new ExampleLayer());
-		pushLayer(new GameLayer());
-		//pushLayer(new Sandbox2D());
+		//pushLayer(new GameLayer());
+		pushLayer(new Sandbox2D());
 	}
 
 	~Sandbox() {}

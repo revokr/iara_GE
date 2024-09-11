@@ -61,8 +61,7 @@ namespace iara {
 	}
 
 	void OpenGLTexture2D::bind(uint32_t slot) const {
-		//glBindTextureUnit(slot, m_RendererID);
-		glBindTexture(GL_TEXTURE_2D, m_RendererID);
+		glBindTextureUnit(slot, m_RendererID);
 	}
 
 	void OpenGLTexture2D::unbind() const {

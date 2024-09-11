@@ -12,6 +12,8 @@ namespace iara {
 	}
 
 	void OpenGLContext::Init() {
+		
+
 		IARA_PROFILE_FUNCTION();
 
 		glfwMakeContextCurrent(m_wndHandle);

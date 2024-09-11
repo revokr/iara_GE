@@ -23,6 +23,7 @@ namespace iara {
 		virtual ~Application();
 
 		virtual void Run();
+		void Close();
 
 		virtual void onEvent(Event& e);
 

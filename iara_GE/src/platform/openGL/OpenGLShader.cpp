@@ -111,6 +111,10 @@ namespace iara {
 		glUniform1i(getUniformLocation(name), v0);
 	}
 
+	void OpenGLShader::setUniformIntArray(const std::string& name, int* v, uint32_t count) {
+		glUniform1iv(getUniformLocation(name), count, v);
+	}
+
 	void OpenGLShader::setUniformFloat(const std::string& name, float val) {
 		glUniform1f(getUniformLocation(name), val);
 	}

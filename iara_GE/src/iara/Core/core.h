@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <intrin.h>
 
 #ifdef IARA_PLATFORM_WINDOWS
 #if IARA_DYNAMIC_LINK
@@ -12,7 +13,8 @@
 #else
 	#define IARA_API
 #endif
-#endif 
+#endif
+
 
 #define BIT(x) (1 << x)
 
@@ -25,7 +27,7 @@
 			__debugbreak(); }}
 #else 
 	#define IARA_ASSERT(x, ...)
-	#define IARA_CORE_ASSERT(x, ...)
+	#define IARA_CORE_ASSERT(x, ...) 
 #endif
 
 #define IARA_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)

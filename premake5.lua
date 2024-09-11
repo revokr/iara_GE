@@ -111,7 +111,8 @@ project "sandbox"
 		"iara_GE/vendor/spdlog/include",
 		"iara_GE/vendor",
 		"iara_GE/src",
-		"%{IncludeDir.GLM}"
+		"%{IncludeDir.GLM}",
+		"%{IncludeDir.GLFW}"
 	}
 
 	links

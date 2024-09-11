@@ -7,6 +7,13 @@
 
 namespace iara {
 
+	struct OrthographicCameraBounds {
+		float left, right, bot, top;
+
+		float getWidth() { return right - left; }
+		float getHeight() { return top - bot; }
+	};
+
 	class OrthographicCameraController {
 	public:
 		OrthographicCameraController(float aspectRatio, bool rotation = false); // 
@@ -16,17 +23,19 @@ namespace iara {
 
 		OrthographicCamera& getCamera() { return m_camera; }
 		const OrthographicCamera& getCamera() const { return m_camera; }
+		const OrthographicCameraBounds& getBounds() const { return m_bounds; }
 
 	private:
 		bool onMouseScroll(MouseScrolledEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
 	private:
 		float m_aspectRatio;
-		float m_zoomLevel = 1.8f;
+		float m_zoomLevel = 3.0f;
+		OrthographicCameraBounds m_bounds;
 		OrthographicCamera m_camera;
 
 		bool m_rotation;
-		glm::vec3 m_camerapos = { 0.0f, 0.0f, 0.2f };
+		glm::vec3 m_camerapos = { 0.0f, 0.0f, -0.3f };
 		float m_camera_rotation = 0.0f;
 		
 		float m_camera_speed = 1.0f, m_camera_rotation_speed = 100.0f;
