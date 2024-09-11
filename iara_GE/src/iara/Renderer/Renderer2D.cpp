@@ -43,19 +43,19 @@ namespace iara {
 
 	static Renderer2D_Storeage s_Data;
 
-	void iara::Renderer2D::Init() {
+	void Renderer2D::Init() {
 		IARA_PROFILE_FUNCTION();
 
-		s_Data.vao = (iara::VertexArray::Create());
+		s_Data.vao = (VertexArray::Create());
 
-		s_Data.vertexBuffer = (iara::VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex)));
+		s_Data.vertexBuffer = (VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex)));
 
 		s_Data.vertexBuffer->setLayout({
-			{ iara::ShaderDataType::Float3, "a_pos" },
-			{ iara::ShaderDataType::Float4, "a_color" },
-			{ iara::ShaderDataType::Float2, "a_tex" },
-			{ iara::ShaderDataType::Float, "a_tex_id" },
-			{ iara::ShaderDataType::Float, "a_tiling_mult" }
+			{ ShaderDataType::Float3, "a_pos" },
+			{ ShaderDataType::Float4, "a_color" },
+			{ ShaderDataType::Float2, "a_tex" },
+			{ ShaderDataType::Float, "a_tex_id" },
+			{ ShaderDataType::Float, "a_tiling_mult" }
 			});
 		s_Data.vao->AddVertexBuffer(s_Data.vertexBuffer);
 
@@ -89,7 +89,7 @@ namespace iara {
 			samplers[i] = i;
 		}
 
-		s_Data.tex_shader = iara::Shader::Create("texture", "Shaders/texture.vert", "Shaders/texture.frag");
+		s_Data.tex_shader = Shader::Create("texture", "Shaders/texture.vert", "Shaders/texture.frag");
 		s_Data.tex_shader->bind();
 		s_Data.tex_shader->setUniformIntArray("u_textures", samplers, s_Data.MaxTexSlots);
 
@@ -106,11 +106,11 @@ namespace iara {
 		s_Data.texCoords[3] = { 0.0f, 1.0f };
 	}
 
-	void iara::Renderer2D::Shutdown() {
+	void Renderer2D::Shutdown() {
 
 	}
 
-	void iara::Renderer2D::BeginScene(const OrthographicCamera& camera) {
+	void Renderer2D::BeginScene(const OrthographicCamera& camera) {
 		s_Data.tex_shader->bind();
 		s_Data.tex_shader->setUniformMat4f("u_VP", camera.getVP());
 
@@ -120,7 +120,7 @@ namespace iara {
 		s_Data.textureSlotInd = 1;
 	}
 
-	void iara::Renderer2D::EndScene() {
+	void Renderer2D::EndScene() {
 
 		uint32_t data_size = (uint8_t*)s_Data.quadVertexBufferPtr - (uint8_t*)s_Data.quadVertexBufferBase;
 		s_Data.vertexBuffer->SetData(s_Data.quadVertexBufferBase, data_size);
@@ -145,11 +145,11 @@ namespace iara {
 		s_Data.textureSlotInd = 1;
 	}
 
-	void iara::Renderer2D::drawQuadC(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color) {
+	void Renderer2D::drawQuadC(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color) {
 		drawQuadC({ pos.x, pos.y, 0.0f }, size, color);
 	}
 
-	void iara::Renderer2D::drawQuadC(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) {
+	void Renderer2D::drawQuadC(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) {
 
 		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
 			EndScene();

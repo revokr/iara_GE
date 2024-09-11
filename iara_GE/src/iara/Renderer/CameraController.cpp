@@ -1,7 +1,7 @@
 #include "ir_pch.h"
 #include "CameraController.h"
-#include "iara/Core/Input.h"
 #include "iara/Core/KeyCodes.h"
+#include "iara/Core/Input.h"
 
 namespace iara {
 
@@ -52,6 +52,12 @@ namespace iara {
 		dispather.Dispatch<WindowResizeEvent>(IARA_BIND_EVENT_FN(OrthographicCameraController::onWindowResize));
 	}
 
+	void OrthographicCameraController::resize(float w, float h) {
+		m_aspectRatio = w / h;
+		m_bounds = { -m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel };
+		m_camera.setProj(m_bounds.left, m_bounds.right, m_bounds.bot, m_bounds.top);
+	}
+
 	bool OrthographicCameraController::onMouseScroll(MouseScrolledEvent& e)	{
 		if (e.getOffsetY() < 0) m_zoomLevel -= -0.15f;
 		else m_zoomLevel -= 0.15f;
@@ -62,10 +68,8 @@ namespace iara {
 	}
 
 	bool OrthographicCameraController::onWindowResize(WindowResizeEvent& e) {
-		m_aspectRatio = ((float)e.getWidth() / (float)e.getHeight());
-		//m_camera.setProj(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
-		m_bounds = { -m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel };
-		m_camera.setProj(m_bounds.left, m_bounds.right, m_bounds.bot, m_bounds.top);
+		resize((float)e.getWidth(), (float)e.getHeight());
+		
 		return false;
 	}
 

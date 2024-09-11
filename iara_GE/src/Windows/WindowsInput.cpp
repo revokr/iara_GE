@@ -1,13 +1,11 @@
 #include "ir_pch.h"
-#include "WindowsInput.h"
+#include "iara/Core/Input.h"
 #include "iara/Core/Application.h"
 #include <GLFW/glfw3.h>
 
 namespace iara {
 
-    Input* Input::s_Inst = new WindowsInput();
-
-    bool WindowsInput::IsKeyPressedImpl(int keycode) {
+    bool Input::IsKeyPressed(int keycode) {
         auto window = static_cast<GLFWwindow*>(Application::Get().getWindow().GetNativeWindow());
 
         auto state = glfwGetKey(window, keycode);
@@ -15,26 +13,26 @@ namespace iara {
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
 
-    bool WindowsInput::IsMouseButtonPressedImpl(int button) {
+    bool Input::IsMouseButtonPressed(int button) {
         auto window = static_cast<GLFWwindow*>(Application::Get().getWindow().GetNativeWindow());
         auto state = glfwGetMouseButton(window, button);
         return state == GLFW_PRESS;
     }
 
-    std::pair<float, float> WindowsInput::GetMousePositionImpl() {
+    std::pair<float, float> Input::GetMousePosition() {
         auto window = static_cast<GLFWwindow*>(Application::Get().getWindow().GetNativeWindow());
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
         return std::make_pair<float, float>((float)xpos, (float)ypos);
     }
 
-    float WindowsInput::GetMouseXImpl() {
-        auto [x, y] = GetMousePositionImpl();
+    float Input::GetMouseX() {
+        auto [x, y] = GetMousePosition();
         return x;
     }
 
-    float WindowsInput::GetMouseYImpl() {
-        auto [x, y] = GetMousePositionImpl();
+    float Input::GetMouseY() {
+        auto [x, y] = GetMousePosition();
         return y;
     }
 

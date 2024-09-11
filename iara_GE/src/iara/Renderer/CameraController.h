@@ -20,6 +20,7 @@ namespace iara {
 
 		void onUpdate(Timestep ts);
 		void onEvent(Event& e);
+		void resize(float w, float h);
 
 		OrthographicCamera& getCamera() { return m_camera; }
 		const OrthographicCamera& getCamera() const { return m_camera; }
@@ -38,7 +39,7 @@ namespace iara {
 		glm::vec3 m_camerapos = { 0.0f, 0.0f, -0.3f };
 		float m_camera_rotation = 0.0f;
 		
-		float m_camera_speed = 1.0f, m_camera_rotation_speed = 100.0f;
+		float m_camera_speed = 0.7f, m_camera_rotation_speed = 100.0f;
 
 	};
 

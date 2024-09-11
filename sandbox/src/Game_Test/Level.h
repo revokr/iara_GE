@@ -17,7 +17,7 @@ public:
 	Level() {}
 
 	void init();
-	void onUpdate(iara::Timestep ts);
+	void onUpdate(Timestep ts);
 	void onRender();
 
 	void onImGuiRender();

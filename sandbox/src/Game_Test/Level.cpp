@@ -10,7 +10,7 @@ void Level::init() {
 	}
 }
 
-void Level::onUpdate(iara::Timestep ts) {
+void Level::onUpdate(Timestep ts) {
 	m_player.onUpdate(ts);
 
 	if (collisionTest()) {
@@ -27,8 +27,8 @@ void Level::onUpdate(iara::Timestep ts) {
 void Level::onRender() {
 	const auto& playerPos = m_player.getPosition();
 
-	iara::Renderer2D::drawQuadC({ playerPos.x,  12.0f }, { 30.0f, 10.0f }, color::Red);
-	iara::Renderer2D::drawQuadC({ playerPos.x, -12.0f }, { 30.0f, 10.0f }, color::Red);
+	Renderer2D::drawQuadC({ playerPos.x,  12.0f }, { 30.0f, 10.0f }, color::Red);
+	Renderer2D::drawQuadC({ playerPos.x, -12.0f }, { 30.0f, 10.0f }, color::Red);
 
 	for (auto& pillar : m_pillars) {
 		Renderer2D::drawQuadC(pillar.TopPosition, pillar.TopScale, color::Red);

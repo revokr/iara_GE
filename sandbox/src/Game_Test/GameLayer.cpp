@@ -20,7 +20,7 @@ void GameLayer::onDetach() {
 
 }
 
-void GameLayer::onUpdate(iara::Timestep ts) {
+void GameLayer::onUpdate(Timestep ts) {
 	// Update
 	if (m_level.isGameOver()) m_game_state = GameState::GameOver;
 
@@ -33,18 +33,18 @@ void GameLayer::onUpdate(iara::Timestep ts) {
 	}
 	
 	// Render
-	iara::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.2f, 0.2f, 1.0f));
-	iara::RenderCommand::Clear();
+	RenderCommand::SetClearColor(glm::vec4(0.1f, 0.2f, 0.2f, 1.0f));
+	RenderCommand::Clear();
 
 	glm::vec2 playerPos = m_level.getPlayer().getPosition();
 
 	m_camera->setPosition({ playerPos.x, playerPos.y, 0.0f });
 
-	iara::Renderer2D::BeginScene(*m_camera);
+	Renderer2D::BeginScene(*m_camera);
 
 	m_level.onRender();
 
-	iara::Renderer2D::EndScene();
+	Renderer2D::EndScene();
 }
 
 void GameLayer::onImGuiRender() {
@@ -55,7 +55,7 @@ void GameLayer::onImGuiRender() {
 	ImGui::End();
 }
 
-void GameLayer::onEvent(iara::Event& event) {
+void GameLayer::onEvent(Event& event) {
 	EventDispatcher dispathcer(event);
 	dispathcer.Dispatch<MouseButtonPressedEvent>(IARA_BIND_EVENT_FN(GameLayer::onMBPressed));
 }

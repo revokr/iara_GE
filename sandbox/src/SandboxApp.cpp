@@ -12,17 +12,17 @@
 #include "Game_Test/GameLayer.h"
 #include "Sandbox2D.h"
 
-class ExampleLayer : public iara::Layer {
+class ExampleLayer : public Layer {
 public:
 	ExampleLayer() : Layer{ "Example" }, m_camera_ctrl{1280.0f / 720.0f, true}, m_camerapos{0.0f, 0.0f, 5.5f},
 		m_perspective_camera_ctrl{1280.0f, 720.0f, 45.0f, 0.01f, 2000.0f},
 		m_customcolor{0.0f} 
 	{
-		iara::FramebufferSpecification fb_spec;
+		FramebufferSpecification fb_spec;
 		fb_spec.width = 300;
 		fb_spec.height = 150;
-		m_fb = iara::Framebuffer::Create(fb_spec);
-		m_vertexArray = (iara::VertexArray::Create());
+		m_fb = Framebuffer::Create(fb_spec);
+		m_vertexArray = (VertexArray::Create());
 
 		float vert[] = {
 			-0.5f, -0.5f, 0.0f,
@@ -31,11 +31,11 @@ public:
 			 0.5f,  0.5f, 0.0f
 		};
 
-		iara::Ref<iara::VertexBuffer> vertexBuffer;
-		vertexBuffer = (iara::VertexBuffer::Create(vert, sizeof(vert)));
+		Ref<VertexBuffer> vertexBuffer;
+		vertexBuffer = (VertexBuffer::Create(vert, sizeof(vert)));
 
-		iara::BufferLayout layout({
-			{ iara::ShaderDataType::Float3, "a_pos" }
+		BufferLayout layout({
+			{ ShaderDataType::Float3, "a_pos" }
 			});
 
 		vertexBuffer->setLayout(layout);
@@ -46,12 +46,12 @@ public:
 			1, 3, 2
 		};
 
-		iara::Ref<iara::IndexBuffer> indexBuffer;
-		indexBuffer = (iara::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		Ref<IndexBuffer> indexBuffer;
+		indexBuffer = (IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 
 		m_vertexArray->SetIndexBuffer(indexBuffer);
 
-		m_vertexArraySquare = (iara::VertexArray::Create());
+		m_vertexArraySquare = (VertexArray::Create());
 		float trianglevert[5 * 4] = {
 			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
 			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
@@ -59,11 +59,11 @@ public:
 			 0.5f,  0.5f, 0.0f, 1.0f, 1.0f
 		};
 
-		iara::Ref<iara::VertexBuffer> trVertBuff;
-		trVertBuff = (iara::VertexBuffer::Create(trianglevert, sizeof(trianglevert)));
+		Ref<VertexBuffer> trVertBuff;
+		trVertBuff = (VertexBuffer::Create(trianglevert, sizeof(trianglevert)));
 		trVertBuff->setLayout({
-			{iara::ShaderDataType::Float3, "a_pos"},
-		    { iara::ShaderDataType::Float2, "a_tex" }
+			{ShaderDataType::Float3, "a_pos"},
+		    { ShaderDataType::Float2, "a_tex" }
 			});
 		m_vertexArraySquare->AddVertexBuffer(trVertBuff);
 
@@ -71,25 +71,25 @@ public:
 			0, 1, 2,
 			1, 3, 2
 		};
-		iara::Ref<iara::IndexBuffer> trIndexBuff;
-		trIndexBuff = (iara::IndexBuffer::Create(indicesTriangle, sizeof(indicesTriangle) / sizeof(uint32_t)));
+		Ref<IndexBuffer> trIndexBuff;
+		trIndexBuff = (IndexBuffer::Create(indicesTriangle, sizeof(indicesTriangle) / sizeof(uint32_t)));
 		m_vertexArraySquare->SetIndexBuffer(trIndexBuff);
 
 
-		m_shader = iara::Shader::Create("basic1", "Shaders/basic1.vert", "Shaders/basic1.frag");
-		m_shader2 = (iara::Shader::Create("basic2", "Shaders/basic2.vert", "Shaders/basic2.frag"));
+		m_shader = Shader::Create("basic1", "Shaders/basic1.vert", "Shaders/basic1.frag");
+		m_shader2 = (Shader::Create("basic2", "Shaders/basic2.vert", "Shaders/basic2.frag"));
 
 		auto shader_tex = m_shaderLibrary.load("texture", "Shaders/texture.vert", "Shaders/texture.frag");
 
 
-		m_texture = iara::Texture2D::Create("Assets/Textures/horse.png");
-		m_checkers = iara::Texture2D::Create("Assets/Textures/check.png");
+		m_texture = Texture2D::Create("Assets/Textures/horse.png");
+		m_checkers = Texture2D::Create("Assets/Textures/check.png");
 
-		std::dynamic_pointer_cast<iara::OpenGLShader>(shader_tex)->bind();
-		std::dynamic_pointer_cast<iara::OpenGLShader>(shader_tex)->setUniformInt("u_texture", 0);
+		std::dynamic_pointer_cast<OpenGLShader>(shader_tex)->bind();
+		std::dynamic_pointer_cast<OpenGLShader>(shader_tex)->setUniformInt("u_texture", 0);
 	}
 
-	void onUpdate(iara::Timestep ts) override {
+	void onUpdate(Timestep ts) override {
 		//IARA_TRACE("Delta time : {0}s  ({1})ms" , ts.getSeconds(), ts.getMiliseconds());
 
 		// Update
@@ -99,10 +99,10 @@ public:
 		// Render
 		float time = ts;
 
-		iara::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.0f, 0.2f, 1.0f));
-		iara::RenderCommand::Clear();
+		RenderCommand::SetClearColor(glm::vec4(0.1f, 0.0f, 0.2f, 1.0f));
+		RenderCommand::Clear();
 
-		iara::Renderer::BeginScene(m_perspective_camera_ctrl.getCamera());
+		Renderer::BeginScene(m_perspective_camera_ctrl.getCamera());
 
 		glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f));
 
@@ -117,7 +117,7 @@ public:
 		glm::mat4 transform = glm::scale(glm::mat4(1.0f), glm::vec3(1.9f))
 			* glm::translate(glm::mat4(1.0), glm::vec3(0.30f, 0.0f, 0.0f));
 		transform = glm::rotate(transform, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		iara::Renderer::Submit(shader_tex, m_vertexArraySquare, transform);
+		Renderer::Submit(shader_tex, m_vertexArraySquare, transform);
 
 		m_shader->bind();
 		for (int i = 0; i < 20; i++) {
@@ -128,19 +128,19 @@ public:
 					m_shader->setUniform4f("u_color", redColor);
 				else 
 					m_shader->setUniform4f("u_color", blueColor);
-				iara::Renderer::Submit(m_shader, m_vertexArray, transform);
+				Renderer::Submit(m_shader, m_vertexArray, transform);
 			}
 		}
 		
 		m_texture->bind();
-		iara::Renderer::Submit(shader_tex, m_vertexArraySquare, glm::scale(glm::mat4(1.0f), glm::vec3(1.9f))
+		Renderer::Submit(shader_tex, m_vertexArraySquare, glm::scale(glm::mat4(1.0f), glm::vec3(1.9f))
 			* glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 0.0f, 0.1f)));
 
-		iara::Renderer::EndScene();
+		Renderer::EndScene();
 		
 	}
 
-	void onEvent(iara::Event& event) override {
+	void onEvent(Event& event) override {
 		IARA_TRACE(event.ToString());
 		m_camera_ctrl.onEvent(event);
 		m_perspective_camera_ctrl.onEvent(event);
@@ -152,18 +152,18 @@ public:
 		ImGui::End();
 	}
 private:
-	iara::ShaderLibrary m_shaderLibrary;
-	iara::Ref<iara::VertexArray> m_vertexArray;
-	iara::Ref<iara::Shader>	m_shader;
+	ShaderLibrary m_shaderLibrary;
+	Ref<VertexArray> m_vertexArray;
+	Ref<Shader>	m_shader;
 
-	iara::Ref<iara::VertexArray> m_vertexArraySquare;
-	iara::Ref<iara::Shader>	m_shader2;
+	Ref<VertexArray> m_vertexArraySquare;
+	Ref<Shader>	m_shader2;
 
-	iara::Ref<iara::Texture2D> m_texture, m_checkers;
-	iara::Ref<iara::Framebuffer> m_fb;
+	Ref<Texture2D> m_texture, m_checkers;
+	Ref<Framebuffer> m_fb;
 
-	iara::OrthographicCameraController m_camera_ctrl;
-	iara::PerspectiveCameraController m_perspective_camera_ctrl;
+	OrthographicCameraController m_camera_ctrl;
+	PerspectiveCameraController m_perspective_camera_ctrl;
 	glm::vec3 m_camerapos;
 	float m_camera_speed = 5.0f;
 	float m_camera_rotation_speed = 100.0f;

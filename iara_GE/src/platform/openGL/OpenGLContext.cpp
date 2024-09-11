@@ -26,10 +26,10 @@ namespace iara {
 		std::string vend = std::string(reinterpret_cast<const char*>(ss));
 		const unsigned char* sss = glGetString(GL_VERSION);
 		std::string vers = std::string(reinterpret_cast<const char*>(sss));
-		IARA_CORE_INFO("OpenGL Info:");
-		IARA_CORE_INFO("  Renderer: {0}", rend);
-		IARA_CORE_INFO("  Vendor: {0}", vend);
-		IARA_CORE_INFO("  Version: {0}", vers);
+		//IARA_CORE_INFO("OpenGL Info:");
+		//IARA_CORE_INFO("  Renderer: {0}", rend);
+		//IARA_CORE_INFO("  Vendor: {0}", vend);
+		//IARA_CORE_INFO("  Version: {0}", vers);
 	}
 
 	void OpenGLContext::SwapBuffers() {

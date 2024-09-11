@@ -17,8 +17,8 @@ namespace iara {
 
 		void onUpdate() override;
 
-		inline unsigned int GetHeight() const override {return m_Data.Height; }
-		inline unsigned int GetWidth() const override {return m_Data.Width; }
+		inline uint32_t GetHeight() const override {return m_Data.Height; }
+		inline uint32_t GetWidth() const override {return m_Data.Width; }
 
 		inline void SetEventCallback(const EventCallbackFn& callback) { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;

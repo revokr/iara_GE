@@ -4,25 +4,25 @@
 #include "iara.h"
 #include "Level.h"
 
-class GameLayer : public iara::Layer {
+class GameLayer : public Layer {
 public:
 	GameLayer();
 	virtual void onAttach() override;
 	virtual void onDetach() override;
-	virtual void onUpdate(iara::Timestep ts) override;
+	virtual void onUpdate(Timestep ts) override;
 	virtual void onImGuiRender() override;
-	virtual void onEvent(iara::Event& event) override;
+	virtual void onEvent(Event& event) override;
 	
 	bool onMBPressed(MouseButtonPressedEvent& event);
 private:
 	void CreateCamera(uint32_t width, uint32_t height);
 private:
-	iara::Ref<iara::VertexArray> m_vertexArray;
+	Ref<VertexArray> m_vertexArray;
 
-	iara::Ref<iara::Shader>	m_shader;
-	iara::Ref<iara::Texture2D> m_texture;
+	Ref<Shader>	m_shader;
+	Ref<Texture2D> m_texture;
 
-	iara::Scope<iara::OrthographicCamera> m_camera;
+	Scope<OrthographicCamera> m_camera;
 
 	Level m_level;
 
