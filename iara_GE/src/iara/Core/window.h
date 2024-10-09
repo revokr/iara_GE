@@ -14,8 +14,8 @@ namespace iara {
 		uint32_t Height;
 
 		WindowProps(const std::string& title = "IARA Engine",
-			uint32_t width = 1280,
-			uint32_t height = 720) :
+			uint32_t width = 1700,
+			uint32_t height = 950) :
 			Title{ title }, Width{ width }, Height{ height } {}
 	};
 

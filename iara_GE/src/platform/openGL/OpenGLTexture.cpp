@@ -4,6 +4,7 @@
 #include <stb_image.h>
 
 namespace iara {
+
 	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height)
 		: m_width{width}, m_height{height}
 	{
@@ -21,6 +22,7 @@ namespace iara {
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
+
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
 		: m_path{ path }
 	{

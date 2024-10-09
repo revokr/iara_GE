@@ -14,7 +14,6 @@
 class ZIara : public iara::Application {
 public:
 	ZIara() {
-		//pushLayer(new ExampleLayer());
 		pushLayer(new iara::EditorLayer());
 	}
 

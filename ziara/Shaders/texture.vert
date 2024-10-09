@@ -5,13 +5,13 @@ layout(location = 1) in vec4  a_color;
 layout(location = 2) in vec2  a_tex;
 layout(location = 3) in float a_tex_id;
 layout(location = 4) in float a_tiling_mult;
-
-
+layout(location = 5) in int a_entityID;
 
 out vec2  v_texCoord;
 out vec4  v_color;
 out float v_tex_id;
 out float v_tiling;
+flat out int v_entityID;
 
 uniform mat4 u_VP;
 
@@ -20,5 +20,6 @@ void main() {
 	v_texCoord = a_tex;
 	v_color = a_color;
 	v_tiling = a_tiling_mult;
+	v_entityID = a_entityID;
 	gl_Position = u_VP * vec4(a_pos, 1.0);
 }

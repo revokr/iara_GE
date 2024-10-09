@@ -13,11 +13,12 @@ namespace iara {
 
 		inline static std::shared_ptr<spdlog::logger>& getCoreLogger() { return s_CoreLogger; }
 		inline static std::shared_ptr<spdlog::logger>& getClientLogger() { return s_ClientLogger; }
+		inline static std::shared_ptr<spdlog::logger>& getEditorLogger() { return s_EditorLogger; }
 		
 	private:
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;
-	
+		static std::shared_ptr<spdlog::logger> s_EditorLogger;
 	};
 
 }
@@ -37,3 +38,10 @@ namespace iara {
 #define IARA_WARN(...)         iara::Log::getClientLogger()->warn(__VA_ARGS__)
 #define IARA_INFO(...)         iara::Log::getClientLogger()->info(__VA_ARGS__)
 #define IARA_TRACE(...)        iara::Log::getClientLogger()->trace(__VA_ARGS__)
+
+// Editor log macros
+#define ZIARA_FATAL(...)        iara::Log::getEditorLogger()->fatal(__VA_ARGS__)
+#define ZIARA_ERROR(...)        iara::Log::getEditorLogger()->error(__VA_ARGS__)
+#define ZIARA_WARN(...)         iara::Log::getEditorLogger()->warn(__VA_ARGS__)
+#define ZIARA_INFO(...)         iara::Log::getEditorLogger()->info(__VA_ARGS__)
+#define ZIARA_TRACE(...)        iara::Log::getEditorLogger()->trace(__VA_ARGS__)

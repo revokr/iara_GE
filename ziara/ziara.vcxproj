@@ -59,7 +59,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_DEBUG;IARA_PROFILE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;..\sandbox\Assets;..\sandbox\Shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;..\iara_GE\vendor\entt\include;..\sandbox\Assets;..\sandbox\Shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -76,7 +76,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;..\sandbox\Assets;..\sandbox\Shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;..\iara_GE\vendor\entt\include;..\sandbox\Assets;..\sandbox\Shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -94,9 +94,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\EditorLayer.h" />
+    <ClInclude Include="src\Panels\SceneHierarchyPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EditorLayer.cpp" />
+    <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\ziara_app.cpp" />
   </ItemGroup>
   <ItemGroup>

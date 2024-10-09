@@ -30,6 +30,8 @@ namespace iara {
 		inline Window& getWindow() { return *m_Window; }
 		inline static Application& Get(	) { return *s_Instance; }
 
+		inline ImGuiLayer* getImguiLayer() { return m_imgui_layer; }
+
 		virtual void pushLayer(Layer* layer);
 		virtual void pushOverlay(Layer* overlay);
 
@@ -47,6 +49,6 @@ namespace iara {
 		static Application* s_Instance;
 	};
 
-	// To be defined in CLIENT
+	/// To be defined in CLIENT
 	Application* CreateApplication();
 }

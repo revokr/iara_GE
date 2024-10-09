@@ -15,12 +15,16 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "iara_GE/vendor/glfw/include"
 IncludeDir["GLAD"] = "iara_GE/vendor/glad/include"
 IncludeDir["IMGUI"] = "iara_GE/vendor/imgui/"
+IncludeDir["IMGUIZMO"] = "iara_GE/vendor/ImGuizmo"
 IncludeDir["GLM"] = "iara_GE/vendor/glm/"
 IncludeDir["STB"] = "iara_GE/vendor/stb_image/"
+IncludeDir["ENTT"] = "iara_GE/vendor/entt/include"
+IncludeDir["YAML"] = "iara_GE/vendor/yaml/include"
 
 include "iara_GE/vendor/glfw"
 include "iara_GE/vendor/glad"
 include "iara_GE/vendor/imgui"
+include "iara_GE/vendor/yaml"
 
 project "iara_GE" 
 	location "iara_GE"
@@ -37,6 +41,7 @@ project "iara_GE"
 
 	files 
 	{
+		"%{prj.name}/src/Debug/**.h",
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
 		"%{prj.name}/vendor/stb_image/**.h",
@@ -44,7 +49,10 @@ project "iara_GE"
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
 		"%{prj.name}/vendor/Utils/**.h",
-		"%{prj.name}/vendor/Utils/**.save"
+		"%{prj.name}/vendor/Utils/**.save",
+
+		"%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
+		"%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp"
 	}
 
 	includedirs
@@ -54,18 +62,24 @@ project "iara_GE"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.GLAD}",
 		"%{IncludeDir.IMGUI}",
+		"%{IncludeDir.IMGUIZMO}",
 		"%{IncludeDir.GLM}",
 		"%{IncludeDir.STB}",
-		"%{prj.name}/vendor/Utils/"
+		"%{prj.name}/vendor/Utils/",
+		"%{IncludeDir.ENTT}",
+		"%{IncludeDir.YAML}"
 	}
 
 	links {
 		"GLFW",
 		"GLAD",
 		"IMGUI",
+		"YAML",
 		"opengl32.lib"
-		
 	}
+
+	filter "files:iara_GE/vendor/ImGuizmo/**.cpp"
+		flags {"NoPCH"}
 
 	filter "system:windows"
 		systemversion "latest"
@@ -112,7 +126,65 @@ project "sandbox"
 		"iara_GE/vendor",
 		"iara_GE/src",
 		"%{IncludeDir.GLM}",
-		"%{IncludeDir.GLFW}"
+		"%{IncludeDir.ENTT}"
+	}
+
+	links
+	{
+		"iara_GE"
+	}
+
+	filter "system:windows"
+		staticruntime "On"
+		systemversion "latest"
+
+		defines 
+		{
+			"IARA_PLATFORM_WINDOWS"
+		}
+
+	filter "configurations:Debug" 
+		defines "IARA_DEBUG"
+		symbols "on"
+		runtime "Debug"
+
+		defines 
+		{
+			"IARA_PROFILE"
+		}
+
+	filter "configurations:Release" 
+		defines "IARA_RELEASE"
+		runtime "Release"
+		optimize "on"
+	
+
+
+project "ziara" 
+	location "ziara"
+	kind "ConsoleApp"
+	cppdialect "C++17"
+	language "C++"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files 
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+
+	includedirs
+	{
+		"iara_GE/vendor/spdlog/include",
+		"iara_GE/vendor",
+		"iara_GE/src",
+		"%{IncludeDir.GLM}",
+		"%{IncludeDir.ENTT}",
+		"sandbox/Assets",
+		"sandbox/Shaders"
 	}
 
 	links

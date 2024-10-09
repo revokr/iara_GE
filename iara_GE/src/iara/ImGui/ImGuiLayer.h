@@ -14,12 +14,16 @@ namespace iara {
 
 		virtual void onAttach() override;
 		virtual void onDetach() override;
+		virtual void onEvent(Event& e) override;
 
 		void begin();
 		void end();
+
+		void BlockEvents(bool block) { m_block_events = block; }
 	private:
-
-
+		void setDarkThemeColors();
+	private:
+		bool m_block_events = true;	
 		float m_Time = 0.0f;
 	};
 }

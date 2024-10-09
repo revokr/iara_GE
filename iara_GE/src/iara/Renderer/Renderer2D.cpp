@@ -15,6 +15,9 @@ namespace iara {
 		glm::vec2 tex_coord;
 		float tex_index;
 		float tiling_mult;
+
+		/// Editor Only
+		int entityID;
 	};
 
 	struct Renderer2D_Storeage {
@@ -54,8 +57,9 @@ namespace iara {
 			{ ShaderDataType::Float3, "a_pos" },
 			{ ShaderDataType::Float4, "a_color" },
 			{ ShaderDataType::Float2, "a_tex" },
-			{ ShaderDataType::Float, "a_tex_id" },
-			{ ShaderDataType::Float, "a_tiling_mult" }
+			{ ShaderDataType::Float,  "a_tex_id" },
+			{ ShaderDataType::Float,  "a_tiling_mult" },
+			{ ShaderDataType::Int,	  "a_entityID"}
 			});
 		s_Data.vao->AddVertexBuffer(s_Data.vertexBuffer);
 
@@ -80,7 +84,7 @@ namespace iara {
 		s_Data.vao->SetIndexBuffer(indexBuffer);
 		delete[] quadIndices;
 
-		s_Data.white_tex = Texture2D::Create(1, 1);
+		s_Data.white_tex = Texture2D::CreateRef(1, 1);
 		uint32_t whiteTextureData = 0xffffffff;
 		s_Data.white_tex->setData(&whiteTextureData, sizeof(uint32_t));
 
@@ -107,7 +111,30 @@ namespace iara {
 	}
 
 	void Renderer2D::Shutdown() {
+		delete[] s_Data.quadVertexBufferBase;
+	}
 
+	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform) {
+		glm::mat4 viewproj = camera.getProjection() * glm::inverse(transform);
+
+		s_Data.tex_shader->bind();
+		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);
+
+		s_Data.QuadIndCnt = 0;
+		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
+
+		s_Data.textureSlotInd = 1;
+	}
+
+	void Renderer2D::BeginScene(EditorCamera& camera) {
+		s_Data.tex_shader->bind();
+		glm::mat4 viewproj = camera.getViewProjection();
+		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);
+
+		s_Data.QuadIndCnt = 0;
+		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
+
+		s_Data.textureSlotInd = 1;
 	}
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera) {
@@ -136,6 +163,7 @@ namespace iara {
 		RenderCommand::DrawIndexed(s_Data.vao, s_Data.QuadIndCnt);
 
 		s_Data.stats.draw_calls++;
+		
 	}
 
 	void Renderer2D::Reset() {
@@ -181,45 +209,8 @@ namespace iara {
 	}
 
 	void Renderer2D::drawQuadT(const glm::vec3& pos, const glm::vec2& size, const Ref<Texture2D>& texture, float tiling_mult) {
-
-		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
-			EndScene();
-			Reset();
-		}
-		
-		const glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-		/// Check if texture exists
-		float textureInd = 0.0f;
-
-		for (uint32_t i = 1; i < s_Data.textureSlotInd; i++) {
-			if (*s_Data.texture_slots[i].get() == *texture.get()) {
-				textureInd = float(i);	
-				break;
-			}
-		}
-
-		if (textureInd == 0.0f) {
-			textureInd = (float)s_Data.textureSlotInd;
-			s_Data.texture_slots[s_Data.textureSlotInd] = texture;
-			s_Data.textureSlotInd++;
-		}
-
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos)
-			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
-
-		for (size_t i = 0; i < 4; i++) {
-			s_Data.quadVertexBufferPtr->position = transform * s_Data.quadVertices[i];
-			s_Data.quadVertexBufferPtr->color = color;
-			s_Data.quadVertexBufferPtr->tex_coord = s_Data.texCoords[i];
-			s_Data.quadVertexBufferPtr->tex_index = textureInd;
-			s_Data.quadVertexBufferPtr->tiling_mult = tiling_mult;
-			s_Data.quadVertexBufferPtr++;
-		}
-
-		s_Data.QuadIndCnt += 6;
-
-		s_Data.stats.quad_count++;
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		drawQuadT(transform, texture, tiling_mult);
 	}
 
 	void Renderer2D::drawQuadTC(const glm::vec2& pos, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult) {
@@ -299,6 +290,95 @@ namespace iara {
 		s_Data.stats.quad_count++;
 	}
 
+	void Renderer2D::drawQuadC(const glm::mat4& transform, const glm::vec4& color, int entityID) {
+		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
+			EndScene();
+			Reset();
+		}
+
+		const float textureInd = 0.0f; /// White texture
+		const float tiling_mult = 1.0f;
+
+		for (size_t i = 0; i < 4; i++) {
+			s_Data.quadVertexBufferPtr->position = transform * s_Data.quadVertices[i];
+			s_Data.quadVertexBufferPtr->color = color;
+			s_Data.quadVertexBufferPtr->tex_coord = s_Data.texCoords[i];
+			s_Data.quadVertexBufferPtr->tex_index = textureInd;
+			s_Data.quadVertexBufferPtr->tiling_mult = tiling_mult;
+			s_Data.quadVertexBufferPtr->entityID = entityID;
+			s_Data.quadVertexBufferPtr++;
+		}
+
+		s_Data.QuadIndCnt += 6;
+
+		s_Data.stats.quad_count++;
+	}
+
+	void Renderer2D::drawQuadT(const glm::mat4& transform, const Ref<Texture2D>& texture, float tiling_mult, int entityID) {
+		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
+			EndScene();
+			Reset();
+		}
+
+		const glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+		/// Check if texture exists
+		float textureInd = 0.0f;
+
+		for (uint32_t i = 1; i < s_Data.textureSlotInd; i++) {
+			if (*s_Data.texture_slots[i].get() == *texture.get()) {
+				textureInd = float(i);
+				break;
+			}
+		}
+
+		if (textureInd == 0.0f) {
+			textureInd = (float)s_Data.textureSlotInd;
+			s_Data.texture_slots[s_Data.textureSlotInd] = texture;
+			s_Data.textureSlotInd++;
+		}
+
+		for (size_t i = 0; i < 4; i++) {
+			s_Data.quadVertexBufferPtr->position = transform * s_Data.quadVertices[i];
+			s_Data.quadVertexBufferPtr->color = color;
+			s_Data.quadVertexBufferPtr->tex_coord = s_Data.texCoords[i];
+			s_Data.quadVertexBufferPtr->tex_index = textureInd;
+			s_Data.quadVertexBufferPtr->tiling_mult = tiling_mult;
+			s_Data.quadVertexBufferPtr->entityID = entityID;
+			s_Data.quadVertexBufferPtr++;
+		}
+
+		s_Data.QuadIndCnt += 6;
+
+		s_Data.stats.quad_count++;
+	}
+
+	void Renderer2D::drawQuadRC(const glm::mat4& transform, float rotation, const glm::vec4& color) {
+		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
+			EndScene();
+			Reset();
+		}
+
+		const float textureInd = 0.0f; /// White texture
+		const float tiling_mult = 1.0f;
+
+		glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f });
+		glm::mat4 transform1 = rotate * transform;
+
+		for (size_t i = 0; i < 4; i++) {
+			s_Data.quadVertexBufferPtr->position = transform1 * s_Data.quadVertices[i];
+			s_Data.quadVertexBufferPtr->color = color;
+			s_Data.quadVertexBufferPtr->tex_coord = s_Data.texCoords[i];
+			s_Data.quadVertexBufferPtr->tex_index = textureInd;
+			s_Data.quadVertexBufferPtr->tiling_mult = tiling_mult;
+			s_Data.quadVertexBufferPtr++;
+		}
+
+		s_Data.QuadIndCnt += 6;
+
+		s_Data.stats.quad_count++;
+	}
+
 	void Renderer2D::drawQuadRT(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tiling_m) {
 		drawQuadRT({ position.x, position.y, 0.0f }, size, rotation, texture, tiling_m);
 	}
@@ -328,9 +408,9 @@ namespace iara {
 			s_Data.textureSlotInd++;
 		}
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) 
-			* glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
-			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos)
+			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f })
+			* glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f });
 
 		for (size_t i = 0; i < 4; i++) {
 			s_Data.quadVertexBufferPtr->position = transform * s_Data.quadVertices[i];
@@ -345,6 +425,11 @@ namespace iara {
 
 		s_Data.stats.quad_count++;
 	}
+
+	void Renderer2D::drawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID) {
+		drawQuadC(transform, src.color, entityID);
+	}
+
 	void Renderer2D::ResetStats() {
 		memset(&s_Data.stats, 0, sizeof(Statistics));
 	}

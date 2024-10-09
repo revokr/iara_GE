@@ -23,8 +23,8 @@ namespace iara {
 
 	class Texture2D : public Texture {
 	public:
-		static Ref<Texture2D> Create(uint32_t width, uint32_t height);
-		static Ref<Texture2D> Create(const std::string& path);
+		static Ref<Texture2D> CreateRef(uint32_t width, uint32_t height);
+		static Ref<Texture2D> CreateRef(const std::string& path);
 	};
 
 }

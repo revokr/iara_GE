@@ -31,7 +31,7 @@ namespace iara {
 
     Ref<Shader> ShaderLibrary::get(const std::string& name)
     {
-        IARA_CORE_ASSERT((m_shaders.find(s) != m_shaders.end()), "Shader not found!!");
+        IARA_CORE_ASSERT((m_shaders.find() != m_shaders.end()), "Shader not found!!");
         return m_shaders[name];
     }
 

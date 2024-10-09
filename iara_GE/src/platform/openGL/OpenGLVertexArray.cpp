@@ -49,12 +49,36 @@ namespace iara {
 		uint32_t index = 0;
 		const auto& layout = vertexBuffer->getLayout();
 		for (const auto& el : layout) {
-			glEnableVertexAttribArray(index);
-			glVertexAttribPointer(index, el.getComponentCount(),
-				ShaderDataType_to_OpenGLBaseType(el.type),
-				el.normalized ? GL_TRUE : GL_FALSE,
-				layout.getStride(), (const void*)el.offset);
-			index++;
+			switch (el.type)
+			{
+			case ShaderDataType::Float:
+			case ShaderDataType::Float2:
+			case ShaderDataType::Float3:
+			case ShaderDataType::Float4:
+			{
+				glEnableVertexAttribArray(index);
+				glVertexAttribPointer(index, el.getComponentCount(),
+					ShaderDataType_to_OpenGLBaseType(el.type),
+					el.normalized ? GL_TRUE : GL_FALSE,
+					layout.getStride(), (const void*)el.offset);
+				index++;
+				break;
+			}
+			case ShaderDataType::Int:
+			case ShaderDataType::Int2:
+			case ShaderDataType::Int3:
+			case ShaderDataType::Int4:
+			case ShaderDataType::Bool:
+			{
+				glEnableVertexAttribArray(index);
+				glVertexAttribIPointer(index, el.getComponentCount(),
+					ShaderDataType_to_OpenGLBaseType(el.type),
+					layout.getStride(), (const void*)el.offset);
+				index++;
+				break;
+			}
+
+			}
 		}
 		m_vertexbuffers.push_back(vertexBuffer);
 	}

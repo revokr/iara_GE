@@ -1,6 +1,7 @@
 #pragma once
 
 #include "iara.h"
+#include "Panels\SceneHierarchyPanel.h"
 
 namespace iara {
 
@@ -13,17 +14,28 @@ namespace iara {
 		virtual void onImGuiRender() override;
 		virtual void onEvent(iara::Event& event) override;
 	private:
+		bool onKeyPressed(KeyPressedEvent& e);
 
+		void NewScene();
+		void OpenScene();
+		void SaveSceneAs();
 	private:
-		iara::OrthographicCameraController m_camera;
-
-		iara::Ref<iara::Texture2D> m_checkerboard;
-		iara::Ref<iara::Texture2D> m_checkerboard2;
-
 		iara::Ref<iara::Framebuffer> m_framebuffer;
 		glm::vec2 m_viewportSize;
+		glm::vec2 m_viewport_bounds[2];
+		bool m_viewportFocus = false, m_viewportHover = false;
+		
+		Ref<Scene> m_active_scene;
+		Ref<Scene> m_editor_scene;
 
-		glm::vec4 m_color = { 0.2f, 0.4f, 0.2f, 1.0f };
-		glm::vec2 m_pos = { 0.0f, 0.0f }, m_scale = { 0.8f, 0.9f };
+		EditorCamera m_editor_camera;
+		/// Panel
+		SceneHierarchyPanel m_scene_h_panel;
+
+		int m_gizmo_type = -1;
+		int m_hovered_pixel_entity = -1;
+		Entity m_selected_entity;
+
+		bool once = true;
 	};
 }

@@ -1,7 +1,14 @@
 #include "EditorLayer.h"
 
 #include <imgui/imgui.h>
+#include <ImGuizmo\ImGuizmo.h>
 #include <chrono>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm\gtc\type_ptr.hpp>
+
+#include "iara\Scene\SceneSerializer.h" 
+#include "iara\Utils\FileDialogsUtils.h"
+#include "iara\Math\Math.h"
 
 namespace iara {
 
@@ -12,21 +19,26 @@ namespace iara {
     }
 
     EditorLayer::EditorLayer()
-        : m_camera{ 1280.0f / 720.0f, true }
     {
-
     }
 
     void EditorLayer::onAttach() {
-        iara::FramebufferSpecification fb_spec;
+        FramebufferSpecification fb_spec;
+        fb_spec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::Depth };
         fb_spec.width = 1280;
         fb_spec.height = 720;
         m_viewportSize.x = 1280.0f;
         m_viewportSize.y = 720.0f;
         m_framebuffer = iara::Framebuffer::Create(fb_spec);
 
-        m_checkerboard = iara::Texture2D::Create("Assets/Textures/check4.png");
-        m_checkerboard2 = iara::Texture2D::Create("Assets/Textures/Check2.png");
+        m_active_scene = CreateRef<Scene>();
+
+        m_editor_camera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+        
+        m_scene_h_panel.setContext(m_active_scene);
+
+
+        
     }
 
     void EditorLayer::onDetach() {
@@ -34,40 +46,68 @@ namespace iara {
     }
 
     void EditorLayer::onUpdate(iara::Timestep ts) {
+        if (once) {
+            m_active_scene = CreateRef<Scene>();
+            SceneSerializer serializer(m_active_scene);
+            serializer.deserialize("Assets/scenes/cube.iara");
 
-        {/// Update
-            m_camera.onUpdate(ts);
+            m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+            m_scene_h_panel.setContext(m_active_scene);
+            m_selected_entity = {};
+
+            m_active_scene = CreateRef<Scene>();
+            SceneSerializer serializer2(m_active_scene);
+            serializer2.deserialize("Assets/scenes/smth.iara");
+
+            m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+            m_scene_h_panel.setContext(m_active_scene);
+            m_selected_entity = {};
+
+            once = false;
         }
 
+        /// Resize
+        if (FramebufferSpecification spec = m_framebuffer->getSpecification();
+            m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
+            (spec.width != m_viewportSize.x || spec.height != m_viewportSize.y)) {
+            
+            m_framebuffer->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+            m_editor_camera.setViewportSize(m_viewportSize.x, m_viewportSize.y);
+            m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+        }
+
+        /// Update
+        if (m_viewportFocus)
+            m_editor_camera.onUpdate(ts);
+
+        m_editor_scene = m_active_scene;
+
         /// Render
-
         iara::Renderer2D::ResetStats();
-
-        //IARA_PROFILE_SCOPE("Renderer prep");
-        static float rotation = 0.0f;
-        rotation += ts * 30.0f;
-
-
         m_framebuffer->bind();
         iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
         iara::RenderCommand::Clear();
 
-        //IARA_PROFILE_SCOPE("Renderer draw");
-        iara::Renderer2D::BeginScene(m_camera.getCamera());
+        /// Clear our entityID att to -1
+        m_framebuffer->clearAttachment(1, -1);
 
-        iara::Renderer2D::drawQuadRT({ 6.0f, 0.0f, 0.16f }, { 3.0f, 3.0f }, rotation, m_checkerboard2, 5.0f);
-        iara::Renderer2D::drawQuadT({ 0.0f, 0.0f, 0.1f }, { 25.0f, 25.0f }, m_checkerboard, 3.4f);
-        //Renderer2D::drawQuadTC({ 20.0f, 0.0f, 0.15f }, { 20.0f, 20.0f }, m_checkerboard, color::Red, 3.0f);
-        for (float y = -10.0f; y <= 10.0f; y += 1.0f) {
-            for (float x = -10.0f; x <= 10.0f; x += 1.0f) {
-                glm::vec4 color = { (x + 10.0f) / 20.0f, (y + 10.0f) / 20.0f, 0.4f, 0.75f };
-                iara::Renderer2D::drawQuadC({ x, y, 0.15f }, { 0.85f, 0.85f }, color);
-            }
+        /// update scene
+        m_editor_scene->onUpdateEditor(ts, m_editor_camera);
+        
+        auto [mx, my] = ImGui::GetMousePos();
+        mx -= m_viewport_bounds[0].x;
+        my -= m_viewport_bounds[0].y;
+        glm::vec2 viewport_size = m_viewport_bounds[1] - m_viewport_bounds[0];
+        my = viewport_size.y - my;
+
+        int mousex = (int)mx;
+         int mousey = (int)my;
+
+        if (mousex >= 0 && mousey >= 0 && mousex <= (int)viewport_size.x && mousey <= (int)viewport_size.y) {
+            m_hovered_pixel_entity = m_framebuffer->readPixel(1, mousex, mousey);
         }
-        iara::Renderer2D::drawQuadC({ 0.0f, 0.0f, 0.16f }, { 5.85f, 5.85f }, { 0.5f, 0.6f, 0.2f, 1.0f });
-        iara::Renderer2D::EndScene();
-        m_framebuffer->unbind();
 
+        m_framebuffer->unbind();
     }
 
     void EditorLayer::onImGuiRender() {
@@ -118,29 +158,52 @@ namespace iara {
 
             // Submit the DockSpace
             ImGuiIO& io = ImGui::GetIO();
+            ImGuiStyle& style = ImGui::GetStyle();
+            float min_win_sizeX = style.WindowMinSize.x;
+            style.WindowMinSize.x = 370.0f;
             if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
             {
                 ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
                 ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
             }
 
+            style.WindowMinSize.x = min_win_sizeX;
+
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::BeginMenu("File"))
                 {
                     // Disabling fullscreen would allow the window to be moved to the front of other windows,
                     // which we can't undo at the moment without finer window depth/z control.
+
+                    if (ImGui::MenuItem("New", "Ctrl+N")) {
+                        NewScene();
+                    }
+                    else if (ImGui::MenuItem("Open...", "Ctrl+O")) {
+                        OpenScene();
+                    }
+                    else if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S")) {
+                        SaveSceneAs();
+                    }
+
                     if (ImGui::MenuItem("Exit")) iara::Application::Get().Close();
                     ImGui::EndMenu();
                 }
                 ImGui::EndMenuBar();
             }
 
+            m_scene_h_panel.onImGuiRender();
 
-
-            ImGui::Begin("Profile Results");
+            ImGui::Begin("Settings");
 
             auto stats = iara::Renderer2D::getStats();
 
+            /*Entity hovered_entity = m_hovered_pixel_entity == -1 ? Entity() : Entity((entt::entity)m_hovered_pixel_entity, m_active_scene.get());
+            std::string name = "None";
+            if (hovered_entity) {
+                name = hovered_entity.getComponent<TagComponent>().tag;
+            }
+
+            ImGui::Text("Hovered Entity: %s", name.c_str());*/
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::Text("Renderer Stats: ");
@@ -153,16 +216,80 @@ namespace iara {
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
             ImGui::Begin("Viewport");
-            ImVec2 viewportPaneSize = ImGui::GetContentRegionAvail();
-            if (m_viewportSize.x != viewportPaneSize.x && m_viewportSize.y != viewportPaneSize.y) {
-                m_framebuffer->resize((uint32_t)viewportPaneSize.x, (uint32_t)viewportPaneSize.y);
-                m_viewportSize = { viewportPaneSize.x , viewportPaneSize.y };
+            auto viewport_min_region = ImGui::GetWindowContentRegionMin();
+            auto viewport_max_region = ImGui::GetWindowContentRegionMax();
+            auto viewport_offset = ImGui::GetWindowPos(); // includes the tab bar
 
-                m_camera.resize(m_viewportSize.x, m_viewportSize.y);
+            m_viewport_bounds[0] = { viewport_min_region.x + viewport_offset.x, viewport_min_region.y + viewport_offset.y };
+            m_viewport_bounds[1] = { viewport_max_region.x + viewport_offset.x, viewport_max_region.y + viewport_offset.y };
+
+            m_viewportFocus = ImGui::IsWindowFocused();
+            m_viewportHover = ImGui::IsWindowHovered();
+            Application::Get().getImguiLayer()->BlockEvents(!m_viewportFocus && !m_viewportHover); 
+
+            ImVec2 viewportPaneSize = ImGui::GetContentRegionAvail();
+            if (m_viewportSize.x != viewportPaneSize.x || m_viewportSize.y != viewportPaneSize.y) {
+                //m_framebuffer->resize((uint32_t)viewportPaneSize.x, (uint32_t)viewportPaneSize.y);
+                m_viewportSize = { viewportPaneSize.x , viewportPaneSize.y };
             }
-            IARA_INFO("Viewport size: {0} x {1}", viewportPaneSize.x, viewportPaneSize.y);
-            uint32_t texID = m_framebuffer->getColorAtt();  // Get the texture from the framebuffer
+            //ZIARA_INFO("Viewport size: {0} x {1}", viewportPaneSize.x, viewportPaneSize.y);
+            uint32_t texID = m_framebuffer->getColorAtt(0);  // Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(m_viewportSize.x, m_viewportSize.y), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+            
+            Entity selected_entity;
+            /// Gizmo
+            
+            if (m_hovered_pixel_entity == -1) {
+                m_selected_entity = m_scene_h_panel.getSelectedEntity();
+            }
+            else if (Input::IsMouseButtonPressed(IARA_MOUSE_BUTTON_1) && Input::IsKeyPressed(IARA_KEY_LEFT_SHIFT)) {
+                m_scene_h_panel.setMouseHovered((uint32_t)m_hovered_pixel_entity);
+                m_selected_entity = m_scene_h_panel.getSelectedEntity();
+            }
+            if (m_selected_entity && m_gizmo_type != -1) {
+                ImGuizmo::SetOrthographic(false);
+                ImGuizmo::SetDrawlist();
+                ImGuizmo::SetRect(m_viewport_bounds[0].x, m_viewport_bounds[0].y, m_viewport_bounds[1].x - m_viewport_bounds[0].x, m_viewport_bounds[1].y - m_viewport_bounds[0].y);
+
+                /// Camera Runtime0
+                    /// auto camera_entity = m_active_scene->getPrimaryCameraEntity();
+                    /// auto& camera = camera_entity.getComponent<CameraComponent>().camera;
+                    /// const glm::mat4& camera_proj = camera.getProjection();
+                    /// glm::mat4 camera_view = glm::inverse(camera_entity.getComponent<TransformComponent>().getTransform());
+
+                
+                /// Editor Camera
+                const glm::mat4& camera_proj = m_editor_camera.getProjection();
+                glm::mat4 camera_view = m_editor_camera.getViewMatrix();
+
+                /// Entity transform 
+                auto& tc = m_selected_entity.getComponent<TransformComponent>();
+                glm::mat4 transform = tc.getTransform();
+
+                /// Snapping
+                bool snap = Input::IsKeyPressed(IARA_KEY_LEFT_CONTROL);
+                float snap_val = 0.5f; /// snap to 0.5m for translation and scale
+                if (m_gizmo_type == ImGuizmo::OPERATION::ROTATE)
+                    snap_val = 45.0f;
+
+                float snap_vals[3] = { snap_val, snap_val, snap_val };
+
+                ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_proj), 
+                    ImGuizmo::OPERATION(m_gizmo_type), ImGuizmo::LOCAL, glm::value_ptr(transform),
+                    nullptr, snap ? snap_vals : nullptr);
+
+                if (ImGuizmo::IsUsing()) {
+                    glm::vec3 translation, rotation, scale;
+                    math::decomposeTransform(transform, translation, rotation, scale);
+
+
+                    glm::vec3 delta_rotation = rotation - tc.rotation;
+                    tc.translation = translation;
+                    tc.rotation += delta_rotation;
+                    tc.scale = scale;
+                }
+            }
+            
             ImGui::End();
             ImGui::PopStyleVar();
 
@@ -171,7 +298,83 @@ namespace iara {
     }
 
     void EditorLayer::onEvent(iara::Event& event) {
-        m_camera.onEvent(event);
+        m_editor_camera.onEvent(event);
+
+        EventDispatcher dispatcher(event);
+        dispatcher.Dispatch<KeyPressedEvent>(IARA_BIND_EVENT_FN(EditorLayer::onKeyPressed));
+    }
+
+    bool EditorLayer::onKeyPressed(KeyPressedEvent& e) {
+        /// Shortcuts
+        if (e.getRepeatCount() > 0) return false;
+
+        bool controll = Input::IsKeyPressed(IARA_KEY_LEFT_CONTROL);
+        bool shiftt = Input::IsKeyPressed(IARA_KEY_LEFT_SHIFT);
+        switch (e.getKeyCode())
+        {
+            case IARA_KEY_S: 
+                if (controll && shiftt) {
+                    SaveSceneAs();
+                }
+                break;
+            
+            case IARA_KEY_N: 
+                if (controll) {
+                    NewScene();
+                }
+                break;
+            
+            case IARA_KEY_O: 
+                if (controll) {
+                    OpenScene();
+                }
+                break;
+           
+
+            /// Gizmo
+            case IARA_KEY_Q:
+                m_gizmo_type = -1;
+                break;
+            case IARA_KEY_W:
+                m_gizmo_type = ImGuizmo::OPERATION::TRANSLATE;
+                break;
+            case IARA_KEY_E:
+                m_gizmo_type = ImGuizmo::OPERATION::ROTATE;
+                break;
+            case IARA_KEY_R:
+                m_gizmo_type = ImGuizmo::OPERATION::SCALE;
+                break;
+        }
+        return false;
+    }
+
+    void EditorLayer::NewScene() {
+        m_active_scene = CreateRef<Scene>();
+        m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+        m_scene_h_panel.setContext(m_active_scene);
+
+        m_selected_entity = {};
+    }
+
+    void EditorLayer::OpenScene() {
+        std::string filepath = FileDialogs::openFile("IARA Scene (*.iara)\0*.iara\0");
+        if (!filepath.empty()) {
+            m_active_scene = CreateRef<Scene>();
+            SceneSerializer serializer(m_active_scene);
+            serializer.deserialize(filepath);
+
+            m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+            m_scene_h_panel.setContext(m_active_scene);
+            m_selected_entity = {};
+        }
+    }
+
+    void EditorLayer::SaveSceneAs() {
+        std::string filepath = FileDialogs::saveFile("IARA Scene (*.iara)\0*.iara\0");
+        if (!filepath.empty()) {
+            SceneSerializer serializer2(m_active_scene);
+            serializer2.serialize(filepath);
+        }
     }
 
 }

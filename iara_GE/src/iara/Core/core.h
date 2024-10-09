@@ -1,7 +1,9 @@
 #pragma once
 
+#include "iara/Core/Log.h"
 #include <memory>
 #include <intrin.h>
+#include <assert.h>
 
 #ifdef IARA_PLATFORM_WINDOWS
 #if IARA_DYNAMIC_LINK
@@ -18,15 +20,11 @@
 
 #define BIT(x) (1 << x)
 
-#ifdef IARA_ASSERTS
-	#define IARA_ASSERT(x, ...) { if (!(x)) { 
-		IARA_ERROR("Assertion failed {0}", __VA_ARGS__);
-		__debugbreak(); }}
-	#define IARA_CORE_ASSERT(x, ...) { if (!(x)) { 
-			IARA_CORE_ERROR("Assertion failed {0}", __VA_ARGS__);
-			__debugbreak(); }}
+#ifdef IARA_ASSERTSS
+	#define IARA_ASSERT(x, ...) 
+	#define IARA_CORE_ASSERT(x, ...)
 #else 
-	#define IARA_ASSERT(x, ...)
+	#define IARA_ASSERT(x, ...) if (!x) { __debugbreak(); }
 	#define IARA_CORE_ASSERT(x, ...) 
 #endif
 

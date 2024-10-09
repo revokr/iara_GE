@@ -22,6 +22,12 @@
     <Filter Include="src\iara\Renderer">
       <UniqueIdentifier>{3F0A3760-AB20-35F6-F497-C01760ED057E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\iara\Scene">
+      <UniqueIdentifier>{56120B0C-42E0-FE11-2B74-6F3817E1DA76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\iara\Utils">
+      <UniqueIdentifier>{99A6380C-8574-2C12-6E08-9D385A750877}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\iara\events">
       <UniqueIdentifier>{5D0CC2B8-C997-2F7D-D2A8-B2713EB38B7D}</UniqueIdentifier>
     </Filter>
@@ -33,6 +39,9 @@
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\ImGuizmo">
+      <UniqueIdentifier>{73BF7F4C-DF4A-ED10-E85B-700554664911}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\glm">
       <UniqueIdentifier>{829FC5A8-6E57-07F6-D75E-E051C335A2E6}</UniqueIdentifier>
@@ -64,9 +73,6 @@
       <Filter>src\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\Windows\Window_Win.h">
-      <Filter>src\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Windows\WindowsInput.h">
       <Filter>src\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\Windows\WindowsPlatform.h">
@@ -147,6 +153,27 @@
     <ClInclude Include="src\iara\Renderer\shader.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Scene\Component.h">
+      <Filter>src\iara\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Scene\Entity.h">
+      <Filter>src\iara\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Scene\Scene.h">
+      <Filter>src\iara\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Scene\SceneCamera.h">
+      <Filter>src\iara\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Scene\SceneSerializer.h">
+      <Filter>src\iara\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Scene\ScriptableEntity.h">
+      <Filter>src\iara\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Utils\FileDialogsUtils.h">
+      <Filter>src\iara\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="src\iara\events\AppEvent.h">
       <Filter>src\iara\events</Filter>
     </ClInclude>
@@ -185,6 +212,9 @@
     </ClInclude>
     <ClInclude Include="src\platform\openGL\imgui_impl_opengl3.h">
       <Filter>src\platform\openGL</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h">
+      <Filter>vendor\ImGuizmo</Filter>
     </ClInclude>
     <ClInclude Include="vendor\glm\glm\common.hpp">
       <Filter>vendor\glm\glm</Filter>
@@ -1437,6 +1467,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Math\Math.h" />
+    <ClInclude Include="src\iara\Renderer\EditorCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Windows\Window_Win.cpp">
@@ -1499,6 +1531,21 @@
     <ClCompile Include="src\iara\Renderer\shader.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\Scene\Entity.cpp">
+      <Filter>src\iara\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Scene\Scene.cpp">
+      <Filter>src\iara\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Scene\SceneCamera.cpp">
+      <Filter>src\iara\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Scene\SceneSerializer.cpp">
+      <Filter>src\iara\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Utils\WindowsUtils.cpp">
+      <Filter>src\iara\Utils</Filter>
+    </ClCompile>
     <ClCompile Include="src\ir_pch.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -1526,8 +1573,13 @@
     <ClCompile Include="src\platform\openGL\imgui_impl_opengl3.cpp">
       <Filter>src\platform\openGL</Filter>
     </ClCompile>
+    <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp">
+      <Filter>vendor\ImGuizmo</Filter>
+    </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\Math\Math.cpp" />
+    <ClCompile Include="src\iara\Renderer\EditorCamera.cpp" />
   </ItemGroup>
 </Project>

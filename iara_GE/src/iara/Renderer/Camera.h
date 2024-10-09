@@ -1,8 +1,20 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace iara {
+
+	class Camera {
+	public:
+		Camera() = default;
+		Camera(const glm::mat4& prj)
+			: m_projection{ prj } {}
+
+		const glm::mat4& getProjection() const { return m_projection; }
+	protected:
+		glm::mat4 m_projection;
+	};
 
 	class OrthographicCamera {
 	public:

@@ -54,7 +54,7 @@ namespace iara {
 
 		if (!s_GLFWInit) {
 			int success = glfwInit();
-			IARA_CORE_ASSERT(succes, "Failed to initialize GLFW");
+			IARA_CORE_ASSERT(success, "Failed to initialize GLFW");
 			glfwSetErrorCallback(GLFWErrorCallback);
 			s_GLFWInit = true;
 		}

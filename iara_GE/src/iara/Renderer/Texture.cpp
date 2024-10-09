@@ -5,7 +5,7 @@
 #include "platform/openGL/OpenGLTexture.h"
 
 namespace iara {
-    Ref<Texture2D> Texture2D::Create(uint32_t width, uint32_t height) {
+    Ref<Texture2D> Texture2D::CreateRef(uint32_t width, uint32_t height) {
         switch (Renderer::getRendererAPI()) {
         case RendererAPI::API::None:     IARA_CORE_ASSERT(false, "RendererAPI::None is not supported!!");
         case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLTexture2D>(width, height);
@@ -16,10 +16,10 @@ namespace iara {
     }
 
 
-    Ref<Texture2D> Texture2D::Create(const std::string& path) {
+    Ref<Texture2D> Texture2D::CreateRef(const std::string& path) {
         switch (Renderer::getRendererAPI()) {
         case RendererAPI::API::None:     IARA_CORE_ASSERT(false, "RendererAPI::None is not supported!!");
-        case RendererAPI::API::OpenGL:   return CreateRef<OpenGLTexture2D>(path);
+        case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLTexture2D>(path);
         }
 
         IARA_CORE_ASSERT(false, "Unknown renderer API");

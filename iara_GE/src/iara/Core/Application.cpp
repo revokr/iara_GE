@@ -41,7 +41,6 @@ namespace iara {
 		dispatcher.Dispatch<WindowResizeEvent>(IARA_BIND_EVENT_FN(Application::onWindowResize)); 
 		
 		{
-
 			IARA_PROFILE_SCOPE("Layer Event loop");
 			for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
 				if (e.m_Handled) break;

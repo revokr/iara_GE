@@ -1,3 +1,5 @@
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Math\Math.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Math.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\EditorCamera.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\EditorCamera.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\Windows\Window_Win.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Window_Win.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\Windows\WindowsInput.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\WindowsInput.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\Windows\WindowsPlatform.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\WindowsPlatform.obj
@@ -18,6 +20,11 @@ C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\RendererAPI.cpp;C
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Texture.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Texture.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\VertexArray.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\VertexArray.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\shader.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\shader.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\Entity.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Entity.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\Scene.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Scene.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\SceneCamera.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\SceneCamera.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\SceneSerializer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\SceneSerializer.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Utils\WindowsUtils.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\WindowsUtils.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\ir_pch.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\ir_pch.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLBuffer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\OpenGLBuffer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLContext.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\OpenGLContext.obj
@@ -27,4 +34,5 @@ C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLShader.cp
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLTexture.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\OpenGLTexture.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLVertexArray.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\OpenGLVertexArray.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\imgui_impl_opengl3.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\imgui_impl_opengl3.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\vendor\ImGuizmo\ImGuizmo.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\ImGuizmo.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\vendor\stb_image\stb_image.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\stb_image.obj

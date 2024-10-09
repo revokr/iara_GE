@@ -58,7 +58,7 @@
       <PrecompiledHeaderFile>ir_pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;IARA_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;src;vendor\glfw\include;vendor\glad\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\spdlog\include;src;vendor\glfw\include;vendor\glad\include;vendor\imgui;vendor\ImGuizmo;vendor\glm;vendor\stb_image;vendor\Utils;vendor\entt\include;vendor\yaml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -79,7 +79,7 @@
       <PrecompiledHeaderFile>ir_pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;IARA_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;src;vendor\glfw\include;vendor\glad\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\spdlog\include;src;vendor\glfw\include;vendor\glad\include;vendor\imgui;vendor\ImGuizmo;vendor\glm;vendor\stb_image;vendor\Utils;vendor\entt\include;vendor\yaml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -100,9 +100,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Debug\Instrumentor.h" />
+    <ClInclude Include="src\iara\Math\Math.h" />
+    <ClInclude Include="src\iara\Renderer\EditorCamera.h" />
     <ClInclude Include="src\Windows\Platform.h" />
     <ClInclude Include="src\Windows\Window_Win.h" />
-    <ClInclude Include="src\Windows\WindowsInput.h" />
     <ClInclude Include="src\Windows\WindowsPlatform.h" />
     <ClInclude Include="src\iara.h" />
     <ClInclude Include="src\iara\Core\Application.h" />
@@ -129,6 +130,13 @@
     <ClInclude Include="src\iara\Renderer\Texture.h" />
     <ClInclude Include="src\iara\Renderer\VertexArray.h" />
     <ClInclude Include="src\iara\Renderer\shader.h" />
+    <ClInclude Include="src\iara\Scene\Component.h" />
+    <ClInclude Include="src\iara\Scene\Entity.h" />
+    <ClInclude Include="src\iara\Scene\Scene.h" />
+    <ClInclude Include="src\iara\Scene\SceneCamera.h" />
+    <ClInclude Include="src\iara\Scene\SceneSerializer.h" />
+    <ClInclude Include="src\iara\Scene\ScriptableEntity.h" />
+    <ClInclude Include="src\iara\Utils\FileDialogsUtils.h" />
     <ClInclude Include="src\iara\events\AppEvent.h" />
     <ClInclude Include="src\iara\events\Event.h" />
     <ClInclude Include="src\iara\events\KeyEvent.h" />
@@ -142,6 +150,7 @@
     <ClInclude Include="src\platform\openGL\OpenGLTexture.h" />
     <ClInclude Include="src\platform\openGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\platform\openGL\imgui_impl_opengl3.h" />
+    <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
     <ClInclude Include="vendor\glm\glm\detail\_features.hpp" />
     <ClInclude Include="vendor\glm\glm\detail\_fixes.hpp" />
@@ -561,6 +570,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\iara\Math\Math.cpp" />
+    <ClCompile Include="src\iara\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\Windows\Window_Win.cpp" />
     <ClCompile Include="src\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Windows\WindowsPlatform.cpp" />
@@ -581,6 +592,11 @@
     <ClCompile Include="src\iara\Renderer\Texture.cpp" />
     <ClCompile Include="src\iara\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\iara\Renderer\shader.cpp" />
+    <ClCompile Include="src\iara\Scene\Entity.cpp" />
+    <ClCompile Include="src\iara\Scene\Scene.cpp" />
+    <ClCompile Include="src\iara\Scene\SceneCamera.cpp" />
+    <ClCompile Include="src\iara\Scene\SceneSerializer.cpp" />
+    <ClCompile Include="src\iara\Utils\WindowsUtils.cpp" />
     <ClCompile Include="src\ir_pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -592,6 +608,9 @@
     <ClCompile Include="src\platform\openGL\OpenGLTexture.cpp" />
     <ClCompile Include="src\platform\openGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\platform\openGL\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -603,6 +622,9 @@
     </ProjectReference>
     <ProjectReference Include="vendor\imgui\IMGUI.vcxproj">
       <Project>{606F530D-CC83-7BBE-9505-1F1E01D977EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\yaml\YAML.vcxproj">
+      <Project>{F8FB8E7C-E432-900D-8D1F-761079350C0F}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
