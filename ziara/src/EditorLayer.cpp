@@ -46,25 +46,6 @@ namespace iara {
     }
 
     void EditorLayer::onUpdate(iara::Timestep ts) {
-        if (once) {
-            m_active_scene = CreateRef<Scene>();
-            SceneSerializer serializer(m_active_scene);
-            serializer.deserialize("Assets/scenes/cube.iara");
-
-            m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-            m_scene_h_panel.setContext(m_active_scene);
-            m_selected_entity = {};
-
-            m_active_scene = CreateRef<Scene>();
-            SceneSerializer serializer2(m_active_scene);
-            serializer2.deserialize("Assets/scenes/smth.iara");
-
-            m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-            m_scene_h_panel.setContext(m_active_scene);
-            m_selected_entity = {};
-
-            once = false;
-        }
 
         /// Resize
         if (FramebufferSpecification spec = m_framebuffer->getSpecification();
@@ -80,7 +61,6 @@ namespace iara {
         if (m_viewportFocus)
             m_editor_camera.onUpdate(ts);
 
-        m_editor_scene = m_active_scene;
 
         /// Render
         iara::Renderer2D::ResetStats();
@@ -92,7 +72,7 @@ namespace iara {
         m_framebuffer->clearAttachment(1, -1);
 
         /// update scene
-        m_editor_scene->onUpdateEditor(ts, m_editor_camera);
+        m_active_scene->onUpdateEditor(ts, m_editor_camera);
         
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_viewport_bounds[0].x;
