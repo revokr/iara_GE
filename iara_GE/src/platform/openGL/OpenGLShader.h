@@ -4,6 +4,8 @@
 #include "glm/glm.hpp"
 #include "iara/Renderer/shader.h"
 
+typedef unsigned int GLenum;
+
 namespace iara {
 
 	struct shader_prog_src {
@@ -11,7 +13,7 @@ namespace iara {
 		std::string fragment_source;
 	};
 
-	class OpenGLShader : public Shader{
+	class OpenGLShader : public Shader {
 	public:
 		OpenGLShader(const std::string& name, const std::string& filepath_vert, const std::string& filepath_frag);
 		~OpenGLShader();
@@ -23,7 +25,7 @@ namespace iara {
 		void setUniformMat4f(const std::string& name, const glm::mat4& matrix) override;
 		void setUniform4f(const std::string& name,
 			const glm::vec4& vec) override;
-		void setUniformInt(const std::string& name,int v0) override;
+		void setUniformInt(const std::string& name, int v0) override;
 		void setUniformIntArray(const std::string& name, int* v, uint32_t count) override;
 		void setUniformFloat(const std::string& name, float val) override;
 	private:
@@ -36,5 +38,40 @@ namespace iara {
 		uint32_t m_RendererID;
 		mutable std::unordered_map<std::string, int> m_UniformLocationCache;
 	};
+
+	/*class OpenGLShader : public Shader{
+	public:
+		OpenGLShader(const std::string& name, const std::string& filepath_vert, const std::string& filepath_frag);
+		~OpenGLShader();
+
+		virtual void bind() const override;
+		virtual void unbind() const override;
+		virtual const std::string getName() override { return m_name; };
+
+		void setUniformMat4f(const std::string& name, const glm::mat4& matrix) override;
+		void setUniform4f(const std::string& name,
+			const glm::vec4& vec) override;
+		void setUniformInt(const std::string& name, int v0) override;
+		void setUniformIntArray(const std::string& name, int* v, uint32_t count) override;
+		void setUniformFloat(const std::string& name, float val) override;
+	private:
+
+		void Compile_or_GetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shader_sources);
+		void Compile_or_GetOpenGLBinaries();
+		void CreateProgram();
+
+		void reflect(uint32_t stage, const std::vector<uint32_t>& shader_data);
+
+	private:
+		uint32_t m_RendererID;
+		std::string m_filepath_vert;
+		std::string m_filepath_frag;
+		std::string m_name;
+		
+		std::unordered_map<GLenum, std::vector<uint32_t>> m_VulkanSPIRV;
+		std::unordered_map<GLenum, std::vector<uint32_t>> m_OpenGLSPIRV;
+
+		std::unordered_map<GLenum, std::string> m_OpenGL_src_code;
+	};*/
 
 }

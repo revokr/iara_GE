@@ -1,4 +1,4 @@
-#version 450 core
+#version 330 core
 			
 layout(location = 0) in vec3  a_pos;
 layout(location = 1) in vec4  a_color;
@@ -11,7 +11,7 @@ out vec2  v_texCoord;
 out vec4  v_color;
 out float v_tex_id;
 out float v_tiling;
-out flat int v_entityID;
+flat out int v_entityID;
 
 uniform mat4 u_VP;
 

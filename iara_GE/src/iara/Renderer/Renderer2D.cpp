@@ -3,8 +3,11 @@
 #include "VertexArray.h"
 #include "shader.h"
 #include "platform/openGL/OpenGLShader.h"
+#include "iara\Renderer\UniformBuffer.h"
 #include "RenderCommand.h"
+
 #include <glm/ext/matrix_transform.hpp>
+#include <glm\gtc\type_ptr.hpp>
 
 #define rad(x) glm::radians(x)
 
@@ -42,6 +45,13 @@ namespace iara {
 		glm::vec2 texCoords[4];
 
 		Renderer2D::Statistics stats;
+
+		/*struct CameraData {
+			glm::mat4 view_projection;
+		};*/
+
+		/*CameraData camera_buffer;*/
+		/*Ref<UniformBuffer> camera_uniform_buffer;*/
 	};
 
 	static Renderer2D_Storeage s_Data;
@@ -108,6 +118,8 @@ namespace iara {
 		s_Data.texCoords[1] = { 1.0f, 0.0f };
 		s_Data.texCoords[2] = { 1.0f, 1.0f };
 		s_Data.texCoords[3] = { 0.0f, 1.0f };
+
+		//s_Data.camera_uniform_buffer = UniformBuffer::Create(sizeof(Renderer2D_Storeage::CameraData), 0);
 	}
 
 	void Renderer2D::Shutdown() {
@@ -120,6 +132,8 @@ namespace iara {
 		s_Data.tex_shader->bind();
 		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);
 
+		/*s_Data.camera_buffer.view_projection = camera.getProjection() * glm::inverse(transform);
+		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));*/
 		s_Data.QuadIndCnt = 0;
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
 
@@ -131,6 +145,8 @@ namespace iara {
 		glm::mat4 viewproj = camera.getViewProjection();
 		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);
 
+		/*s_Data.camera_buffer.view_projection = camera.getViewProjection();
+		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));*/
 		s_Data.QuadIndCnt = 0;
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
 
@@ -159,6 +175,8 @@ namespace iara {
 		for (uint32_t i = 0; i < s_Data.textureSlotInd; i++) {
 			s_Data.texture_slots[i]->bind(i);
 		}
+
+		s_Data.tex_shader->bind();
 
 		RenderCommand::DrawIndexed(s_Data.vao, s_Data.QuadIndCnt);
 

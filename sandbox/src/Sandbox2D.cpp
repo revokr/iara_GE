@@ -18,8 +18,8 @@ Sandbox2D::Sandbox2D()
 void Sandbox2D::onAttach() {
 	IARA_PROFILE_FUNCTION();
 
-	m_checkerboard = iara::Texture2D::Create("Assets/Textures/check4.png");
-	m_checkerboard2 = iara::Texture2D::Create("Assets/Textures/Check2.png");
+	m_checkerboard = iara::Texture2D::CreateRef("Assets/Textures/check4.png");
+	m_checkerboard2 = iara::Texture2D::CreateRef("Assets/Textures/Check2.png");
 }
 
 void Sandbox2D::onDetach() {

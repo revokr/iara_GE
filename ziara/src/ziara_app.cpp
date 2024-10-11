@@ -4,8 +4,9 @@
 #include "iara/Core/EntryPoint.h"
 // ---------------------------------------
 
+#include "iara\Core\Application.h"
+
 #include "imgui/imgui.h"
-#include <memory>
 #include "platform/openGL/OpenGLShader.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -13,7 +14,8 @@
 
 class ZIara : public iara::Application {
 public:
-	ZIara() {
+	
+	ZIara(AppCommandLineArgs args) : Application{ args } {
 		pushLayer(new iara::EditorLayer());
 	}
 
@@ -21,6 +23,6 @@ public:
 
 };
 
-iara::Application* CreateApplication() {
-	return new ZIara();
+iara::Application* CreateApplication(AppCommandLineArgs args) {
+	return new ZIara(args);
 }

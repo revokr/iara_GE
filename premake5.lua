@@ -7,9 +7,11 @@ workspace "iara_GE"
 		"Release"
 	}
 
-	startproject "sandbox"
+	startproject "ziara"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 IncludeDir = {}
 IncludeDir["GLFW"] = "iara_GE/vendor/glfw/include"
@@ -20,6 +22,26 @@ IncludeDir["GLM"] = "iara_GE/vendor/glm/"
 IncludeDir["STB"] = "iara_GE/vendor/stb_image/"
 IncludeDir["ENTT"] = "iara_GE/vendor/entt/include"
 IncludeDir["YAML"] = "iara_GE/vendor/yaml/include"
+IncludeDir["SPIRV"] = "iara_GE/vendor/spirv/"
+IncludeDir["VULKANSDK"] = "%{VULKAN_SDK}/Include"
+IncludeDir["SPIRV_Cross"] = "%{wks.location}/Hazel/vendor/SPIRV-Cross"
+
+LibraryDir = {}
+LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
+LibraryDir["VulkanSDK_Debug"] = "%{wks.location}/Hazel/vendor/VulkanSDK/Lib"
+
+Library = {}
+Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
+--Library["VulkanUtils"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
+
+Library["ShaderC_Debug"] = "%{LibraryDir.VulkanSDK}/shaderc_sharedd.lib"
+Library["SPIRV_Cross_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-cored.lib"
+Library["SPIRV_Cross_GLSL_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsld.lib"
+Library["SPIRV_Tools_Debug"] = "%{LibraryDir.VulkanSDK}/SPIRV-Toolsd.lib"
+
+Library["ShaderC_Release"] = "%{LibraryDir.VulkanSDK}/shaderc_shared.lib"
+Library["SPIRV_Cross_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-core.lib"
+Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsl.lib"
 
 include "iara_GE/vendor/glfw"
 include "iara_GE/vendor/glad"
@@ -50,6 +72,7 @@ project "iara_GE"
 		"%{prj.name}/vendor/glm/glm/**.inl",
 		"%{prj.name}/vendor/Utils/**.h",
 		"%{prj.name}/vendor/Utils/**.save",
+		"%{prj.name}/vendor/spirv/**.hpp",
 
 		"%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
 		"%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp"
@@ -67,7 +90,9 @@ project "iara_GE"
 		"%{IncludeDir.STB}",
 		"%{prj.name}/vendor/Utils/",
 		"%{IncludeDir.ENTT}",
-		"%{IncludeDir.YAML}"
+		"%{IncludeDir.YAML}",
+		"%{IncludeDir.SPIRV}",
+		"%{IncludeDir.VULKANSDK}"
 	}
 
 	links {
@@ -75,7 +100,7 @@ project "iara_GE"
 		"GLAD",
 		"IMGUI",
 		"YAML",
-		"opengl32.lib"
+		--"opengl32.lib"
 	}
 
 	filter "files:iara_GE/vendor/ImGuizmo/**.cpp"
@@ -89,7 +114,8 @@ project "iara_GE"
 			"IARA_PLATFORM_WINDOWS",
 			"IARA_BUILD_DLL",
 			"GLFW_INCLUDE_NONE",
-			"_CRT_SECURE_NO_WARNINGS"
+			"_CRT_SECURE_NO_WARNINGS",
+			"YAML_CPP_STATIC_DEFINE"
 		}
 		
 
@@ -98,10 +124,22 @@ project "iara_GE"
 		symbols "on"
 		runtime "Debug"
 
+		links {
+			"%{Library.ShaderC_Debug}",
+			"%{Library.SPIRV_Cross_Debug}",
+			"%{Library.SPIRV_Cross_GLSL_Debug}"
+		}
+
 	filter "configurations:Release" 
 		defines "IARA_RELEASE"
 		optimize "on"
 		runtime "Release"
+
+		links {
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
+		}
 
 
 project "sandbox" 

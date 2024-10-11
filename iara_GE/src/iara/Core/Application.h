@@ -15,11 +15,20 @@
 
 #include "Windows/Platform.h"
 
+struct AppCommandLineArgs {
+	int count = 0;
+	char** args = nullptr;
+
+	const char* operator[](int index) const {
+		return args[index];
+	}
+};
+
 namespace iara {
 
 	class IARA_API Application {
 	public:
-		Application();
+		Application(AppCommandLineArgs args = AppCommandLineArgs());
 		virtual ~Application();
 
 		virtual void Run();
@@ -35,10 +44,12 @@ namespace iara {
 		virtual void pushLayer(Layer* layer);
 		virtual void pushOverlay(Layer* overlay);
 
+		AppCommandLineArgs getCommandLineArgs() const { return m_args; }
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
 	private:
+		AppCommandLineArgs m_args;
 		Scope<Window> m_Window;
 		ImGuiLayer* m_imgui_layer;
 		bool m_Running = true;
@@ -50,5 +61,5 @@ namespace iara {
 	};
 
 	/// To be defined in CLIENT
-	Application* CreateApplication();
+	Application* CreateApplication(AppCommandLineArgs args);
 }

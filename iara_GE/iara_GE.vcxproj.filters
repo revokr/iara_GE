@@ -19,6 +19,9 @@
     <Filter Include="src\iara\ImGui">
       <UniqueIdentifier>{631A5B0B-4FE8-4E11-387C-BF3724E92A76}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\iara\Math">
+      <UniqueIdentifier>{F2C604AB-5E87-80E1-27C2-C95E9341C5BD}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\iara\Renderer">
       <UniqueIdentifier>{3F0A3760-AB20-35F6-F497-C01760ED057E}</UniqueIdentifier>
     </Filter>
@@ -105,6 +108,9 @@
     <ClInclude Include="src\iara\Core\MouseButtonCodes.h">
       <Filter>src\iara\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Core\Timer.h">
+      <Filter>src\iara\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\iara\Core\Timestep.h">
       <Filter>src\iara\Core</Filter>
     </ClInclude>
@@ -117,6 +123,9 @@
     <ClInclude Include="src\iara\ImGui\ImGuiLayer.h">
       <Filter>src\iara\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Math\Math.h">
+      <Filter>src\iara\Math</Filter>
+    </ClInclude>
     <ClInclude Include="src\iara\Renderer\Buffer.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
@@ -124,6 +133,9 @@
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\CameraController.h">
+      <Filter>src\iara\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Renderer\EditorCamera.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\Framebuffer.h">
@@ -145,6 +157,9 @@
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\Texture.h">
+      <Filter>src\iara\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Renderer\UniformBuffer.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Renderer\VertexArray.h">
@@ -205,6 +220,9 @@
       <Filter>src\platform\openGL</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\openGL\OpenGLTexture.h">
+      <Filter>src\platform\openGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\openGL\OpenGLUniformBuffer.h">
       <Filter>src\platform\openGL</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\openGL\OpenGLVertexArray.h">
@@ -1467,8 +1485,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\iara\Math\Math.h" />
-    <ClInclude Include="src\iara\Renderer\EditorCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Windows\Window_Win.cpp">
@@ -1498,6 +1514,9 @@
     <ClCompile Include="src\iara\ImGui\ImGuiLayer.cpp">
       <Filter>src\iara\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\Math\Math.cpp">
+      <Filter>src\iara\Math</Filter>
+    </ClCompile>
     <ClCompile Include="src\iara\Renderer\Buffer.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
@@ -1505,6 +1524,9 @@
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\CameraController.cpp">
+      <Filter>src\iara\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Renderer\EditorCamera.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\Framebuffer.cpp">
@@ -1523,6 +1545,9 @@
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\Texture.cpp">
+      <Filter>src\iara\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Renderer\UniformBuffer.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\VertexArray.cpp">
@@ -1567,6 +1592,9 @@
     <ClCompile Include="src\platform\openGL\OpenGLTexture.cpp">
       <Filter>src\platform\openGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\platform\openGL\OpenGLUniformBuffer.cpp">
+      <Filter>src\platform\openGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\platform\openGL\OpenGLVertexArray.cpp">
       <Filter>src\platform\openGL</Filter>
     </ClCompile>
@@ -1579,7 +1607,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\iara\Math\Math.cpp" />
-    <ClCompile Include="src\iara\Renderer\EditorCamera.cpp" />
   </ItemGroup>
 </Project>

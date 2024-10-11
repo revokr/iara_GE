@@ -1,4 +1,3 @@
-C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Math\Math.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Math.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\Windows\Window_Win.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Window_Win.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\Windows\WindowsInput.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\WindowsInput.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\Windows\WindowsPlatform.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\WindowsPlatform.obj
@@ -8,15 +7,18 @@ C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Core\LayerStack.cpp;C:\Use
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Core\Log.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Log.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\ImGui\ImGuiBuild.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\ImGuiBuild.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\ImGui\ImGuiLayer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\ImGuiLayer.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Math\Math.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Math.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Buffer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Buffer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Camera.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Camera.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\CameraController.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\CameraController.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\EditorCamera.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\EditorCamera.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Framebuffer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Framebuffer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\RenderCommand.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\RenderCommand.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Renderer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Renderer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Renderer2D.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Renderer2D.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\RendererAPI.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\RendererAPI.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Texture.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Texture.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\UniformBuffer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\UniformBuffer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\VertexArray.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\VertexArray.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\shader.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\shader.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\Entity.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\Entity.obj
@@ -31,6 +33,7 @@ C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLFramebuff
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLRendererAPI.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\OpenGLRendererAPI.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLShader.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\OpenGLShader.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLTexture.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\OpenGLTexture.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLUniformBuffer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\OpenGLUniformBuffer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\OpenGLVertexArray.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\OpenGLVertexArray.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\platform\openGL\imgui_impl_opengl3.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\imgui_impl_opengl3.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\vendor\ImGuizmo\ImGuizmo.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Release-windows-x86_64\iara_GE\ImGuizmo.obj

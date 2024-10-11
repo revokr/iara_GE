@@ -1,7 +1,7 @@
 #include "Player.h"
 
 void Player::loadAssets() {
-	m_tex = Texture2D::Create("Assets/Textures/horse.png");
+	m_tex = Texture2D::CreateRef("Assets/Textures/horse.png");
 }
 
 void Player::onUpdate(Timestep ts) {
