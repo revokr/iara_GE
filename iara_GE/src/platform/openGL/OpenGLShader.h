@@ -8,7 +8,7 @@ typedef unsigned int GLenum;
 
 namespace iara {
 
-	struct shader_prog_src {
+	/*struct shader_prog_src {
 		std::string vertex_source;
 		std::string fragment_source;
 	};
@@ -37,9 +37,9 @@ namespace iara {
 		std::string m_filepath_vert, m_filepath_frag, m_name;
 		uint32_t m_RendererID;
 		mutable std::unordered_map<std::string, int> m_UniformLocationCache;
-	};
+	};*/
 
-	/*class OpenGLShader : public Shader{
+	class OpenGLShader : public Shader{
 	public:
 		OpenGLShader(const std::string& name, const std::string& filepath_vert, const std::string& filepath_frag);
 		~OpenGLShader();
@@ -62,6 +62,8 @@ namespace iara {
 
 		void reflect(uint32_t stage, const std::vector<uint32_t>& shader_data);
 
+		std::string readFile(const std::string& path);
+
 	private:
 		uint32_t m_RendererID;
 		std::string m_filepath_vert;
@@ -72,6 +74,6 @@ namespace iara {
 		std::unordered_map<GLenum, std::vector<uint32_t>> m_OpenGLSPIRV;
 
 		std::unordered_map<GLenum, std::string> m_OpenGL_src_code;
-	};*/
+	};
 
 }

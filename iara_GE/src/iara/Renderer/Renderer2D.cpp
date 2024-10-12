@@ -46,12 +46,12 @@ namespace iara {
 
 		Renderer2D::Statistics stats;
 
-		/*struct CameraData {
+		struct CameraData {
 			glm::mat4 view_projection;
-		};*/
+		};
 
-		/*CameraData camera_buffer;*/
-		/*Ref<UniformBuffer> camera_uniform_buffer;*/
+		CameraData camera_buffer;
+		Ref<UniformBuffer> camera_uniform_buffer;
 	};
 
 	static Renderer2D_Storeage s_Data;
@@ -119,7 +119,7 @@ namespace iara {
 		s_Data.texCoords[2] = { 1.0f, 1.0f };
 		s_Data.texCoords[3] = { 0.0f, 1.0f };
 
-		//s_Data.camera_uniform_buffer = UniformBuffer::Create(sizeof(Renderer2D_Storeage::CameraData), 0);
+		s_Data.camera_uniform_buffer = UniformBuffer::Create(sizeof(Renderer2D_Storeage::CameraData), 0);
 	}
 
 	void Renderer2D::Shutdown() {
@@ -129,12 +129,13 @@ namespace iara {
 	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform) {
 		glm::mat4 viewproj = camera.getProjection() * glm::inverse(transform);
 
-		s_Data.tex_shader->bind();
-		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);
+		/*s_Data.tex_shader->bind();
+		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);*/
 
-		/*s_Data.camera_buffer.view_projection = camera.getProjection() * glm::inverse(transform);
-		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));*/
+		s_Data.camera_buffer.view_projection = camera.getProjection() * glm::inverse(transform);
+		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));
 		s_Data.QuadIndCnt = 0;
+		s_Data.quadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
 
 		s_Data.textureSlotInd = 1;
@@ -142,12 +143,14 @@ namespace iara {
 
 	void Renderer2D::BeginScene(EditorCamera& camera) {
 		s_Data.tex_shader->bind();
-		glm::mat4 viewproj = camera.getViewProjection();
-		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);
+		/*glm::mat4 viewproj = camera.getViewProjection();
+		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);*/
 
-		/*s_Data.camera_buffer.view_projection = camera.getViewProjection();
-		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));*/
+		s_Data.camera_buffer.view_projection = camera.getViewProjection();
+		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));
 		s_Data.QuadIndCnt = 0;
+		s_Data.quadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
+
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
 
 		s_Data.textureSlotInd = 1;
@@ -164,24 +167,23 @@ namespace iara {
 	}
 
 	void Renderer2D::EndScene() {
-
-		uint32_t data_size = (uint8_t*)s_Data.quadVertexBufferPtr - (uint8_t*)s_Data.quadVertexBufferBase;
-		s_Data.vertexBuffer->SetData(s_Data.quadVertexBufferBase, data_size);
+		for (uint32_t i = 0; i < s_Data.textureSlotInd; i++) {
+			s_Data.texture_slots[i]->bind(i);
+		}
 
 		Flush();
 	}
 
 	void Renderer2D::Flush() {
-		for (uint32_t i = 0; i < s_Data.textureSlotInd; i++) {
-			s_Data.texture_slots[i]->bind(i);
-		}
+
+		uint32_t data_size = (uint8_t*)s_Data.quadVertexBufferPtr - (uint8_t*)s_Data.quadVertexBufferBase;
+		s_Data.vertexBuffer->SetData(s_Data.quadVertexBufferBase, data_size);
 
 		s_Data.tex_shader->bind();
 
 		RenderCommand::DrawIndexed(s_Data.vao, s_Data.QuadIndCnt);
 
-		s_Data.stats.draw_calls++;
-		
+		s_Data.stats.draw_calls++;		
 	}
 
 	void Renderer2D::Reset() {

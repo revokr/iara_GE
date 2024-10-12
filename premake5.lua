@@ -53,7 +53,7 @@ project "iara_GE"
 	kind "StaticLib"
 	cppdialect "C++17"
 	language "C++"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -125,6 +125,7 @@ project "iara_GE"
 		runtime "Debug"
 
 		links {
+			"%{Library.Vulkan}",
 			"%{Library.ShaderC_Debug}",
 			"%{Library.SPIRV_Cross_Debug}",
 			"%{Library.SPIRV_Cross_GLSL_Debug}"
@@ -203,7 +204,7 @@ project "ziara"
 	kind "ConsoleApp"
 	cppdialect "C++17"
 	language "C++"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -221,6 +222,7 @@ project "ziara"
 		"iara_GE/src",
 		"%{IncludeDir.GLM}",
 		"%{IncludeDir.ENTT}",
+		"%{IncludeDir.VULKANSDK}",
 		"sandbox/Assets",
 		"sandbox/Shaders"
 	}
@@ -231,7 +233,6 @@ project "ziara"
 	}
 
 	filter "system:windows"
-		staticruntime "On"
 		systemversion "latest"
 
 		defines 

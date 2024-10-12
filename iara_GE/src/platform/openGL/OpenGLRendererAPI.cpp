@@ -25,7 +25,6 @@ namespace iara {
 	}
 
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount) {
-		uint32_t count = indexCount ? va->getIndexBuffer()->getCount() : indexCount;
-		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);	
+		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 	}
 }

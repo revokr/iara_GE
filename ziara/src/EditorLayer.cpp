@@ -63,8 +63,8 @@ namespace iara {
 
 
         /// Render
-        iara::Renderer2D::ResetStats();
         m_framebuffer->bind();
+        iara::Renderer2D::ResetStats();
         iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
         iara::RenderCommand::Clear();
 

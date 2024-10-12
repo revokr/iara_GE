@@ -86,15 +86,15 @@ namespace iara {
 	}
 
 	void Scene::onUpdateEditor(Timestep ts, EditorCamera& camera) {
-		Renderer2D::BeginScene(camera);
 
-		auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
+		Renderer2D::BeginScene(camera);
+		auto view = m_registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 		for (auto entity : view) {
 			auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
-			//Renderer2D::drawQuadC(transform.getTransform(), sprite.color);
 			Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
 		}
+		Renderer2D::EndScene();
 
 		/*auto view1 = m_registry.view<TransformComponent, Texture2DComponent>();
 		for (auto entity : view1) {
@@ -103,7 +103,6 @@ namespace iara {
 			Renderer2D::drawQuadT(transform.getTransform(), spr.texture);
 		}*/
 
-		Renderer2D::EndScene();
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
