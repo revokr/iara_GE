@@ -128,19 +128,11 @@ namespace iara {
 			auto& color = entity.getComponent<SpriteRendererComponent>().color;
 			out << YAML::Key << "Color" << YAML::Value << color;
 
+			auto& path = entity.getComponent<SpriteRendererComponent>().tex_path;
+			if (!path.empty()) out << YAML::Key << "Tex_Path" << YAML::Value << path;
+
 			out << YAML::EndMap;
 		}
-
-		/*if (entity.hasComponent<Texture2DComponent>()) {
-			out << YAML::Key << "Texture2DComponent";
-			out << YAML::BeginMap;
-
-			auto& filepath = entity.getComponent<Texture2DComponent>().filepath;
-			out << YAML::Key << "filepath" << YAML::Value << filepath;
-
-			out << YAML::EndMap;
-		}*/
-
 
 		out << YAML::EndMap; /// Entity
 	}
@@ -226,14 +218,14 @@ namespace iara {
 
 				auto spriteComp = entity["SpriteRendererComponent"];
 				if (spriteComp) {
-					auto& src = deserializedEntity.addComponent<SpriteRendererComponent>();
-					src.color = spriteComp["Color"].as<glm::vec4>();
+					if (spriteComp["Tex_Path"]) 
+						auto& src = deserializedEntity.addComponent<SpriteRendererComponent>(spriteComp["Tex_Path"].as<std::string>());
+					else if (spriteComp["Color"])
+						auto& src = deserializedEntity.addComponent<SpriteRendererComponent>(spriteComp["Color"].as<glm::vec4>());
+					else
+						auto& src = deserializedEntity.addComponent<SpriteRendererComponent>();
 				}
 
-				/*auto texComp = entity["Texture2DComponent"];
-				if (texComp) {
-					auto& tx2d = deserializedEntity.addComponent<Texture2DComponent>(texComp["filepath"].as<std::string>());
-				}*/
 			}
 		}
 		return true;

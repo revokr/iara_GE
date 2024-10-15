@@ -7,7 +7,10 @@
 #include <imgui\imgui_internal.h>
 
 #include <iara\Math\Math.h>
+#include <filesystem>
 namespace iara {
+
+	extern const std::filesystem::path g_assets_path;
 
 	const ImGuiTreeNodeFlags imgui_treenode_flags = ImGuiTreeNodeFlags_DefaultOpen |
 		ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_FramePadding;
@@ -278,6 +281,23 @@ namespace iara {
 
 		drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component) {
 			ImGui::ColorEdit4("Color", &component.color.x);
+
+			ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+			if (ImGui::BeginDragDropTarget()) {
+				/// this payload can be null, that's why it's going through a check
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::string iara = std::filesystem::path(path).extension().string();
+
+					std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
+					if (iara == ".png") {
+						component.texture = Texture2D::CreateRef(tex_path.string());
+						component.tex_path = tex_path.string();
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+			ImGui::DragFloat("Tiling Factor", &component.tiling_factor, 0.1f, 0.0f, 100.0f);
 		});
 
 		drawComponent<Texture2DComponent>("Texture", entity, [&](auto& component) {

@@ -2,6 +2,7 @@
 
 #include "iara.h"
 #include "Panels\SceneHierarchyPanel.h"
+#include "Panels\ContentBrowserPanel.h"
 
 namespace iara {
 
@@ -18,6 +19,7 @@ namespace iara {
 
 		void NewScene();
 		void OpenScene();
+		void OpenScene(std::filesystem::path& path);
 		void SaveSceneAs();
 	private:
 		iara::Ref<iara::Framebuffer> m_framebuffer;
@@ -31,6 +33,7 @@ namespace iara {
 		EditorCamera m_editor_camera;
 		/// Panel
 		SceneHierarchyPanel m_scene_h_panel;
+		ContentBrowserPanel m_browser_panel;
 
 		int m_gizmo_type = -1;
 		int m_hovered_pixel_entity = -1;

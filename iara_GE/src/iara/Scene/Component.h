@@ -43,12 +43,25 @@ namespace iara {
 
 	struct SpriteRendererComponent {
 
+		Ref<Texture2D> texture;
+		std::string tex_path;
 		glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
+		float tiling_factor = 1.0f;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
+		SpriteRendererComponent(const glm::vec4& color, const std::string& path)
+			: color{ color }, tex_path{ path } {
+			texture = Texture2D::CreateRef(path);
+		}
 		SpriteRendererComponent(const glm::vec4& color)
-			: color{ color } {}
+			: color{ color } {
+		}
+		SpriteRendererComponent(const std::string& path)
+			: tex_path{ path } {
+			color = glm::vec4(1.0f);
+			texture = Texture2D::CreateRef(path);
+		}
 
 		operator glm::vec4& () { return color; }
 		operator const glm::vec4& () const { return color; }

@@ -45,6 +45,8 @@ namespace iara {
 			style.WindowRounding = 0.0f;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
+		style.WindowMinSize.x = 2.0f;
+		style.WindowMinSize.y = 2.0f;
 		style.FramePadding.x = 0.1f;
 		style.FramePadding.y = 0.56f;
 

@@ -135,7 +135,6 @@ namespace iara {
 		s_Data.camera_buffer.view_projection = camera.getProjection() * glm::inverse(transform);
 		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));
 		s_Data.QuadIndCnt = 0;
-		s_Data.quadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
 
 		s_Data.textureSlotInd = 1;
@@ -149,8 +148,6 @@ namespace iara {
 		s_Data.camera_buffer.view_projection = camera.getViewProjection();
 		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));
 		s_Data.QuadIndCnt = 0;
-		s_Data.quadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
-
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
 
 		s_Data.textureSlotInd = 1;
@@ -158,8 +155,9 @@ namespace iara {
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera) {
 		s_Data.tex_shader->bind();
-		s_Data.tex_shader->setUniformMat4f("u_VP", camera.getVP());
 
+		s_Data.camera_buffer.view_projection = camera.getVP();
+		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer2D_Storeage::CameraData));
 		s_Data.QuadIndCnt = 0;
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
 
@@ -176,7 +174,7 @@ namespace iara {
 
 	void Renderer2D::Flush() {
 
-		uint32_t data_size = (uint8_t*)s_Data.quadVertexBufferPtr - (uint8_t*)s_Data.quadVertexBufferBase;
+		uint32_t data_size = (uint32_t)((uint8_t*)s_Data.quadVertexBufferPtr - (uint8_t*)s_Data.quadVertexBufferBase);
 		s_Data.vertexBuffer->SetData(s_Data.quadVertexBufferBase, data_size);
 
 		s_Data.tex_shader->bind();
@@ -230,7 +228,7 @@ namespace iara {
 
 	void Renderer2D::drawQuadT(const glm::vec3& pos, const glm::vec2& size, const Ref<Texture2D>& texture, float tiling_mult) {
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
-		drawQuadT(transform, texture, tiling_mult);
+		drawQuadT(transform, texture, {1.0f, 1.0f, 1.0f, 1.0f}, tiling_mult);
 	}
 
 	void Renderer2D::drawQuadTC(const glm::vec2& pos, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult) {
@@ -334,13 +332,11 @@ namespace iara {
 		s_Data.stats.quad_count++;
 	}
 
-	void Renderer2D::drawQuadT(const glm::mat4& transform, const Ref<Texture2D>& texture, float tiling_mult, int entityID) {
+	void Renderer2D::drawQuadT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult, int entityID) {
 		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
 			EndScene();
 			Reset();
 		}
-
-		const glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 		/// Check if texture exists
 		float textureInd = 0.0f;
@@ -447,7 +443,11 @@ namespace iara {
 	}
 
 	void Renderer2D::drawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID) {
-		drawQuadC(transform, src.color, entityID);
+		if (src.texture) {
+			drawQuadT(transform, src.texture, src.color, src.tiling_factor, entityID);
+		} else {
+			drawQuadC(transform, src.color, entityID);
+		}
 	}
 
 	void Renderer2D::ResetStats() {

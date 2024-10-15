@@ -12,6 +12,8 @@
 
 namespace iara {
 
+    extern const std::filesystem::path g_assets_path;
+
     namespace color {
         static glm::vec4 Black = { 0.0f, 0.0f, 0.0f, 1.0f };
         static glm::vec4 White = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -37,7 +39,7 @@ namespace iara {
         
         m_scene_h_panel.setContext(m_active_scene);
 
-
+        OpenScene(std::filesystem::path("Assets/scenes/cube.iara"));
         
     }
 
@@ -58,7 +60,7 @@ namespace iara {
         }
 
         /// Update
-        if (m_viewportFocus)
+        //if (m_viewportFocus)
             m_editor_camera.onUpdate(ts);
 
 
@@ -138,16 +140,12 @@ namespace iara {
 
             // Submit the DockSpace
             ImGuiIO& io = ImGui::GetIO();
-            ImGuiStyle& style = ImGui::GetStyle();
-            float min_win_sizeX = style.WindowMinSize.x;
-            style.WindowMinSize.x = 370.0f;
+
             if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
             {
                 ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
                 ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
             }
-
-            style.WindowMinSize.x = min_win_sizeX;
 
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::BeginMenu("File"))
@@ -172,6 +170,7 @@ namespace iara {
             }
 
             m_scene_h_panel.onImGuiRender();
+            m_browser_panel.onImGuiRender();
 
             ImGui::Begin("Settings");
 
@@ -213,9 +212,20 @@ namespace iara {
                 m_viewportSize = { viewportPaneSize.x , viewportPaneSize.y };
             }
             //ZIARA_INFO("Viewport size: {0} x {1}", viewportPaneSize.x, viewportPaneSize.y);
-            uint32_t texID = m_framebuffer->getColorAtt(0);  // Get the texture from the framebuffer
+            uint32_t texID = m_framebuffer->getColorAtt(0);  /// Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(m_viewportSize.x, m_viewportSize.y), ImVec2{ 0,1 }, ImVec2{ 1,0 });
             
+            if (ImGui::BeginDragDropTarget()) {
+                /// this payload can be null, that's why it's going through a check
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
+                    const wchar_t* path = (const wchar_t*)payload->Data;
+                    std::string iara = std::filesystem::path(path).extension().string();
+                    if (iara == ".iara")
+                        OpenScene(g_assets_path / std::filesystem::path(path));
+                }
+                ImGui::EndDragDropTarget();
+            }
+
             Entity selected_entity;
             /// Gizmo
             
@@ -339,14 +349,18 @@ namespace iara {
     void EditorLayer::OpenScene() {
         std::string filepath = FileDialogs::openFile("IARA Scene (*.iara)\0*.iara\0");
         if (!filepath.empty()) {
-            m_active_scene = CreateRef<Scene>();
-            SceneSerializer serializer(m_active_scene);
-            serializer.deserialize(filepath);
-
-            m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-            m_scene_h_panel.setContext(m_active_scene);
-            m_selected_entity = {};
+            OpenScene(std::filesystem::path(filepath));
         }
+    }
+
+    void EditorLayer::OpenScene(std::filesystem::path& path) {
+        m_active_scene = CreateRef<Scene>();
+        SceneSerializer serializer(m_active_scene);
+        serializer.deserialize(path.string());
+
+        m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+        m_scene_h_panel.setContext(m_active_scene);
+        m_selected_entity = {};
     }
 
     void EditorLayer::SaveSceneAs() {

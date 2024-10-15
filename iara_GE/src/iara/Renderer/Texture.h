@@ -25,6 +25,7 @@ namespace iara {
 	public:
 		static Ref<Texture2D> CreateRef(uint32_t width, uint32_t height);
 		static Ref<Texture2D> CreateRef(const std::string& path);
+
 	};
 
 }

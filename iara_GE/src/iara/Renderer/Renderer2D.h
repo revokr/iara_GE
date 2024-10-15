@@ -26,7 +26,7 @@ namespace iara {
 		static void drawQuadRC(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color);
 	
 		static void drawQuadC(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
-		static void drawQuadT(const glm::mat4& transform, const Ref<Texture2D>& texture, float tiling_mult = 1.0f, int entityID = -1);
+		static void drawQuadT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult = 1.0f, int entityID = -1);
 		static void drawQuadRC(const glm::mat4& transform, float rotation, const glm::vec4& color);
 
 		static void drawQuadT(const glm::vec2& pos, const glm::vec2& size, const Ref<Texture2D>& texture, float tiling_mult = 1.0f);
