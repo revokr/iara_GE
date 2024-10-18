@@ -85,9 +85,11 @@ namespace iara {
 
 		// Primitives
 		static void drawCubeC(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+		
+		/// SKYBOX
+		static void drawSkyBox(const glm::mat4& view, const glm::mat4& projection);
 
 		static void ResetStats3D();
 		static Statistics getStats3D();
-
 	};
 }

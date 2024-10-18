@@ -9,6 +9,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
+
 #define rad(x) glm::radians(x)
 
 namespace iara {
@@ -562,15 +563,102 @@ namespace iara {
 		int entityID;
 	};
 
+	struct CubeMap_Resources {
+		Ref<Texture2D> skybox;
+		Ref<Shader> cubemap_shader;
+		Ref<VertexArray> vao_cubemap;
+		Ref<VertexBuffer> vb_cubemap;
+
+		struct CameraData_skybox {
+			glm::mat4 view_projection3D;
+		};
+
+		CameraData_skybox camera_buffer_skybox;
+		Ref<UniformBuffer> camera_uniform_buffer_skybox;
+	};
+
+	static CubeMap_Resources s_cubemap;
+
 	void Renderer3D::Init3D() {
-		s_Data.cubeVertices[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
-		s_Data.cubeVertices[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
-		s_Data.cubeVertices[2] = { 0.5f,  0.5f, 0.0f, 1.0f };
-		s_Data.cubeVertices[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
-		s_Data.cubeVertices[4] = { -0.5f, -0.5f, 1.0f, 1.0f };
-		s_Data.cubeVertices[5] = { 0.5f, -0.5f, 1.0f, 1.0f };
-		s_Data.cubeVertices[6] = { 0.5f,  0.5f, 1.0f, 1.0f };
-		s_Data.cubeVertices[7] = { -0.5f,  0.5f, 1.0f, 1.0f };
+		s_Data.cubeVertices[0] = { -0.5f, -0.5f, -0.5f, 1.0f };
+		s_Data.cubeVertices[1] = { 0.5f, -0.5f, -0.5f, 1.0f };
+		s_Data.cubeVertices[2] = { 0.5f,  0.5f, -0.5f, 1.0f };
+		s_Data.cubeVertices[3] = { -0.5f,  0.5f, -0.5f, 1.0f };
+		s_Data.cubeVertices[4] = { -0.5f, -0.5f, 0.5f, 1.0f };
+		s_Data.cubeVertices[5] = { 0.5f, -0.5f, 0.5f, 1.0f };
+		s_Data.cubeVertices[6] = { 0.5f,  0.5f, 0.5f, 1.0f };
+		s_Data.cubeVertices[7] = { -0.5f,  0.5f, 0.5f, 1.0f };
+
+
+		std::vector<std::string> faces = {
+			"Assets/Textures/skybox/right.jpg",
+			"Assets/Textures/skybox/left.jpg",
+			"Assets/Textures/skybox/top.jpg",
+			"Assets/Textures/skybox/bottom.jpg",
+			"Assets/Textures/skybox/front.jpg",
+			"Assets/Textures/skybox/back.jpg",
+		};
+		s_cubemap.skybox = Texture2D::CreateCubemap(faces);
+
+		s_cubemap.cubemap_shader = Shader::Create("cubemap", "Shaders/cubemap.vert", "Shaders/cubemap.frag");
+		
+
+		float skyboxVertices[] = {
+			// positions          
+			-1.0f,  1.0f, -1.0f,
+			-1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+
+			-1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f,
+
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+
+			-1.0f, -1.0f,  1.0f,
+			-1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f,
+
+			-1.0f,  1.0f, -1.0f,
+			 1.0f,  1.0f, -1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			-1.0f,  1.0f,  1.0f,
+			-1.0f,  1.0f, -1.0f,
+
+			-1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f,  1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f,  1.0f,
+			 1.0f, -1.0f,  1.0f
+		};
+
+		s_cubemap.vao_cubemap = (VertexArray::Create());
+
+		s_cubemap.vb_cubemap = (VertexBuffer::Create(sizeof(skyboxVertices)));
+		s_cubemap.vb_cubemap->SetData(skyboxVertices, sizeof(skyboxVertices));
+
+		s_cubemap.vb_cubemap->setLayout({
+			{ ShaderDataType::Float3, "a_pos" }
+			});
+		s_cubemap.vao_cubemap->AddVertexBuffer(s_cubemap.vb_cubemap);
+
+		s_cubemap.camera_uniform_buffer_skybox = UniformBuffer::Create(sizeof(CubeMap_Resources::CameraData_skybox), 1);
 	}
 
 	void Renderer3D::Shutdown3D() {
@@ -604,7 +692,7 @@ namespace iara {
 		uint32_t data_size = (uint32_t)((uint8_t*)s_Data.cubeVertexBufferPtr - (uint8_t*)s_Data.cubeVertexBufferBase);
 		s_Data.vertexBuffer3D->SetData(s_Data.cubeVertexBufferBase, data_size);
 
-		s_Data.tex_shader;
+		s_Data.tex_shader->bind();
 		s_Data.vao3D->bind();
 		RenderCommand::DrawIndexed(s_Data.vao3D, s_Data.CubeIndCnt);
 
@@ -640,6 +728,20 @@ namespace iara {
 		s_Data.CubeIndCnt += 36;
 
 		s_Data.stats.cube_count++;
+	}
+
+	void Renderer3D::drawSkyBox(const glm::mat4& view, const glm::mat4& projection) {
+		RenderCommand::setDepthMask(false);
+		s_cubemap.cubemap_shader->bind();
+
+		//s_cubemap.cubemap_shader->setUniformInt("skybox", s_cubemap.skybox->getRendererID());
+		s_cubemap.camera_buffer_skybox.view_projection3D = projection * view;
+		s_cubemap.camera_uniform_buffer_skybox->setData(&s_cubemap.camera_buffer_skybox, sizeof(CubeMap_Resources::CameraData_skybox));
+		
+		s_cubemap.skybox->bind();
+		s_cubemap.vao_cubemap->bind();
+		RenderCommand::drawArrays(s_cubemap.vao_cubemap, 0, 36);
+		RenderCommand::setDepthMask(true);
 	}
 
 	void Renderer3D::ResetStats3D() {

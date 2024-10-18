@@ -10,6 +10,9 @@ namespace iara {
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+		//glEnable(GL_CULL_FACE);
+		//glCullFace(GL_FRONT);
 	}
 
 	void OpenGLRendererAPI::setViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
@@ -24,7 +27,18 @@ namespace iara {
 		glClearDepth(GL_LESS);
 	}
 
+	void OpenGLRendererAPI::setDepthMask(bool set) {
+		if (set == true)
+			glDepthMask(GL_TRUE);
+		else
+			glDepthMask(GL_FALSE);
+	}
+
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount) {
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
+	}
+
+	void OpenGLRendererAPI::drawArray(const Ref<VertexArray>& va, uint32_t start, uint32_t end) {
+		glDrawArrays(GL_TRIANGLES, start, end);
 	}
 }

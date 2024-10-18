@@ -18,8 +18,16 @@ namespace iara {
 			s_RendererAPI->Clear();
 		}
 
+		inline static void setDepthMask(bool set) {
+			s_RendererAPI->setDepthMask(set);
+		}
+
 		inline static void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount = 0) {
 			s_RendererAPI->DrawIndexed(vertexArray, indexCount); }
+
+		inline static void drawArrays(const Ref<VertexArray>& vertexArray, uint32_t start, uint32_t end) {
+			s_RendererAPI->drawArray(vertexArray, start, end);
+		}
 	private:
 		static RendererAPI* s_RendererAPI;
 	};

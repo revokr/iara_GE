@@ -86,8 +86,11 @@ namespace iara {
 	}
 
 	void Scene::onUpdateEditor(Timestep ts, EditorCamera& camera) {
+		glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
+		Renderer3D::drawSkyBox(view3, camera.getProjection());
 
 		Renderer3D::BeginScene3D(camera);
+
 		auto view2 = m_registry.group<cube3DComponent>(entt::get<TransformComponent>);
 		for (auto entity : view2) {
 			auto [transform, cube] = view2.get<TransformComponent, cube3DComponent>(entity);
@@ -104,7 +107,7 @@ namespace iara {
 			Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
 		}
 		Renderer2D::EndScene();
-
+		
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {

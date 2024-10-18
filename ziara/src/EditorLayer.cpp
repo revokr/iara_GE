@@ -71,6 +71,7 @@ namespace iara {
         iara::Renderer3D::ResetStats3D();
         iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
         iara::RenderCommand::Clear();
+        
 
         /// Clear our entityID att to -1
         m_framebuffer->clearAttachment(1, -1);
@@ -90,7 +91,7 @@ namespace iara {
         if (mousex >= 0 && mousey >= 0 && mousex <= (int)viewport_size.x && mousey <= (int)viewport_size.y) {
             m_hovered_pixel_entity = m_framebuffer->readPixel(1, mousex, mousey);
         }
-
+        
         m_framebuffer->unbind();
     }
 

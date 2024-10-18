@@ -76,4 +76,45 @@ namespace iara {
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_width, m_height, m_data_format, GL_UNSIGNED_BYTE, data);
 	}
 
+	OpenGLCubeMapTexture::OpenGLCubeMapTexture(const std::vector<std::string>& faces)
+		: m_paths{ faces } {
+		glGenTextures(1, &m_RendererID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
+
+		int width, height, nrChannels;
+		for (uint32_t i = 0; i < faces.size(); i++) {
+			unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+			if (data) {
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				stbi_image_free(data);
+			}
+			else {
+				IARA_CORE_ERROR("Failed to load texture at path {0}", faces[i]);
+				stbi_image_free(data);
+			}
+		}
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+
+	OpenGLCubeMapTexture::~OpenGLCubeMapTexture() {
+		glDeleteTextures(1, &m_RendererID);
+	}
+
+	void OpenGLCubeMapTexture::bind(uint32_t slot) const {
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
+	}
+
+	void OpenGLCubeMapTexture::unbind() const {
+		glBindTextureUnit(0, 0);
+	}
+
+	void OpenGLCubeMapTexture::setData(void* data, uint32_t size)
+	{
+	}
+
 }
