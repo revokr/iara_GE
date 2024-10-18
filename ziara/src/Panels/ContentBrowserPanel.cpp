@@ -11,8 +11,8 @@ namespace iara {
 	ContentBrowserPanel::ContentBrowserPanel() 
 		: m_current_directory{ g_assets_path }
 	{
-		m_file_icon = Texture2D::CreateRef("Assets/Textures/icon2.png");
-		m_dir_icon  = Texture2D::CreateRef("Assets/Textures/dir.png");
+		m_file_icon = Texture2D::Create("Assets/Textures/icon2.png");
+		m_dir_icon  = Texture2D::Create("Assets/Textures/dir.png");
 	}
 
 	void ContentBrowserPanel::onImGuiRender() {

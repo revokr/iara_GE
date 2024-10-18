@@ -16,6 +16,7 @@ namespace iara {
 		virtual void onEvent(iara::Event& event) override;
 	private:
 		bool onKeyPressed(KeyPressedEvent& e);
+		bool onMouseButtonPressed(MouseButtonPressedEvent& e);
 
 		void NewScene();
 		void OpenScene();

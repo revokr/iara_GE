@@ -10,6 +10,8 @@
 #include "iara\Utils\FileDialogsUtils.h"
 #include "iara\Math\Math.h"
 
+#include "iara/Renderer/Renderer3D.h"
+
 namespace iara {
 
     extern const std::filesystem::path g_assets_path;
@@ -35,12 +37,11 @@ namespace iara {
 
         m_active_scene = CreateRef<Scene>();
 
-        m_editor_camera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+        m_editor_camera = EditorCamera(30.0f, 1.778f, 0.1f, 10000.0f);
         
         m_scene_h_panel.setContext(m_active_scene);
 
-        OpenScene(std::filesystem::path("Assets/scenes/cube.iara"));
-        
+        //OpenScene(std::filesystem::path("Assets/scenes/cube.iara"));
     }
 
     void EditorLayer::onDetach() {
@@ -67,6 +68,7 @@ namespace iara {
         /// Render
         m_framebuffer->bind();
         iara::Renderer2D::ResetStats();
+        iara::Renderer3D::ResetStats3D();
         iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
         iara::RenderCommand::Clear();
 
@@ -175,14 +177,6 @@ namespace iara {
             ImGui::Begin("Settings");
 
             auto stats = iara::Renderer2D::getStats();
-
-            /*Entity hovered_entity = m_hovered_pixel_entity == -1 ? Entity() : Entity((entt::entity)m_hovered_pixel_entity, m_active_scene.get());
-            std::string name = "None";
-            if (hovered_entity) {
-                name = hovered_entity.getComponent<TagComponent>().tag;
-            }
-
-            ImGui::Text("Hovered Entity: %s", name.c_str());*/
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::Text("Renderer Stats: ");
@@ -190,6 +184,15 @@ namespace iara {
             ImGui::Text("Quads: %d", stats.quad_count);
             ImGui::Text("Total Vertices: %d", stats.GetVertices());
             ImGui::Text("Total Indices: %d", stats.GetIndices());
+
+            auto stats2 = iara::Renderer3D::getStats3D();
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("Renderer 3D Stats: ");
+            ImGui::Text("Draw Calls: %d", stats2.draw_calls_3d);
+            ImGui::Text("Cubes: %d", stats2.cube_count);
+            ImGui::Text("Total Vertices: %d", stats2.GetVertices3D());
+            ImGui::Text("Total Indices: %d", stats2.GetIndices3D());
 
             ImGui::End();
 
@@ -229,13 +232,8 @@ namespace iara {
             Entity selected_entity;
             /// Gizmo
             
-            if (m_hovered_pixel_entity == -1) {
-                m_selected_entity = m_scene_h_panel.getSelectedEntity();
-            }
-            else if (Input::IsMouseButtonPressed(IARA_MOUSE_BUTTON_1) && Input::IsKeyPressed(IARA_KEY_LEFT_SHIFT)) {
-                m_scene_h_panel.setMouseHovered((uint32_t)m_hovered_pixel_entity);
-                m_selected_entity = m_scene_h_panel.getSelectedEntity();
-            }
+            m_selected_entity = m_scene_h_panel.getSelectedEntity();
+            
             if (m_selected_entity && m_gizmo_type != -1) {
                 ImGuizmo::SetOrthographic(false);
                 ImGuizmo::SetDrawlist();
@@ -292,6 +290,7 @@ namespace iara {
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(IARA_BIND_EVENT_FN(EditorLayer::onKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(IARA_BIND_EVENT_FN(EditorLayer::onMouseButtonPressed));
     }
 
     bool EditorLayer::onKeyPressed(KeyPressedEvent& e) {
@@ -334,6 +333,15 @@ namespace iara {
             case IARA_KEY_R:
                 m_gizmo_type = ImGuizmo::OPERATION::SCALE;
                 break;
+        }
+        return false;
+    }
+
+    bool EditorLayer::onMouseButtonPressed(MouseButtonPressedEvent& e) {
+        bool shiftt = Input::IsKeyPressed(IARA_KEY_LEFT_SHIFT);
+        if (shiftt && Input::IsMouseButtonPressed(IARA_MOUSE_BUTTON_LEFT)) {
+            m_scene_h_panel.setMouseHovered((uint32_t)m_hovered_pixel_entity);
+            m_selected_entity = m_scene_h_panel.getSelectedEntity();
         }
         return false;
     }

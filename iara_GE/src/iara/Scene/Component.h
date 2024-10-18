@@ -52,7 +52,7 @@ namespace iara {
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color, const std::string& path)
 			: color{ color }, tex_path{ path } {
-			texture = Texture2D::CreateRef(path);
+			texture = Texture2D::Create(path);
 		}
 		SpriteRendererComponent(const glm::vec4& color)
 			: color{ color } {
@@ -60,8 +60,20 @@ namespace iara {
 		SpriteRendererComponent(const std::string& path)
 			: tex_path{ path } {
 			color = glm::vec4(1.0f);
-			texture = Texture2D::CreateRef(path);
+			texture = Texture2D::Create(path);
 		}
+
+		operator glm::vec4& () { return color; }
+		operator const glm::vec4& () const { return color; }
+	};
+
+	struct cube3DComponent {
+		glm::vec4 color{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+		cube3DComponent() = default;
+		cube3DComponent(const cube3DComponent&) = default;
+		cube3DComponent(const glm::vec4& color)
+			: color{ color } {}
 
 		operator glm::vec4& () { return color; }
 		operator const glm::vec4& () const { return color; }
@@ -77,7 +89,7 @@ namespace iara {
 		Texture2DComponent(const std::string& path)
 		{
 			filepath = path;
-			texture = Texture2D::CreateRef(path);
+			texture = Texture2D::Create(path);
 		}
 
 		operator Ref<Texture2D>& () { return texture; }

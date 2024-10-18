@@ -87,6 +87,15 @@ namespace iara {
 
 	void Scene::onUpdateEditor(Timestep ts, EditorCamera& camera) {
 
+		Renderer3D::BeginScene3D(camera);
+		auto view2 = m_registry.group<cube3DComponent>(entt::get<TransformComponent>);
+		for (auto entity : view2) {
+			auto [transform, cube] = view2.get<TransformComponent, cube3DComponent>(entity);
+
+			Renderer3D::drawCubeC(transform.getTransform(), cube, (int)entity);
+		}
+		Renderer3D::EndScene3D();
+
 		Renderer2D::BeginScene(camera);
 		auto view = m_registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 		for (auto entity : view) {
@@ -95,13 +104,6 @@ namespace iara {
 			Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
 		}
 		Renderer2D::EndScene();
-
-		/*auto view1 = m_registry.view<TransformComponent, Texture2DComponent>();
-		for (auto entity : view1) {
-			auto [transform, spr] = view1.get< TransformComponent, Texture2DComponent>(entity);
-
-			Renderer2D::drawQuadT(transform.getTransform(), spr.texture);
-		}*/
 
 	}
 
@@ -161,6 +163,11 @@ namespace iara {
 
 	template<>
 	void Scene::onComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component) {
+
+	}
+
+	template<>
+	void Scene::onComponentAdded<cube3DComponent>(Entity entity, cube3DComponent	& component) {
 
 	}
 

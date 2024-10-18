@@ -1,0 +1,82 @@
+Scene: Untitled
+Entities:
+  - Entity: 12345
+    TagComponent:
+      Tag: cube_bam
+    TransformComponent:
+      Translation: [-0.914161325, 1.6061039, 0.277735233]
+      Rotation: [-3.01255994e-07, -0.814165413, 0.803435326]
+      Scale: [0.99999994, 0.999999881, 0.999999821]
+    cube3DComponent:
+      Color: [0.421816558, 0.761106074, 0.894331157, 1]
+  - Entity: 12345
+    TagComponent:
+      Tag: bottom
+    TransformComponent:
+      Translation: [0.100000001, -14.5055761, 0.0928718671]
+      Rotation: [-1.57030833, 0, 0]
+      Scale: [515.580261, 515.578552, 515.578552]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Tex_Path: Assets\Textures\check4.png
+      TilingFactor: 4.4000001
+  - Entity: 12345
+    TagComponent:
+      Tag: right
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, 0.100000001]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.696957052, 0.119869001, 0.745151639, 1]
+      TilingFactor: 1
+  - Entity: 12345
+    TagComponent:
+      Tag: left
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, -0.899778247]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.101488322, 0.0809143335, 0.819741428, 1]
+      TilingFactor: 1
+  - Entity: 12345
+    TagComponent:
+      Tag: back
+    TransformComponent:
+      Translation: [0.59047842, 0.0995065197, -0.401136637]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [0.999986708, 1, 0.999986708]
+    SpriteRendererComponent:
+      Color: [0.209512278, 0.869467914, 0.166889414, 1]
+      TilingFactor: 1
+  - Entity: 12345
+    TagComponent:
+      Tag: front
+    TransformComponent:
+      Translation: [-0.40520066, 0.0942827761, -0.40386951]
+      Rotation: [0, -1.57079637, 0]
+      Scale: [0.999967217, 1, 0.999967217]
+    SpriteRendererComponent:
+      Color: [0.620835423, 0.207922757, 0.207922757, 1]
+      TilingFactor: 1
+  - Entity: 12345
+    TagComponent:
+      Tag: top
+    TransformComponent:
+      Translation: [0.100000001, 0.599755824, -0.399999946]
+      Rotation: [-1.57128477, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1
+  - Entity: 12345
+    TagComponent:
+      Tag: bot
+    TransformComponent:
+      Translation: [0.100000001, -0.400000036, -0.400000006]
+      Rotation: [1.57079637, 0, 0]
+      Scale: [1, 0.999995947, 0.999995947]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TilingFactor: 1

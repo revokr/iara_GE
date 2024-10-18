@@ -131,6 +131,19 @@ namespace iara {
 			auto& path = entity.getComponent<SpriteRendererComponent>().tex_path;
 			if (!path.empty()) out << YAML::Key << "Tex_Path" << YAML::Value << path;
 
+			auto& tiling_factor = entity.getComponent<SpriteRendererComponent>().tiling_factor;
+			out << YAML::Key << "TilingFactor" << YAML::Value << tiling_factor;
+
+			out << YAML::EndMap;
+		}
+
+		if (entity.hasComponent<cube3DComponent>()) {
+			out << YAML::Key << "cube3DComponent";
+			out << YAML::BeginMap;
+
+			auto& color = entity.getComponent<cube3DComponent>().color;
+			out << YAML::Key << "Color" << YAML::Value << color;
+
 			out << YAML::EndMap;
 		}
 
@@ -218,12 +231,27 @@ namespace iara {
 
 				auto spriteComp = entity["SpriteRendererComponent"];
 				if (spriteComp) {
-					if (spriteComp["Tex_Path"]) 
+					if (spriteComp["Tex_Path"]) {
 						auto& src = deserializedEntity.addComponent<SpriteRendererComponent>(spriteComp["Tex_Path"].as<std::string>());
-					else if (spriteComp["Color"])
+						if (spriteComp["TilingFactor"])
+							src.tiling_factor = spriteComp["TilingFactor"].as<float>();
+					}
+					else if (spriteComp["Color"]) {
 						auto& src = deserializedEntity.addComponent<SpriteRendererComponent>(spriteComp["Color"].as<glm::vec4>());
-					else
+						if (spriteComp["TilingFactor"])
+							src.tiling_factor = spriteComp["TilingFactor"].as<float>();
+					}
+					else {
 						auto& src = deserializedEntity.addComponent<SpriteRendererComponent>();
+						if (spriteComp["TilingFactor"])
+							src.tiling_factor = spriteComp["TilingFactor"].as<float>();
+					}
+				}
+
+				auto cubeComp = entity["cube3DComponent"];
+				if (cubeComp) {
+					if (cubeComp["Color"])
+						deserializedEntity.addComponent<cube3DComponent>(cubeComp["Color"].as<glm::vec4>());
 				}
 
 			}

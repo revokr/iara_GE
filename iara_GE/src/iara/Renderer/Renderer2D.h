@@ -5,7 +5,30 @@
 #include "EditorCamera.h"
 #include "iara\Scene\Component.h"
 
+#include "VertexArray.h"
+#include "shader.h"
+#include "platform/openGL/OpenGLShader.h"
+#include "iara\Renderer\UniformBuffer.h"
+#include "RenderCommand.h"
+
+#include <glm/ext/matrix_transform.hpp>
+#include <glm\gtc\type_ptr.hpp>
+
 namespace iara {
+
+	struct Statistics {
+		uint32_t draw_calls = 0;
+		uint32_t quad_count = 0;
+		uint32_t draw_calls_3d = 0;
+		uint32_t cube_count = 0;
+
+		uint32_t GetVertices() { return quad_count * 4; }
+		uint32_t GetIndices() { return quad_count * 6; }
+
+		uint32_t GetVertices3D() { return cube_count * 4; }
+		uint32_t GetIndices3D() { return cube_count * 6; }
+	};
+
 
 	class Renderer2D {
 	public:
@@ -38,15 +61,33 @@ namespace iara {
 	
 		static void drawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
 
-		struct Statistics {
-			uint32_t draw_calls = 0;
-			uint32_t quad_count = 0;
+		/// Experimental
+		/// static void drawCube(const glm::vec3& pos, const glm::vec2& pos, const glm::vec4& color);
 
-			uint32_t GetVertices() { return quad_count * 4; }
-			uint32_t GetIndices() { return quad_count * 6; }
-		};
+		
 		static void ResetStats();
 		static Statistics getStats();
 	};
+}
 
+
+namespace iara {
+	class Renderer3D {
+	public:
+		static void Init3D();
+		static void Shutdown3D();
+
+		static void BeginScene3D(const Camera& camera, const glm::mat4& transform);
+		static void BeginScene3D(EditorCamera& camera);
+		static void EndScene3D();
+		static void Flush3D();
+		static void Reset3D();
+
+		// Primitives
+		static void drawCubeC(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+
+		static void ResetStats3D();
+		static Statistics getStats3D();
+
+	};
 }

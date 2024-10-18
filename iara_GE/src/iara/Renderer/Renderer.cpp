@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "platform/openGL/OpenGLShader.h"
 #include "Renderer2D.h"
+#include "Renderer3D.h"
 
 namespace iara {
 
@@ -10,6 +11,7 @@ namespace iara {
     void Renderer::Init() {
         RenderCommand::Init();
         Renderer2D::Init();
+        Renderer3D::Init3D();
     }
 
     void Renderer::onWindowResize(uint32_t width, uint32_t height) {

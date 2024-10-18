@@ -219,6 +219,12 @@ namespace iara {
 				ImGui::CloseCurrentPopup();
 			}
 
+			if (ImGui::MenuItem("Cube3D")) {
+				m_selection_context.addComponent<cube3DComponent>();
+
+				ImGui::CloseCurrentPopup();
+			}
+
 			ImGui::EndPopup();
 		}
 
@@ -291,13 +297,17 @@ namespace iara {
 
 					std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
 					if (iara == ".png") {
-						component.texture = Texture2D::CreateRef(tex_path.string());
+						component.texture = Texture2D::Create(tex_path.string());
 						component.tex_path = tex_path.string();
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 			ImGui::DragFloat("Tiling Factor", &component.tiling_factor, 0.1f, 0.0f, 100.0f);
+		});
+
+		drawComponent<cube3DComponent>("Cube3D", entity, [](auto& component) {
+			ImGui::ColorEdit4("Color", &component.color.x);
 		});
 
 		drawComponent<Texture2DComponent>("Texture", entity, [&](auto& component) {
@@ -308,7 +318,7 @@ namespace iara {
 			ImGui::InputText("##Tag", buffer, sizeof(buffer));
 			component.filepath = std::string(buffer);
 			if (ImGui::Button("create")) {
-				component.texture = Texture2D::CreateRef(std::string(buffer));
+				component.texture = Texture2D::Create(std::string(buffer));
 			}
 			});
 

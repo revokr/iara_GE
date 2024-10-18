@@ -171,6 +171,7 @@ namespace iara {
 
 		{
 			Timer timer;
+			IARA_CORE_WARN("Creating shader {0}", name);
 			Compile_or_GetVulkanBinaries(sources);
 			Compile_or_GetOpenGLBinaries();
 			CreateProgram();
