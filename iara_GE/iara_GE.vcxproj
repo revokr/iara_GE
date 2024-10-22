@@ -127,6 +127,7 @@
     <ClInclude Include="src\iara\Renderer\RenderCommand.h" />
     <ClInclude Include="src\iara\Renderer\Renderer.h" />
     <ClInclude Include="src\iara\Renderer\Renderer2D.h" />
+    <ClInclude Include="src\iara\Renderer\Renderer3D.h" />
     <ClInclude Include="src\iara\Renderer\RendererAPI.h" />
     <ClInclude Include="src\iara\Renderer\Texture.h" />
     <ClInclude Include="src\iara\Renderer\UniformBuffer.h" />
@@ -591,6 +592,7 @@
     <ClCompile Include="src\iara\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\iara\Renderer\Renderer.cpp" />
     <ClCompile Include="src\iara\Renderer\Renderer2D.cpp" />
+    <ClCompile Include="src\iara\Renderer\Renderer3D.cpp" />
     <ClCompile Include="src\iara\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\iara\Renderer\Texture.cpp" />
     <ClCompile Include="src\iara\Renderer\UniformBuffer.cpp" />

@@ -153,6 +153,9 @@
     <ClInclude Include="src\iara\Renderer\Renderer2D.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Renderer\Renderer3D.h">
+      <Filter>src\iara\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\iara\Renderer\RendererAPI.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
@@ -1539,6 +1542,9 @@
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\Renderer2D.cpp">
+      <Filter>src\iara\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Renderer\Renderer3D.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\RendererAPI.cpp">
