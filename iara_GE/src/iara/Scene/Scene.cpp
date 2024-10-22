@@ -6,6 +6,8 @@
 #include "iara/Renderer/Renderer2D.h"
 #include <glm/ext/matrix_transform.hpp>
 
+#include "iara\Math\Math.h"
+
 
 namespace iara {
 
@@ -90,14 +92,16 @@ namespace iara {
 		Renderer3D::drawSkyBox(view3, camera.getProjection());
 
 		Renderer3D::BeginScene3D(camera);
-
 		auto view2 = m_registry.group<cube3DComponent>(entt::get<TransformComponent>);
 		for (auto entity : view2) {
 			auto [transform, cube] = view2.get<TransformComponent, cube3DComponent>(entity);
-
-			Renderer3D::drawCubeC(transform.getTransform(), cube, (int)entity);
+			if (cube.texture)
+				Renderer3D::drawCubeCT(transform.getTransform(), cube.texture, cube, (int)entity);
+			else
+				Renderer3D::drawCubeC(transform.getTransform(), cube, (int)entity);
 		}
 		Renderer3D::EndScene3D();
+
 
 		Renderer2D::BeginScene(camera);
 		auto view = m_registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
@@ -171,6 +175,11 @@ namespace iara {
 
 	template<>
 	void Scene::onComponentAdded<cube3DComponent>(Entity entity, cube3DComponent	& component) {
+
+	}
+
+	template<>
+	void Scene::onComponentAdded<LightComponent>(Entity entity, LightComponent& component) {
 
 	}
 

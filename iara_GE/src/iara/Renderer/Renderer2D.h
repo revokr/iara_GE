@@ -25,8 +25,8 @@ namespace iara {
 		uint32_t GetVertices() { return quad_count * 4; }
 		uint32_t GetIndices() { return quad_count * 6; }
 
-		uint32_t GetVertices3D() { return cube_count * 4; }
-		uint32_t GetIndices3D() { return cube_count * 6; }
+		uint32_t GetVertices3D() { return cube_count * 36; }
+		uint32_t GetIndices3D() { return cube_count * 36; }
 	};
 
 
@@ -85,6 +85,9 @@ namespace iara {
 
 		// Primitives
 		static void drawCubeC(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+		static void drawCubeCT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, int entityID = -1);
+
+		//static void drawLightSource(const glm::vec3& pos, const glm::vec3& size, int entityID = -1);
 		
 		/// SKYBOX
 		static void drawSkyBox(const glm::mat4& view, const glm::mat4& projection);

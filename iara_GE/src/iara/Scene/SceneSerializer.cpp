@@ -144,6 +144,9 @@ namespace iara {
 			auto& color = entity.getComponent<cube3DComponent>().color;
 			out << YAML::Key << "Color" << YAML::Value << color;
 
+			auto& path = entity.getComponent<cube3DComponent>().filepath;
+			if (!path.empty()) out << YAML::Key << "Tex_Path" << YAML::Value << path;
+
 			out << YAML::EndMap;
 		}
 
@@ -250,7 +253,10 @@ namespace iara {
 
 				auto cubeComp = entity["cube3DComponent"];
 				if (cubeComp) {
-					if (cubeComp["Color"])
+					if (cubeComp["Tex_Path"]) {
+						auto& src = deserializedEntity.addComponent<cube3DComponent>(cubeComp["Tex_Path"].as<std::string>());
+					}
+					else if (cubeComp["Color"])
 						deserializedEntity.addComponent<cube3DComponent>(cubeComp["Color"].as<glm::vec4>());
 				}
 

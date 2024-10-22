@@ -54,6 +54,7 @@ namespace iara {
 		void setUniformInt(const std::string& name, int v0) override;
 		void setUniformIntArray(const std::string& name, int* v, uint32_t count) override;
 		void setUniformFloat(const std::string& name, float val) override;
+		void setUniformFloat3(const std::string& name, float val0, float val1, float val2) override;
 	private:
 
 		void Compile_or_GetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shader_sources);

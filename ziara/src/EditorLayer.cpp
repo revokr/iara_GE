@@ -63,15 +63,13 @@ namespace iara {
         /// Update
         //if (m_viewportFocus)
             m_editor_camera.onUpdate(ts);
-
-
+  
         /// Render
         m_framebuffer->bind();
         iara::Renderer2D::ResetStats();
         iara::Renderer3D::ResetStats3D();
         iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
         iara::RenderCommand::Clear();
-        
 
         /// Clear our entityID att to -1
         m_framebuffer->clearAttachment(1, -1);
@@ -86,7 +84,7 @@ namespace iara {
         my = viewport_size.y - my;
 
         int mousex = (int)mx;
-         int mousey = (int)my;
+        int mousey = (int)my;
 
         if (mousex >= 0 && mousey >= 0 && mousex <= (int)viewport_size.x && mousey <= (int)viewport_size.y) {
             m_hovered_pixel_entity = m_framebuffer->readPixel(1, mousex, mousey);

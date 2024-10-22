@@ -13,6 +13,8 @@ struct VertexOutput
 layout (location = 0) in VertexOutput Input;
 layout (location = 3) in flat float v_tex_index;
 layout (location = 4) in flat int v_entityID;
+layout (location = 5) in vec3 Normal;
+layout (location = 6) in vec3 Pos;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -54,6 +56,7 @@ void main() {
 		case 30: texColor *= texture(u_Textures[30], Input.TexCoord * Input.TilingFactor); break;
 		case 31: texColor *= texture(u_Textures[31], Input.TexCoord * Input.TilingFactor); break;
 	}
+
 	color = texColor;
 
 	color2 = v_entityID; 

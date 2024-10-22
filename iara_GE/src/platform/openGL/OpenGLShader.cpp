@@ -415,4 +415,8 @@ namespace iara {
 		glUniform1f(glGetUniformLocation(m_RendererID, name.c_str()), val);
 	}
 
+	void OpenGLShader::setUniformFloat3(const std::string& name, float val0, float val1, float val2) {
+		glUniform3f(glGetUniformLocation(m_RendererID, name.c_str()), val0, val1, val2);
+	}
+
 }

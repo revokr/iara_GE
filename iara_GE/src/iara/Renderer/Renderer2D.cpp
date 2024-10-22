@@ -25,6 +25,18 @@ namespace iara {
 		int entityID;
 	};
 
+	struct CubeVertex {
+		glm::vec3 position;
+		glm::vec3 normal;
+		glm::vec4 color;
+		glm::vec2 tex_coord;
+		float tex_index;
+		float tiling_mult;
+
+		/// Editor Only
+		int entityID;
+	};
+
 	struct Renderer_Storeage {
 		const uint32_t MaxQuads = 20000;
 		const uint32_t MaxVertices = MaxQuads * 4;
@@ -40,6 +52,7 @@ namespace iara {
 		Ref<VertexBuffer> vertexBuffer;
 		Ref<VertexBuffer> vertexBuffer3D;
 		Ref<Shader> tex_shader;
+		Ref<Shader> tex_shader3D;
 		Ref<Texture2D> white_tex;
 
 		uint32_t QuadIndCnt = 0;
@@ -47,17 +60,19 @@ namespace iara {
 		QuadVertex* quadVertexBufferBase = nullptr;
 		QuadVertex* quadVertexBufferPtr = nullptr;
 
-		QuadVertex* cubeVertexBufferBase = nullptr;
-		QuadVertex* cubeVertexBufferPtr = nullptr;
+		CubeVertex* cubeVertexBufferBase = nullptr;
+		CubeVertex* cubeVertexBufferPtr = nullptr;
 
 		std::array<Ref<Texture2D>, MaxTexSlots> texture_slots;
 		uint32_t textureSlotInd = 1; /// 0 = white texture
 
 		glm::vec4 quadVertices[4];
-		glm::vec4 cubeVertices[8];
+		glm::vec4 cubeVertices[36];
+		glm::vec3 cubeNormals[36];
 		glm::vec2 texCoords[4];
+		glm::vec2 cubeTexCoords[6];
 
-	    Statistics stats;
+		Statistics stats;
 
 		struct CameraData {
 			glm::mat4 view_projection3D;
@@ -71,7 +86,7 @@ namespace iara {
 	};
 
 	Renderer_Storeage s_Data;
-	
+
 	void Renderer2D::Init() {
 		IARA_PROFILE_FUNCTION();
 
@@ -114,10 +129,13 @@ namespace iara {
 
 		s_Data.vao3D = (VertexArray::Create());
 
-		s_Data.vertexBuffer3D = (VertexBuffer::Create(s_Data.MaxVertices3D * sizeof(QuadVertex)));
+		s_Data.vertexBuffer3D = (VertexBuffer::Create(s_Data.MaxVertices3D * sizeof(CubeVertex)));
+
+		s_Data.tex_shader3D = Shader::Create("texture3D", "Shaders/texture2.vert", "Shaders/texture2.frag");
 
 		s_Data.vertexBuffer3D->setLayout({
 			{ ShaderDataType::Float3, "a_pos" },
+			{ ShaderDataType::Float3, "a_normal" },
 			{ ShaderDataType::Float4, "a_color" },
 			{ ShaderDataType::Float2, "a_tex" },
 			{ ShaderDataType::Float,  "a_tex_id" },
@@ -126,7 +144,7 @@ namespace iara {
 			});
 		s_Data.vao3D->AddVertexBuffer(s_Data.vertexBuffer3D);
 
-		s_Data.cubeVertexBufferBase = new QuadVertex[s_Data.MaxVertices3D];
+		s_Data.cubeVertexBufferBase = new CubeVertex[s_Data.MaxVertices3D];
 
 		uint32_t* cubeIndices = new uint32_t[s_Data.MaxIndices3D];
 
@@ -135,46 +153,46 @@ namespace iara {
 			cubeIndices[i + 0] = offset + 0;
 			cubeIndices[i + 1] = offset + 1;
 			cubeIndices[i + 2] = offset + 2;
-			cubeIndices[i + 3] = offset + 2;
-			cubeIndices[i + 4] = offset + 3;
-			cubeIndices[i + 5] = offset + 0;
+			cubeIndices[i + 3] = offset + 3;
+			cubeIndices[i + 4] = offset + 4;
+			cubeIndices[i + 5] = offset + 5;
 
-			cubeIndices[i + 6] = offset + 4;
-			cubeIndices[i + 7] = offset + 5;
-			cubeIndices[i + 8] = offset + 6;
-			cubeIndices[i + 9] = offset + 6;
-			cubeIndices[i + 10] = offset + 7;
-			cubeIndices[i + 11] = offset + 4;
+			cubeIndices[i + 6] = offset + 6;
+			cubeIndices[i + 7] = offset + 7;
+			cubeIndices[i + 8] = offset + 8;
+			cubeIndices[i + 9] = offset + 9;
+			cubeIndices[i + 10] = offset + 10;
+			cubeIndices[i + 11] = offset + 11;
 
-			cubeIndices[i + 12] = offset + 0;
-			cubeIndices[i + 13] = offset + 4;
-			cubeIndices[i + 14] = offset + 7;
-			cubeIndices[i + 15] = offset + 7;
-			cubeIndices[i + 16] = offset + 3;
-			cubeIndices[i + 17] = offset + 0;
+			cubeIndices[i + 12] = offset + 12;
+			cubeIndices[i + 13] = offset + 13;
+			cubeIndices[i + 14] = offset + 14;
+			cubeIndices[i + 15] = offset + 15;
+			cubeIndices[i + 16] = offset + 16;
+			cubeIndices[i + 17] = offset + 17;
 
-			cubeIndices[i + 18] = offset + 1;
-			cubeIndices[i + 19] = offset + 5;
-			cubeIndices[i + 20] = offset + 6;
-			cubeIndices[i + 21] = offset + 6;
-			cubeIndices[i + 22] = offset + 2;
-			cubeIndices[i + 23] = offset + 1;
+			cubeIndices[i + 18] = offset + 18;
+			cubeIndices[i + 19] = offset + 19;
+			cubeIndices[i + 20] = offset + 20;
+			cubeIndices[i + 21] = offset + 21;
+			cubeIndices[i + 22] = offset + 22;
+			cubeIndices[i + 23] = offset + 23;
 
-			cubeIndices[i + 24] = offset + 3;
-			cubeIndices[i + 25] = offset + 2;
-			cubeIndices[i + 26] = offset + 6;
-			cubeIndices[i + 27] = offset + 6;
-			cubeIndices[i + 28] = offset + 7;
-			cubeIndices[i + 29] = offset + 3;
+			cubeIndices[i + 24] = offset + 24;
+			cubeIndices[i + 25] = offset + 25;
+			cubeIndices[i + 26] = offset + 26;
+			cubeIndices[i + 27] = offset + 27;
+			cubeIndices[i + 28] = offset + 28;
+			cubeIndices[i + 29] = offset + 29;
 
-			cubeIndices[i + 30] = offset + 0;
-			cubeIndices[i + 31] = offset + 1;
-			cubeIndices[i + 32] = offset + 5;
-			cubeIndices[i + 33] = offset + 5;
-			cubeIndices[i + 34] = offset + 4;
-			cubeIndices[i + 35] = offset + 0;
+			cubeIndices[i + 30] = offset + 30;
+			cubeIndices[i + 31] = offset + 31;
+			cubeIndices[i + 32] = offset + 32;
+			cubeIndices[i + 33] = offset + 33;
+			cubeIndices[i + 34] = offset + 34;
+			cubeIndices[i + 35] = offset + 35;
 
-			offset += 8;
+			offset += 36;
 		}
 
 		Ref<IndexBuffer> indexBuffer2 = IndexBuffer::Create(cubeIndices, s_Data.MaxIndices3D);
@@ -195,12 +213,14 @@ namespace iara {
 		s_Data.tex_shader = Shader::Create("texture", "Shaders/texture.vert", "Shaders/texture.frag");
 		s_Data.tex_shader->bind();
 		s_Data.tex_shader->setUniformIntArray("u_textures", samplers, s_Data.MaxTexSlots);
+		s_Data.tex_shader3D->bind();
+		s_Data.tex_shader3D->setUniformIntArray("u_textures", samplers, s_Data.MaxTexSlots);
 
 		s_Data.texture_slots[0] = s_Data.white_tex;
 
 		s_Data.quadVertices[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
-		s_Data.quadVertices[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
-		s_Data.quadVertices[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
+		s_Data.quadVertices[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
+		s_Data.quadVertices[2] = { 0.5f,  0.5f, 0.0f, 1.0f };
 		s_Data.quadVertices[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
 		s_Data.texCoords[0] = { 0.0f, 0.0f };
@@ -208,7 +228,14 @@ namespace iara {
 		s_Data.texCoords[2] = { 1.0f, 1.0f };
 		s_Data.texCoords[3] = { 0.0f, 1.0f };
 
-		s_Data.camera_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::CameraData), 0);
+		s_Data.cubeTexCoords[0] = { 0.0f, 0.0f };
+		s_Data.cubeTexCoords[1] = { 1.0f, 0.0f };
+		s_Data.cubeTexCoords[2] = { 1.0f, 1.0f };
+		s_Data.cubeTexCoords[3] = { 1.0f, 1.0f };
+		s_Data.cubeTexCoords[4] = { 0.0f, 1.0f };
+		s_Data.cubeTexCoords[5] = { 0.0f, 0.0f };
+
+		s_Data.camera_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::CameraData), 2);
 		s_Data.camera_uniform_buffer = UniformBuffer::Create(sizeof(Renderer_Storeage::CameraData), 0);
 
 	}
@@ -272,7 +299,7 @@ namespace iara {
 		s_Data.vao->bind();
 		RenderCommand::DrawIndexed(s_Data.vao, s_Data.QuadIndCnt);
 
-		s_Data.stats.draw_calls++;		
+		s_Data.stats.draw_calls++;
 	}
 
 	void Renderer2D::Reset() {
@@ -319,7 +346,7 @@ namespace iara {
 
 	void Renderer2D::drawQuadT(const glm::vec3& pos, const glm::vec2& size, const Ref<Texture2D>& texture, float tiling_mult) {
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
-		drawQuadT(transform, texture, {1.0f, 1.0f, 1.0f, 1.0f}, tiling_mult);
+		drawQuadT(transform, texture, { 1.0f, 1.0f, 1.0f, 1.0f }, tiling_mult);
 	}
 
 	void Renderer2D::drawQuadTC(const glm::vec2& pos, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult) {
@@ -327,12 +354,12 @@ namespace iara {
 	}
 
 	void Renderer2D::drawQuadTC(const glm::vec3& pos, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult) {
-		
+
 		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
 			EndScene();
 			Reset();
 		}
-		
+
 		/// Check if texture exists
 		float textureInd = 0.0f;
 
@@ -376,12 +403,12 @@ namespace iara {
 			EndScene();
 			Reset();
 		}
-		
+
 		const float textureInd = 0.0f; /// White texture
 		const float tiling_mult = 1.0f;
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos)
-			* glm::rotate(glm::mat4(1.0f), glm::radians(rotation), {0.0f, 0.0f, 1.0f})
+			* glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
 		for (size_t i = 0; i < 4; i++) {
@@ -393,7 +420,7 @@ namespace iara {
 			s_Data.quadVertexBufferPtr++;
 		}
 
-		
+
 		s_Data.QuadIndCnt += 6;
 
 		s_Data.stats.quad_count++;
@@ -491,12 +518,12 @@ namespace iara {
 	}
 
 	void Renderer2D::drawQuadRT(const glm::vec3& pos, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tiling_mult) {
-		
+
 		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
 			EndScene();
 			Reset();
 		}
-		
+
 		const glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 		/// Check if texture existsas
@@ -536,7 +563,8 @@ namespace iara {
 	void Renderer2D::drawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID) {
 		if (src.texture) {
 			drawQuadT(transform, src.texture, src.color, src.tiling_factor, entityID);
-		} else {
+		}
+		else {
 			drawQuadC(transform, src.color, entityID);
 		}
 	}
@@ -545,23 +573,12 @@ namespace iara {
 		memset(&s_Data.stats, 0, sizeof(Statistics));
 	}
 
-	Statistics Renderer2D::getStats(){
+	Statistics Renderer2D::getStats() {
 		return s_Data.stats;
 	}
 }
 
 namespace iara {
-
-	struct CubeVertex {
-		glm::vec3 position;
-		glm::vec4 color;
-		glm::vec2 tex_coord;
-		float tex_index;
-		float tiling_mult;
-
-		/// Editor Only
-		int entityID;
-	};
 
 	struct CubeMap_Resources {
 		Ref<Texture2D> skybox;
@@ -580,15 +597,91 @@ namespace iara {
 	static CubeMap_Resources s_cubemap;
 
 	void Renderer3D::Init3D() {
-		s_Data.cubeVertices[0] = { -0.5f, -0.5f, -0.5f, 1.0f };
-		s_Data.cubeVertices[1] = { 0.5f, -0.5f, -0.5f, 1.0f };
-		s_Data.cubeVertices[2] = { 0.5f,  0.5f, -0.5f, 1.0f };
-		s_Data.cubeVertices[3] = { -0.5f,  0.5f, -0.5f, 1.0f };
-		s_Data.cubeVertices[4] = { -0.5f, -0.5f, 0.5f, 1.0f };
-		s_Data.cubeVertices[5] = { 0.5f, -0.5f, 0.5f, 1.0f };
-		s_Data.cubeVertices[6] = { 0.5f,  0.5f, 0.5f, 1.0f };
-		s_Data.cubeVertices[7] = { -0.5f,  0.5f, 0.5f, 1.0f };
+		{
+			s_Data.cubeVertices[0] = { -0.5f, -0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[1] = { 0.5f, -0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[2] = { 0.5f,  0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[3] = { 0.5f,  0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[4] = { -0.5f,  0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[5] = { -0.5f, -0.5f, -0.5f,  1.0f };
 
+			s_Data.cubeVertices[6] = { -0.5f, -0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[7] = { 0.5f, -0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[8] = { 0.5f,  0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[9] = { 0.5f,  0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[10] = { -0.5f,  0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[11] = { -0.5f, -0.5f,  0.5f,  1.0f };
+
+			s_Data.cubeVertices[12] = { -0.5f,  0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[13] = { -0.5f,  0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[14] = { -0.5f, -0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[15] = { -0.5f, -0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[16] = { -0.5f, -0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[17] = { -0.5f,  0.5f,  0.5f,  1.0f };
+
+			s_Data.cubeVertices[18] = { 0.5f,  0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[19] = { 0.5f,  0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[20] = { 0.5f, -0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[21] = { 0.5f, -0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[22] = { 0.5f, -0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[23] = { 0.5f,  0.5f,  0.5f,  1.0f };
+
+			s_Data.cubeVertices[24] = { -0.5f, -0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[25] = { 0.5f, -0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[26] = { 0.5f, -0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[27] = { 0.5f, -0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[28] = { -0.5f, -0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[29] = { -0.5f, -0.5f, -0.5f,  1.0f };
+
+			s_Data.cubeVertices[30] = { -0.5f,  0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[31] = { 0.5f,  0.5f, -0.5f,  1.0f };
+			s_Data.cubeVertices[32] = { 0.5f,  0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[33] = { 0.5f,  0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[34] = { -0.5f,  0.5f,  0.5f,  1.0f };
+			s_Data.cubeVertices[35] = { -0.5f,  0.5f, -0.5f,  1.0f };
+
+			s_Data.cubeNormals[0] = { 0.0f, 0.0f, -1.0f };
+			s_Data.cubeNormals[1] = { 0.0f, 0.0f, -1.0f };
+			s_Data.cubeNormals[2] = { 0.0f, 0.0f, -1.0f };
+			s_Data.cubeNormals[3] = { 0.0f, 0.0f, -1.0f };
+			s_Data.cubeNormals[4] = { 0.0f, 0.0f, -1.0f };
+			s_Data.cubeNormals[5] = { 0.0f, 0.0f, -1.0f };
+
+			s_Data.cubeNormals[6] = { 0.0f, 0.0f, 1.0f };
+			s_Data.cubeNormals[7] = { 0.0f, 0.0f, 1.0f };
+			s_Data.cubeNormals[8] = { 0.0f, 0.0f, 1.0f };
+			s_Data.cubeNormals[9] = { 0.0f, 0.0f, 1.0f };
+			s_Data.cubeNormals[10] = { 0.0f, 0.0f, 1.0f };
+			s_Data.cubeNormals[11] = { 0.0f, 0.0f, 1.0f };
+
+			s_Data.cubeNormals[12] = { -1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[13] = { -1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[14] = { -1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[15] = { -1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[16] = { -1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[17] = { -1.0f, 0.0f, 0.0f };
+
+			s_Data.cubeNormals[18] = { 1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[19] = { 1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[20] = { 1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[21] = { 1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[22] = { 1.0f, 0.0f, 0.0f };
+			s_Data.cubeNormals[23] = { 1.0f, 0.0f, 0.0f };
+
+			s_Data.cubeNormals[24] = { 0.0f, -1.0f, 0.0f };
+			s_Data.cubeNormals[25] = { 0.0f, -1.0f, 0.0f };
+			s_Data.cubeNormals[26] = { 0.0f, -1.0f, 0.0f };
+			s_Data.cubeNormals[27] = { 0.0f, -1.0f, 0.0f };
+			s_Data.cubeNormals[28] = { 0.0f, -1.0f, 0.0f };
+			s_Data.cubeNormals[29] = { 0.0f, -1.0f, 0.0f };
+
+			s_Data.cubeNormals[30] = { 0.0f, 1.0f, 0.0f };
+			s_Data.cubeNormals[31] = { 0.0f, 1.0f, 0.0f };
+			s_Data.cubeNormals[32] = { 0.0f, 1.0f, 0.0f };
+			s_Data.cubeNormals[33] = { 0.0f, 1.0f, 0.0f };
+			s_Data.cubeNormals[34] = { 0.0f, 1.0f, 0.0f };
+			s_Data.cubeNormals[35] = { 0.0f, 1.0f, 0.0f };
+		}
 
 		std::vector<std::string> faces = {
 			"Assets/Textures/skybox/right.jpg",
@@ -601,7 +694,7 @@ namespace iara {
 		s_cubemap.skybox = Texture2D::CreateCubemap(faces);
 
 		s_cubemap.cubemap_shader = Shader::Create("cubemap", "Shaders/cubemap.vert", "Shaders/cubemap.frag");
-		
+
 
 		float skyboxVertices[] = {
 			// positions          
@@ -692,7 +785,7 @@ namespace iara {
 		uint32_t data_size = (uint32_t)((uint8_t*)s_Data.cubeVertexBufferPtr - (uint8_t*)s_Data.cubeVertexBufferBase);
 		s_Data.vertexBuffer3D->SetData(s_Data.cubeVertexBufferBase, data_size);
 
-		s_Data.tex_shader->bind();
+		s_Data.tex_shader3D->bind();
 		s_Data.vao3D->bind();
 		RenderCommand::DrawIndexed(s_Data.vao3D, s_Data.CubeIndCnt);
 
@@ -715,10 +808,51 @@ namespace iara {
 		const float textureInd = 0.0f; /// White texture
 		const float tiling_mult = 1.0f;
 
-		for (size_t i = 0; i < 8; i++) {
+		for (size_t i = 0; i < 36; i++) {
 			s_Data.cubeVertexBufferPtr->position = transform * s_Data.cubeVertices[i];
+			s_Data.cubeVertexBufferPtr->normal = s_Data.cubeNormals[i];
 			s_Data.cubeVertexBufferPtr->color = color;
-			s_Data.cubeVertexBufferPtr->tex_coord = s_Data.texCoords[i % 4];
+			s_Data.cubeVertexBufferPtr->tex_coord = s_Data.cubeTexCoords[i % 6];
+			s_Data.cubeVertexBufferPtr->tex_index = textureInd;
+			s_Data.cubeVertexBufferPtr->tiling_mult = tiling_mult;
+			s_Data.cubeVertexBufferPtr->entityID = entityID;
+			s_Data.cubeVertexBufferPtr++;
+		}
+
+		s_Data.CubeIndCnt += 36;
+
+		s_Data.stats.cube_count++;
+	}
+
+	void Renderer3D::drawCubeCT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, int entityID) {
+		if (s_Data.CubeIndCnt >= s_Data.MaxIndices3D) {
+			EndScene3D();
+			Reset3D();
+		}
+
+		/// Check if texture exists
+		float textureInd = 0.0f;
+
+		for (uint32_t i = 1; i < s_Data.textureSlotInd; i++) {
+			if (*s_Data.texture_slots[i].get() == *texture.get()) {
+				textureInd = float(i);
+				break;
+			}
+		}
+
+		if (textureInd == 0.0f) {
+			textureInd = (float)s_Data.textureSlotInd;
+			s_Data.texture_slots[s_Data.textureSlotInd] = texture;
+			s_Data.textureSlotInd++;
+		}
+
+		const float tiling_mult = 1.0f;
+
+		for (size_t i = 0; i < 36; i++) {
+			s_Data.cubeVertexBufferPtr->position = transform * s_Data.cubeVertices[i];
+			s_Data.cubeVertexBufferPtr->normal = s_Data.cubeNormals[i];
+			s_Data.cubeVertexBufferPtr->color = color;
+			s_Data.cubeVertexBufferPtr->tex_coord = s_Data.cubeTexCoords[i % 6];
 			s_Data.cubeVertexBufferPtr->tex_index = textureInd;
 			s_Data.cubeVertexBufferPtr->tiling_mult = tiling_mult;
 			s_Data.cubeVertexBufferPtr->entityID = entityID;
@@ -735,10 +869,10 @@ namespace iara {
 		s_cubemap.cubemap_shader->bind();
 
 		//s_cubemap.cubemap_shader->setUniformInt("skybox", s_cubemap.skybox->getRendererID());
+		s_cubemap.skybox->bind();
 		s_cubemap.camera_buffer_skybox.view_projection3D = projection * view;
 		s_cubemap.camera_uniform_buffer_skybox->setData(&s_cubemap.camera_buffer_skybox, sizeof(CubeMap_Resources::CameraData_skybox));
-		
-		s_cubemap.skybox->bind();
+
 		s_cubemap.vao_cubemap->bind();
 		RenderCommand::drawArrays(s_cubemap.vao_cubemap, 0, 36);
 		RenderCommand::setDepthMask(true);

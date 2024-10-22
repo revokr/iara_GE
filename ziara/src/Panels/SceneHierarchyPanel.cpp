@@ -225,6 +225,12 @@ namespace iara {
 				ImGui::CloseCurrentPopup();
 			}
 
+			if (ImGui::MenuItem("Light")) {
+				m_selection_context.addComponent<LightComponent>();
+
+				ImGui::CloseCurrentPopup();
+			}
+
 			ImGui::EndPopup();
 		}
 
@@ -308,6 +314,22 @@ namespace iara {
 
 		drawComponent<cube3DComponent>("Cube3D", entity, [](auto& component) {
 			ImGui::ColorEdit4("Color", &component.color.x);
+
+			ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+			if (ImGui::BeginDragDropTarget()) {
+				/// this payload can be null, that's why it's going through a check
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::string iara = std::filesystem::path(path).extension().string();
+
+					std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
+					if (iara == ".png") {
+						component.texture = Texture2D::Create(tex_path.string());
+						component.filepath = tex_path.string();
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
 		});
 
 		drawComponent<Texture2DComponent>("Texture", entity, [&](auto& component) {

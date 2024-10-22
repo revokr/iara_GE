@@ -68,12 +68,18 @@ namespace iara {
 	};
 
 	struct cube3DComponent {
+		Ref<Texture2D> texture;
+		std::string filepath;
 		glm::vec4 color{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 		cube3DComponent() = default;
 		cube3DComponent(const cube3DComponent&) = default;
 		cube3DComponent(const glm::vec4& color)
 			: color{ color } {}
+		cube3DComponent(const std::string& path)
+			: filepath{path} {
+			texture = Texture2D::Create(path);
+		}
 
 		operator glm::vec4& () { return color; }
 		operator const glm::vec4& () const { return color; }
@@ -104,6 +110,17 @@ namespace iara {
 
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent& other) = default;
+	};
+
+	struct LightComponent {
+		glm::vec3 light_pos = { 2.0f, 5.0f, 0.0f };
+
+		LightComponent() = default;
+		LightComponent(const glm::vec3& pos)
+			: light_pos{ pos } {}
+
+		operator glm::vec3& () { return light_pos; }
+		operator const glm::vec3& () const { return light_pos; }
 	};
 
 	struct NativeScriptComponent {
