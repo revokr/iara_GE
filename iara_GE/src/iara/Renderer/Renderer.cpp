@@ -2,7 +2,6 @@
 #include "Renderer.h"
 #include "platform/openGL/OpenGLShader.h"
 #include "Renderer2D.h"
-#include "Renderer3D.h"
 
 namespace iara {
 

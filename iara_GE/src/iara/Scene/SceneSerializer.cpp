@@ -106,7 +106,7 @@ namespace iara {
 
 			out << YAML::Key << "Camera" << YAML::Value;
 			out << YAML::BeginMap; /// camera props
-			out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.getProjectionType();
+			out << YAML::Key << "ProjectionType" << YAML::Value << (uint32_t)camera.getProjectionType();
 			out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.getPerspectiveVerticalFov();
 			out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.getPerspectiveNearClip();
 			out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.getPerspectiveFarClip();
@@ -150,6 +150,42 @@ namespace iara {
 			out << YAML::EndMap;
 		}
 
+		if (entity.hasComponent<PointLightComponent>()) {
+			out << YAML::Key << "PointLightComponent";
+			out << YAML::BeginMap;
+
+			PointLight plight = entity.getComponent<PointLightComponent>().plight;
+			auto& ambient = plight.ambient;
+			auto& diffuse = plight.diffuse;
+			auto& specular = plight.specular;
+			out << YAML::Key << "ambient" << YAML::Value << ambient;
+			out << YAML::Key << "diffuse" << YAML::Value << diffuse;
+			out << YAML::Key << "specular" << YAML::Value << specular;
+
+			out << YAML::Key << "constant" << YAML::Value << plight.constant;
+			out << YAML::Key << "linear" << YAML::Value << plight.linear;
+			out << YAML::Key << "quadratic" << YAML::Value << plight.quadratic;
+
+			out << YAML::EndMap;
+		}
+
+		if (entity.hasComponent<DirLightComponent>()) {
+			out << YAML::Key << "DirLightComponent";
+			out << YAML::BeginMap;
+
+			DirLight dlight = entity.getComponent<DirLightComponent>().dlight;
+			auto& direction = dlight.direction;
+			auto& ambient = dlight.ambient;
+			auto& diffuse = dlight.diffuse;
+			auto& specular = dlight.specular;
+			out << YAML::Key << "direction" << YAML::Value << direction;
+			out << YAML::Key << "ambient" << YAML::Value << ambient;
+			out << YAML::Key << "diffuse" << YAML::Value << diffuse;
+			out << YAML::Key << "specular" << YAML::Value << specular;
+
+			out << YAML::EndMap;
+		}
+
 		out << YAML::EndMap; /// Entity
 	}
 
@@ -163,6 +199,11 @@ namespace iara {
 			Entity entity = { entityID, m_scene.get() };
 			if (entity)
 				serializeEntity(out, entity);
+		}
+
+		auto view2 = m_scene->m_registry.view<PointLightComponent>();
+		for (auto ent : view2) {
+			m_scene->increasePointLights();
 		}
 
 		out << YAML::EndSeq;
@@ -218,7 +259,6 @@ namespace iara {
 
 					auto& cameraProps = cameraComp["Camera"];
 
-					cc.camera.setProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 
 					cc.camera.setPerspectiveVerticalFov(cameraProps["PerspectiveFOV"].as<float>());
 					cc.camera.setPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
@@ -227,9 +267,12 @@ namespace iara {
 					cc.camera.setOrthographicSize(cameraProps["OrthographicSize"].as<float>());
 					cc.camera.setOrthoNearClip(cameraProps["OrthographicNear"].as<float>());
 					cc.camera.setOrthoFarClip(cameraProps["OrthographicFar"].as<float>());
+					
+					cc.camera.setProjectionType(cameraProps["ProjectionType"].as<uint32_t>());
 
 					cc.primary = cameraComp["Primary"].as<bool>();
 					cc.fixed_aspect_ratio = cameraComp["FixedAspectRatio"].as<bool>();
+
 				}
 
 				auto spriteComp = entity["SpriteRendererComponent"];
@@ -258,6 +301,27 @@ namespace iara {
 					}
 					else if (cubeComp["Color"])
 						deserializedEntity.addComponent<cube3DComponent>(cubeComp["Color"].as<glm::vec4>());
+				}
+
+				auto plightComp = entity["PointLightComponent"];
+				if (plightComp) {
+					m_scene->increasePointLights();
+					auto& src = deserializedEntity.addComponent<PointLightComponent>();
+					src.plight.ambient = plightComp["ambient"].as<glm::vec4>();
+					src.plight.diffuse = plightComp["diffuse"].as<glm::vec4>();
+					src.plight.specular = plightComp["specular"].as<glm::vec4>();
+					src.plight.constant = plightComp["constant"].as<float>();
+					src.plight.linear = plightComp["linear"].as<float>();
+					src.plight.quadratic = plightComp["quadratic"].as<float>();
+				}
+
+				auto dlightComp = entity["DirLightComponent"];
+				if (dlightComp) {
+					auto& src = deserializedEntity.addComponent<DirLightComponent>();
+					src.dlight.direction = dlightComp["direction"].as<glm::vec4>();
+					src.dlight.ambient = dlightComp["ambient"].as<glm::vec4>();
+					src.dlight.diffuse = dlightComp["diffuse"].as<glm::vec4>();
+					src.dlight.specular = dlightComp["specular"].as<glm::vec4>();
 				}
 
 			}

@@ -148,7 +148,7 @@ project "sandbox"
 	kind "ConsoleApp"
 	cppdialect "C++17"
 	language "C++"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -174,7 +174,6 @@ project "sandbox"
 	}
 
 	filter "system:windows"
-		staticruntime "On"
 		systemversion "latest"
 
 		defines 

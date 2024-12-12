@@ -35,6 +35,7 @@ namespace iara {
 	class OpenGLCubeMapTexture : public Texture2D {
 	public:
 		OpenGLCubeMapTexture(const std::vector<std::string>& path);
+		OpenGLCubeMapTexture(const OpenGLCubeMapTexture& other);
 		virtual ~OpenGLCubeMapTexture();
 
 		virtual void bind(uint32_t slot = 0) const override;

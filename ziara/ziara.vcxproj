@@ -108,6 +108,9 @@
       <Project>{4DA5EC80-B984-6B1C-C29C-F6F22EFBD17D}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\Textures\skybox\right.jpg" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

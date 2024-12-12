@@ -35,8 +35,8 @@ namespace iara {
 		static void Init();
 		static void Shutdown();
 
-		static void BeginScene(const Camera& camera, const glm::mat4& transform);
-		static void BeginScene(EditorCamera& camera);
+		static void BeginScene(const Camera& camera, const glm::mat4& transform, const uint32_t& plights);
+		static void BeginScene(EditorCamera& camera, const uint32_t& plights);
 		static void BeginScene(const OrthographicCamera& camera);
 		static void EndScene();
 		static void Flush();
@@ -50,6 +50,7 @@ namespace iara {
 	
 		static void drawQuadC(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void drawQuadT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult = 1.0f, int entityID = -1);
+		static void drawQuadTBillboard(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, EditorCamera& camera, float tiling_mult = 1.0f, int entityID = -1);
 		static void drawQuadRC(const glm::mat4& transform, float rotation, const glm::vec4& color);
 
 		static void drawQuadT(const glm::vec2& pos, const glm::vec2& size, const Ref<Texture2D>& texture, float tiling_mult = 1.0f);
@@ -60,10 +61,8 @@ namespace iara {
 		static void drawQuadRT(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tiling_m = 1.0f);
 	
 		static void drawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
-
-		/// Experimental
-		/// static void drawCube(const glm::vec3& pos, const glm::vec2& pos, const glm::vec4& color);
-
+		static void drawLight(const glm::mat4& transform ,const PointLightComponent& light, EditorCamera& camera, int entityID);
+		static void drawDirLight(const DirLightComponent& dlight);
 		
 		static void ResetStats();
 		static Statistics getStats();
@@ -86,13 +85,18 @@ namespace iara {
 		// Primitives
 		static void drawCubeC(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void drawCubeCT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, int entityID = -1);
+		static void drawCubeM(const glm::mat4& transform, const glm::vec4& color, int material_index, int entityID = -1);
 
 		//static void drawLightSource(const glm::vec3& pos, const glm::vec3& size, int entityID = -1);
+		static void addMaterial(const glm::vec4& ambient, const glm::vec4& diffuse, const glm::vec4& specular, const float& shininess);
+		static void addMaterial(const uint32_t index, const glm::vec4& ambient, const glm::vec4& diffuse, const glm::vec4& specular, const float& shininess);
 		
 		/// SKYBOX
 		static void drawSkyBox(const glm::mat4& view, const glm::mat4& projection);
 
 		static void ResetStats3D();
 		static Statistics getStats3D();
+		static uint32_t getNrMaterials();
+		static Material getMaterial(uint32_t index);
 	};
 }

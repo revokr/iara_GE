@@ -29,6 +29,28 @@ namespace iara {
 		return entity;
 	}
 
+	Entity Scene::createPointLight(const std::string& name) {
+		Entity entity{ m_registry.create(), this };
+		entity.addComponent<TransformComponent>();
+		auto& tag = entity.addComponent<TagComponent>();
+		tag.tag = name.empty() ? "Unnamed_EnTiTy" : name;
+
+		entity.addComponent<PointLightComponent>();
+		m_plights++;
+
+		return entity;
+	}
+
+	Entity Scene::createDirLight(const std::string& name) {
+		Entity entity{ m_registry.create(), this };
+		auto& tag = entity.addComponent<TagComponent>();
+		tag.tag = name.empty() ? "Unnamed_EnTiTy" : name;
+
+		entity.addComponent<DirLightComponent>();
+
+		return entity;
+	}
+
 	void Scene::destroyEntity(Entity entity) {
 		m_registry.destroy(entity);
 	}
@@ -67,22 +89,31 @@ namespace iara {
 
 		if (main_camera) {
 
-			Renderer2D::BeginScene(*main_camera, camera_transform);
+			glm::mat4 view3 = glm::mat4(glm::mat3(glm::inverse(camera_transform)));
+			Renderer3D::drawSkyBox(view3, main_camera->getProjection());
 
-			/*auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
+			Renderer3D::BeginScene3D(*main_camera, camera_transform);
+
+			auto view2 = m_registry.group<cube3DComponent>(entt::get<TransformComponent>);
+			for (auto entity : view2) {
+				auto [transform, cube] = view2.get<TransformComponent, cube3DComponent>(entity);
+				Renderer3D::drawCubeM(transform.getTransform(), cube, cube.material_index, (int)entity);
+			}
+			Renderer3D::EndScene3D();
+
+			Renderer2D::BeginScene(*main_camera, camera_transform, m_plights);
+			auto view = m_registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 			for (auto entity : view) {
-				auto [transform, sprite] = view.get< TransformComponent, SpriteRendererComponent>(entity);
+				auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+				Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+			}
 
-				Renderer2D::drawQuadC(transform.getTransform(), sprite.color);
-			}*/
-
-			/*auto view1 = m_registry.view<TransformComponent, Texture2DComponent>();
-			for (auto entity : view1) {
-				auto [transform, spr] = view1.get< TransformComponent, Texture2DComponent>(entity);
-
-				Renderer2D::drawQuadT(transform.getTransform(), spr.texture);
-			}*/
-
+			auto view5 = m_registry.view<DirLightComponent>();
+			auto entity = view5.front();
+			for (auto entity : view5) {
+				auto dlight = view5.get<DirLightComponent>(entity);
+				Renderer2D::drawDirLight(dlight);
+			}
 			Renderer2D::EndScene();
 		}
 	}
@@ -95,20 +126,33 @@ namespace iara {
 		auto view2 = m_registry.group<cube3DComponent>(entt::get<TransformComponent>);
 		for (auto entity : view2) {
 			auto [transform, cube] = view2.get<TransformComponent, cube3DComponent>(entity);
-			if (cube.texture)
+			/*if (cube.texture)
 				Renderer3D::drawCubeCT(transform.getTransform(), cube.texture, cube, (int)entity);
 			else
-				Renderer3D::drawCubeC(transform.getTransform(), cube, (int)entity);
-		}
+				Renderer3D::drawCubeC(transform.getTransform(), cube, (int)entity);*/
+			Renderer3D::drawCubeM(transform.getTransform(), cube, cube.material_index, (int)entity);
+ 		}
 		Renderer3D::EndScene3D();
 
 
-		Renderer2D::BeginScene(camera);
+		Renderer2D::BeginScene(camera, m_plights);
 		auto view = m_registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 		for (auto entity : view) {
 			auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-
 			Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+		}
+
+		auto view4 = m_registry.view<TransformComponent, PointLightComponent>();
+		for (auto entity : view4) {
+			auto [transf, plight] = view4.get<TransformComponent, PointLightComponent>(entity);
+			Renderer2D::drawLight(transf.getTransform(), plight, camera, (int)entity);
+		}
+
+		auto view5 = m_registry.view<DirLightComponent>();
+		auto entity = view5.front();
+		for (auto entity : view5) {
+			auto dlight = view5.get<DirLightComponent>(entity);
+			Renderer2D::drawDirLight(dlight);
 		}
 		Renderer2D::EndScene();
 		
@@ -179,8 +223,12 @@ namespace iara {
 	}
 
 	template<>
-	void Scene::onComponentAdded<LightComponent>(Entity entity, LightComponent& component) {
+	void Scene::onComponentAdded<PointLightComponent>(Entity entity, PointLightComponent& component) {
 
 	}
 
+	template<>
+	void Scene::onComponentAdded<DirLightComponent>(Entity entity, DirLightComponent& component) {
+
+	}
 }

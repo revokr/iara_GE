@@ -100,6 +100,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Debug\Instrumentor.h" />
+    <ClInclude Include="src\iara\Renderer\MeshRenderer.h" />
+    <ClInclude Include="src\iara\Scene\SceneRenderer.h" />
     <ClInclude Include="src\Windows\Platform.h" />
     <ClInclude Include="src\Windows\Window_Win.h" />
     <ClInclude Include="src\Windows\WindowsPlatform.h" />
@@ -127,7 +129,6 @@
     <ClInclude Include="src\iara\Renderer\RenderCommand.h" />
     <ClInclude Include="src\iara\Renderer\Renderer.h" />
     <ClInclude Include="src\iara\Renderer\Renderer2D.h" />
-    <ClInclude Include="src\iara\Renderer\Renderer3D.h" />
     <ClInclude Include="src\iara\Renderer\RendererAPI.h" />
     <ClInclude Include="src\iara\Renderer\Texture.h" />
     <ClInclude Include="src\iara\Renderer\UniformBuffer.h" />
@@ -574,6 +575,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\iara\Scene\SceneRenderer.cpp" />
     <ClCompile Include="src\Windows\Window_Win.cpp" />
     <ClCompile Include="src\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Windows\WindowsPlatform.cpp" />
@@ -592,7 +594,6 @@
     <ClCompile Include="src\iara\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\iara\Renderer\Renderer.cpp" />
     <ClCompile Include="src\iara\Renderer\Renderer2D.cpp" />
-    <ClCompile Include="src\iara\Renderer\Renderer3D.cpp" />
     <ClCompile Include="src\iara\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\iara\Renderer\Texture.cpp" />
     <ClCompile Include="src\iara\Renderer\UniformBuffer.cpp" />

@@ -60,12 +60,17 @@ namespace iara {
 		}
 
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, props.Title.c_str(), nullptr, nullptr);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		m_context = new OpenGLContext(m_Window);
 		m_context->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
+		//glfwWindowHint(GLFW_SAMPLES, 4);
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* wnd, int width, int height) {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(wnd);

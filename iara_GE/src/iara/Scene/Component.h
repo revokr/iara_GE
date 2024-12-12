@@ -67,18 +67,54 @@ namespace iara {
 		operator const glm::vec4& () const { return color; }
 	};
 
+	struct Material {
+		glm::vec4 ambient = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec4 diffuse = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec4 specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		float shininess;
+		float padding1;
+		glm::vec2 padding2;
+	};
+
+	struct PointLight {
+		glm::vec4 position = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+		glm::vec4 ambient = glm::vec4(0.3, 0.3, 0.3, 1.0);
+		glm::vec4 diffuse = glm::vec4(0.8, 0.3, 0.3, 1.0);
+		glm::vec4 specular = glm::vec4(0.5, 0.5, 0.5, 1.0);
+
+		float constant = 1.0f;
+		float linear = 0.007f;
+		float quadratic = 0.0002f;
+
+		float padding;
+	};
+
+	struct DirLight {
+		glm::vec4 direction = glm::vec4(0.0, -1.0, 0.0, 0.0);
+
+		glm::vec4 ambient = glm::vec4(0.3, 0.3, 0.3, 1.0);
+		glm::vec4 diffuse = glm::vec4(0.8, 0.3, 0.3, 1.0);
+		glm::vec4 specular = glm::vec4(0.5, 0.5, 0.5, 1.0);
+	};
+
 	struct cube3DComponent {
 		Ref<Texture2D> texture;
 		std::string filepath;
 		glm::vec4 color{ 1.0f, 1.0f, 1.0f, 1.0f };
 
+		int material_index = -1;
+
 		cube3DComponent() = default;
 		cube3DComponent(const cube3DComponent&) = default;
 		cube3DComponent(const glm::vec4& color)
-			: color{ color } {}
+			: color{ color } {
+			
+		}
 		cube3DComponent(const std::string& path)
 			: filepath{path} {
 			texture = Texture2D::Create(path);
+			
 		}
 
 		operator glm::vec4& () { return color; }
@@ -112,15 +148,19 @@ namespace iara {
 		CameraComponent(const CameraComponent& other) = default;
 	};
 
-	struct LightComponent {
-		glm::vec3 light_pos = { 2.0f, 5.0f, 0.0f };
+	struct PointLightComponent {
+		Ref<Texture2D> light_tex;
 
-		LightComponent() = default;
-		LightComponent(const glm::vec3& pos)
-			: light_pos{ pos } {}
+		PointLight plight;
 
-		operator glm::vec3& () { return light_pos; }
-		operator const glm::vec3& () const { return light_pos; }
+		PointLightComponent() {
+			light_tex = Texture2D::Create("Assets/Textures/LightTex2.png");
+		}
+
+	};
+
+	struct DirLightComponent {
+		DirLight dlight;
 	};
 
 	struct NativeScriptComponent {

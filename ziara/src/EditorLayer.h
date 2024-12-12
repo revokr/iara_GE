@@ -4,7 +4,11 @@
 #include "Panels\SceneHierarchyPanel.h"
 #include "Panels\ContentBrowserPanel.h"
 
+#include "iara\Scene\SceneRenderer.h"
+
 namespace iara {
+
+	static SceneRenderer s_scene_renderer;
 
 	class EditorLayer : public iara::Layer {
 	public:
@@ -17,6 +21,13 @@ namespace iara {
 	private:
 		bool onKeyPressed(KeyPressedEvent& e);
 		bool onMouseButtonPressed(MouseButtonPressedEvent& e);
+
+		void onImGuiRenderMenuBar();
+		void onImGuiRenderSettings();
+		void onImGuiRenderMaterialCP();
+		void onImGuiRenderViewport();
+		void onImGuiRenderActionBar();
+		void onImGuiRenderBeginDocking();
 
 		void NewScene();
 		void OpenScene();
@@ -39,7 +50,13 @@ namespace iara {
 		int m_gizmo_type = -1;
 		int m_hovered_pixel_entity = -1;
 		Entity m_selected_entity;
+		Material m_editable_material = {};
+		Material m_material_add = {};
+		int m_selected_material = 0;
 
 		bool once = true;
+
+		Ref<Texture2D> m_play_icon;
+		Ref<Texture2D> m_stop_icon;
 	};
 }

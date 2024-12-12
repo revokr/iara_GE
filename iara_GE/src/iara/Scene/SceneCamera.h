@@ -17,20 +17,23 @@ namespace iara {
 		void  setViewportSize(uint32_t width, uint32_t height);
 
 		float getPerspectiveNearClip() const { return m_perspective_near; }
-		void  setPerspectiveNearClip(float near_clip) { m_perspective_near = near_clip; recalculateProj(); }
+		void  setPerspectiveNearClip(float near_clip) { m_perspective_near = near_clip; recalculateProj();}
 		float getPerspectiveFarClip() const { return m_perspective_far; }
-		void  setPerspectiveFarClip(float far_clip) { m_perspective_far = far_clip; recalculateProj(); }
+		void  setPerspectiveFarClip(float far_clip) { m_perspective_far = far_clip; recalculateProj();}
 		float getPerspectiveVerticalFov() const { return m_perspective_fov; }
-		void  setPerspectiveVerticalFov(float fov) { m_perspective_fov = fov; recalculateProj(); }
+		void  setPerspectiveVerticalFov(float fov) { m_perspective_fov = fov; recalculateProj();}
 
 		float getOrthoNearClip() const { return m_ortho_near; }
 		void  setOrthoNearClip(float near_clip) { m_ortho_near = near_clip; recalculateProj();}
 		float getOrthoFarClip() const { return m_ortho_far; }
 		void  setOrthoFarClip(float far_clip) { m_ortho_far = far_clip; recalculateProj();}
 		float getOrthographicSize() const { return m_ortho_size; }
-		void  setOrthographicSize(float size) { m_ortho_size = size; recalculateProj(); }
+		void  setOrthographicSize(float size) { m_ortho_size = size; recalculateProj();}
 
-		void  setProjectionType(ProjectionType type) { m_proj_type = type; recalculateProj(); }
+		void  setProjectionType(uint32_t type) {
+			m_proj_type = type == 0 ? ProjectionType::Perspective : ProjectionType::Orthographic;
+			recalculateProj();
+		}
 		ProjectionType getProjectionType() const { return m_proj_type; }
 	private:
 		void recalculateProj();

@@ -5,12 +5,15 @@
 #include "platform/openGL/OpenGLShader.h"
 #include "iara\Renderer\UniformBuffer.h"
 #include "RenderCommand.h"
+#include "iara\Math\Math.h"
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
 
 #define rad(x) glm::radians(x)
+#define MAX_MATERIALS 10
+#define MAX_LIGHTS 10
 
 namespace iara {
 
@@ -35,9 +38,13 @@ namespace iara {
 
 		/// Editor Only
 		int entityID;
+		int material_index;
 	};
 
 	struct Renderer_Storeage {
+
+		uint32_t FRAMES = 0;
+
 		const uint32_t MaxQuads = 20000;
 		const uint32_t MaxVertices = MaxQuads * 4;
 		const uint32_t MaxIndices = MaxQuads * 6;
@@ -46,6 +53,12 @@ namespace iara {
 		const uint32_t MaxQuads3D = 20000;
 		const uint32_t MaxVertices3D = MaxQuads3D * 4;
 		const uint32_t MaxIndices3D = MaxQuads3D * 36;
+		uint32_t current_material_index;
+		uint32_t current_lights;
+		Material material[MAX_MATERIALS];
+		PointLight point_lights[MAX_LIGHTS];
+		uint32_t scene_plights;
+		DirLight skyLight;
 
 		Ref<VertexArray> vao;
 		Ref<VertexArray> vao3D;
@@ -76,6 +89,20 @@ namespace iara {
 
 		struct CameraData {
 			glm::mat4 view_projection3D;
+			glm::vec4 camPos;
+		};
+
+		struct MaterialsData {
+			Material material[MAX_MATERIALS];
+		};
+
+		struct PointLightsData {
+			PointLight point_lights[MAX_LIGHTS];
+			int nrLights;
+		};
+
+		struct DirLightData {
+			DirLight dlight;
 		};
 
 		CameraData camera_buffer;
@@ -83,6 +110,15 @@ namespace iara {
 
 		CameraData camera_buffer3D;
 		Ref<UniformBuffer> camera_uniform_buffer3D;
+
+		DirLightData dlight_buffer3D;
+		Ref<UniformBuffer> dlight_uniform_buffer3D;
+		
+		MaterialsData materials_buffer3D;
+		Ref<UniformBuffer> materials_uniform_buffer3D;
+
+		PointLightsData plights_buffer3D;
+		Ref<UniformBuffer> plights_uniform_buffer3D;
 	};
 
 	Renderer_Storeage s_Data;
@@ -131,7 +167,7 @@ namespace iara {
 
 		s_Data.vertexBuffer3D = (VertexBuffer::Create(s_Data.MaxVertices3D * sizeof(CubeVertex)));
 
-		s_Data.tex_shader3D = Shader::Create("texture3D", "Shaders/texture2.vert", "Shaders/texture2.frag");
+		s_Data.tex_shader3D = Shader::Create("texture3D-light", "Shaders/texture3-light.vert", "Shaders/texture3-light.frag");
 
 		s_Data.vertexBuffer3D->setLayout({
 			{ ShaderDataType::Float3, "a_pos" },
@@ -140,7 +176,8 @@ namespace iara {
 			{ ShaderDataType::Float2, "a_tex" },
 			{ ShaderDataType::Float,  "a_tex_id" },
 			{ ShaderDataType::Float,  "a_tiling_mult" },
-			{ ShaderDataType::Int,	  "a_entityID"}
+			{ ShaderDataType::Int,	  "a_entityID"},
+			{ ShaderDataType::Int,    "a_Material_Index"}
 			});
 		s_Data.vao3D->AddVertexBuffer(s_Data.vertexBuffer3D);
 
@@ -236,6 +273,9 @@ namespace iara {
 		s_Data.cubeTexCoords[5] = { 0.0f, 0.0f };
 
 		s_Data.camera_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::CameraData), 2);
+		s_Data.materials_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::MaterialsData), 3);
+		s_Data.plights_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::PointLightsData), 4);
+		s_Data.dlight_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::DirLightData), 5);
 		s_Data.camera_uniform_buffer = UniformBuffer::Create(sizeof(Renderer_Storeage::CameraData), 0);
 
 	}
@@ -244,29 +284,35 @@ namespace iara {
 		delete[] s_Data.quadVertexBufferBase;
 	}
 
-	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform) {
+	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform, const uint32_t& plights) {
 		glm::mat4 viewproj = camera.getProjection() * glm::inverse(transform);
 
-		/*s_Data.tex_shader->bind();
-		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);*/
-
 		s_Data.camera_buffer.view_projection3D = camera.getProjection() * glm::inverse(transform);
+		s_Data.camera_buffer.camPos = glm::vec4(transform[3][0], transform[3][1], transform[3][2], 1.0f);
 		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer_Storeage::CameraData));
 		s_Data.QuadIndCnt = 0;
+		s_Data.current_lights = 0;
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
+
+		s_Data.scene_plights = plights;
 
 		s_Data.textureSlotInd = 1;
 	}
 
-	void Renderer2D::BeginScene(EditorCamera& camera) {
+	void Renderer2D::BeginScene(EditorCamera& camera, const uint32_t& plights) {
 		s_Data.tex_shader->bind();
 		/*glm::mat4 viewproj = camera.getViewProjection();
 		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);*/
 
 		s_Data.camera_buffer.view_projection3D = camera.getViewProjection();
+		auto camPos = camera.getPosition();
+		s_Data.camera_buffer.camPos = glm::vec4(camPos.x, camPos.y, camPos.z, 1.0f);
 		s_Data.camera_uniform_buffer->setData(&s_Data.camera_buffer, sizeof(Renderer_Storeage::CameraData));
 		s_Data.QuadIndCnt = 0;
+		s_Data.current_lights = 0;
 		s_Data.quadVertexBufferPtr = s_Data.quadVertexBufferBase;
+
+		s_Data.scene_plights = plights;
 
 		s_Data.textureSlotInd = 1;
 	}
@@ -487,6 +533,50 @@ namespace iara {
 		s_Data.stats.quad_count++;
 	}
 
+	void Renderer2D::drawQuadTBillboard(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, EditorCamera& camera,  float tiling_mult,int entityID) {
+		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
+			EndScene();
+			Reset();
+		}
+
+		/// Check if texture exists
+		float textureInd = 0.0f;
+
+		for (uint32_t i = 1; i < s_Data.textureSlotInd; i++) {
+			if (*s_Data.texture_slots[i].get() == *texture.get()) {
+				textureInd = float(i);
+				break;
+			}
+		}
+
+		if (textureInd == 0.0f) {
+			textureInd = (float)s_Data.textureSlotInd;
+			s_Data.texture_slots[s_Data.textureSlotInd] = texture;
+			s_Data.textureSlotInd++;
+		}
+
+
+		glm::mat4 viewMat = camera.getViewMatrix();
+		glm::vec3 camera_right = { viewMat[0][0], viewMat[1][0], viewMat[2][0] };
+		glm::vec3 camera_up = { viewMat[0][1], viewMat[1][1], viewMat[2][1] };
+		glm::vec3 trans, rot, scal;
+		math::decomposeTransform(transform, trans, rot, scal);
+		
+		for (size_t i = 0; i < 4; i++) {
+			s_Data.quadVertexBufferPtr->position = trans + (camera_right * s_Data.quadVertices[i].x * scal.x + camera_up * s_Data.quadVertices[i].y * scal.y);
+			s_Data.quadVertexBufferPtr->color = color;
+			s_Data.quadVertexBufferPtr->tex_coord = s_Data.texCoords[i];
+			s_Data.quadVertexBufferPtr->tex_index = textureInd;
+			s_Data.quadVertexBufferPtr->tiling_mult = tiling_mult;
+			s_Data.quadVertexBufferPtr->entityID = entityID;
+			s_Data.quadVertexBufferPtr++;
+		}
+
+		s_Data.QuadIndCnt += 6;
+
+		s_Data.stats.quad_count++;
+	}
+
 	void Renderer2D::drawQuadRC(const glm::mat4& transform, float rotation, const glm::vec4& color) {
 		if (s_Data.QuadIndCnt >= s_Data.MaxIndices) {
 			EndScene();
@@ -567,6 +657,22 @@ namespace iara {
 		else {
 			drawQuadC(transform, src.color, entityID);
 		}
+	}
+
+	void Renderer2D::drawLight(const glm::mat4& transform, const PointLightComponent& light, EditorCamera& camera, int entityID) {
+		glm::vec4 color = glm::vec4(1.0f);
+		drawQuadTBillboard(transform, light.light_tex, color, camera, 1.0f, entityID);
+
+		if (s_Data.current_lights < s_Data.scene_plights) {
+			PointLight plight = light.plight;
+			plight.position = transform * plight.position;
+			s_Data.point_lights[s_Data.current_lights] = plight;
+			s_Data.current_lights++;
+		}
+	}
+
+	void Renderer2D::drawDirLight(const DirLightComponent& dlight) {
+		s_Data.skyLight = dlight.dlight;
 	}
 
 	void Renderer2D::ResetStats() {
@@ -758,14 +864,24 @@ namespace iara {
 		delete[] s_Data.cubeVertexBufferBase;
 	}
 
-	void Renderer3D::BeginScene3D(const Camera& camera, const glm::mat4& transform)
-	{
+	void Renderer3D::BeginScene3D(const Camera& camera, const glm::mat4& transform) {
+		s_Data.tex_shader3D->bind();
+
+		s_Data.camera_buffer3D.view_projection3D = camera.getProjection() * glm::inverse(transform);
+		s_Data.camera_buffer3D.camPos = glm::vec4(transform[3][0], transform[3][1], transform[3][2], 1.0f);
+		s_Data.camera_uniform_buffer3D->setData(&s_Data.camera_buffer3D, sizeof(Renderer_Storeage::CameraData));
+		s_Data.CubeIndCnt = 0;
+		s_Data.cubeVertexBufferPtr = s_Data.cubeVertexBufferBase;
+
+		s_Data.textureSlotInd = 1;
 	}
 
 	void Renderer3D::BeginScene3D(EditorCamera& camera) {
-		s_Data.tex_shader->bind();
+		s_Data.tex_shader3D->bind();
 
 		s_Data.camera_buffer3D.view_projection3D = camera.getViewProjection();
+		auto camPos = camera.getPosition();
+		s_Data.camera_buffer3D.camPos = glm::vec4(camPos.x, camPos.y, camPos.z, 1.0f);
 		s_Data.camera_uniform_buffer3D->setData(&s_Data.camera_buffer3D, sizeof(Renderer_Storeage::CameraData));
 		s_Data.CubeIndCnt = 0;
 		s_Data.cubeVertexBufferPtr = s_Data.cubeVertexBufferBase;
@@ -777,6 +893,20 @@ namespace iara {
 		for (uint32_t i = 0; i < s_Data.textureSlotInd; i++) {
 			s_Data.texture_slots[i]->bind(i);
 		}
+
+		for (size_t i = 0; i < MAX_MATERIALS; i++) {
+			s_Data.materials_buffer3D.material[i] = s_Data.material[i];
+		}
+
+		for (size_t i = 0; i < s_Data.scene_plights; i++) {
+			s_Data.plights_buffer3D.point_lights[i] = s_Data.point_lights[i];
+		}
+		s_Data.plights_buffer3D.nrLights = s_Data.scene_plights;
+
+		s_Data.dlight_buffer3D.dlight = s_Data.skyLight;
+		s_Data.dlight_uniform_buffer3D->setData(&s_Data.dlight_buffer3D, sizeof(Renderer_Storeage::DirLightData));
+		s_Data.materials_uniform_buffer3D->setData(&s_Data.materials_buffer3D, sizeof(Renderer_Storeage::MaterialsData));
+		s_Data.plights_uniform_buffer3D->setData(&s_Data.plights_buffer3D, sizeof(Renderer_Storeage::PointLightsData));
 
 		Flush3D();
 	}
@@ -790,6 +920,7 @@ namespace iara {
 		RenderCommand::DrawIndexed(s_Data.vao3D, s_Data.CubeIndCnt);
 
 		s_Data.stats.draw_calls_3d++;
+		s_Data.FRAMES++;
 	}
 
 	void Renderer3D::Reset3D() {
@@ -864,6 +995,54 @@ namespace iara {
 		s_Data.stats.cube_count++;
 	}
 
+	void Renderer3D::drawCubeM(const glm::mat4& transform, const glm::vec4& color, int material_index, int entityID) {
+		if (s_Data.CubeIndCnt >= s_Data.MaxIndices3D) {
+			EndScene3D();
+			Reset3D();
+		}
+
+		const float textureInd = 0.0f; /// White texture
+		const float tiling_mult = 1.0f;
+
+		for (size_t i = 0; i < 36; i++) {
+			s_Data.cubeVertexBufferPtr->position = transform * s_Data.cubeVertices[i];
+			s_Data.cubeVertexBufferPtr->normal = transform * glm::vec4(s_Data.cubeNormals[i].x, s_Data.cubeNormals[i].y, s_Data.cubeNormals[i].z, 0.0f);
+			s_Data.cubeVertexBufferPtr->color = color;
+			s_Data.cubeVertexBufferPtr->tex_coord = s_Data.cubeTexCoords[i % 6];
+			s_Data.cubeVertexBufferPtr->tex_index = textureInd;
+			s_Data.cubeVertexBufferPtr->tiling_mult = tiling_mult;
+			s_Data.cubeVertexBufferPtr->entityID = entityID;
+			s_Data.cubeVertexBufferPtr->material_index = material_index;
+			s_Data.cubeVertexBufferPtr++;
+
+			//IARA_CORE_TRACE("Material Index: {0}", material_index);
+		}
+
+		s_Data.CubeIndCnt += 36;
+
+		s_Data.stats.cube_count++;
+
+	}
+
+	void Renderer3D::addMaterial(const glm::vec4& ambient, const glm::vec4& diffuse, const glm::vec4& specular, const float& shininess) {
+		Material mat;
+		mat.ambient = ambient;
+		mat.diffuse = diffuse;
+		mat.specular = specular;
+		mat.shininess = shininess;
+		s_Data.material[s_Data.current_material_index++] = mat;
+
+	}
+
+	void Renderer3D::addMaterial(const uint32_t index, const glm::vec4& ambient, const glm::vec4& diffuse, const glm::vec4& specular, const float& shininess) {
+		Material mat;
+		mat.ambient = ambient;
+		mat.diffuse = diffuse;
+		mat.specular = specular;
+		mat.shininess = shininess;
+		s_Data.material[index] = mat;
+	}
+
 	void Renderer3D::drawSkyBox(const glm::mat4& view, const glm::mat4& projection) {
 		RenderCommand::setDepthMask(false);
 		s_cubemap.cubemap_shader->bind();
@@ -884,6 +1063,16 @@ namespace iara {
 
 	Statistics Renderer3D::getStats3D() {
 		return s_Data.stats;
+	}
+
+	uint32_t Renderer3D::getNrMaterials() {
+		return s_Data.current_material_index;
+	}
+
+	Material Renderer3D::getMaterial(uint32_t index) {
+		if (index < 10)
+			return s_Data.material[index];
+		return {};
 	}
 
 }

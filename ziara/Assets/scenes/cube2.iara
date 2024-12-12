@@ -2,18 +2,55 @@ Scene: Untitled
 Entities:
   - Entity: 12345
     TagComponent:
-      Tag: wall2
+      Tag: camera
     TransformComponent:
-      Translation: [-2.92217875, 32.2434311, -56.5395622]
+      Translation: [-89.2762375, 0.100000001, 133.987869]
+      Rotation: [0, -0.738517106, 0]
+      Scale: [0.999999881, 1, 0.999999881]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 57.4000015
+        PerspectiveNear: 0.00100000005
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 12345
+    TagComponent:
+      Tag: pointLigth2
+    TransformComponent:
+      Translation: [-54.6113586, 8.89501858, -35.7019043]
       Rotation: [0, 0, 0]
-      Scale: [102.363167, 72.8647385, 7.46941471]
-    cube3DComponent:
-      Color: [0.191944301, 0.189558119, 0.189558119, 1]
+      Scale: [11.1599998, 11.1599998, 11.1599998]
+    PointLightComponent:
+      ambient: [0.528680384, 0.326126784, 0.564893126, 1]
+      diffuse: [0.8856287, 0, 1, 1]
+      specular: [0.8856287, 0, 1, 1]
+      constant: 0.670000017
+      linear: 0.00700000022
+      quadratic: 0.000199999995
+  - Entity: 12345
+    TagComponent:
+      Tag: pointLight1
+    TransformComponent:
+      Translation: [-29.4010334, -1.20730782, 44.0222816]
+      Rotation: [0, 0, 0]
+      Scale: [15.3600006, 15.3600006, 15.3600006]
+    PointLightComponent:
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [0.800000012, 0.300000012, 0.300000012, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+      constant: 0.634000003
+      linear: 0.00710000005
+      quadratic: 0.000199999995
   - Entity: 12345
     TagComponent:
       Tag: wall1
     TransformComponent:
-      Translation: [51.2900925, 32.1105118, -1.49036407]
+      Translation: [51.2900925, 12.4444914, -1.49036407]
       Rotation: [0, 0, 0]
       Scale: [6.31723118, 73.2234726, 118.343918]
     cube3DComponent:
@@ -32,11 +69,12 @@ Entities:
     TagComponent:
       Tag: top
     TransformComponent:
-      Translation: [47.2993584, 34.0268593, 27.4178982]
-      Rotation: [-1.57079601, 0.000379771023, 1.57079601]
-      Scale: [22.4677067, 22.4677258, 22.4668484]
+      Translation: [45.1340637, 34.0268593, 27.4178982]
+      Rotation: [-1.57079589, 0.000352472067, 1.57079589]
+      Scale: [22.4677067, 22.4677258, 22.466629]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
+      Tex_Path: Assets\Textures\check4.png
       TilingFactor: 1
   - Entity: 12345
     TagComponent:
@@ -54,7 +92,7 @@ Entities:
     TransformComponent:
       Translation: [8.52499771, 7.74913311, -10.176466]
       Rotation: [0, 1.57079637, 0]
-      Scale: [16.8158836, 16.8182793, 16.8158836]
+      Scale: [16.8158798, 16.8182793, 16.8158798]
     SpriteRendererComponent:
       Color: [0.209512278, 0.869467914, 0.166889414, 1]
       TilingFactor: 1
@@ -82,19 +120,54 @@ Entities:
     TagComponent:
       Tag: cube_bam
     TransformComponent:
-      Translation: [9.14770031, 4.76674128, 53.8141174]
-      Rotation: [3.15846664e-05, 0.973550379, 0.803440392]
-      Scale: [30.8194942, 30.8195229, 30.8195705]
+      Translation: [9.14770126, 4.7667408, 53.8141174]
+      Rotation: [-2.46438479, 0.0414465182, 0.0840029642]
+      Scale: [30.8194942, 30.821537, 30.8219643]
     cube3DComponent:
       Color: [1, 1, 1, 1]
-      Tex_Path: Assets\Textures\Check2.png
+      Tex_Path: Assets\Textures\Checkerboard.png
   - Entity: 12345
     TagComponent:
       Tag: bottom
     TransformComponent:
-      Translation: [-0.175549746, -6.2350831, -1.70346844]
-      Rotation: [0, 0, 0]
-      Scale: [109.407486, 6.49234104, 118.130028]
+      Translation: [-5.91998339, -31.5492592, -2.08415532]
+      Rotation: [0.00184094906, 0.0127781434, -0.00502859894]
+      Scale: [221.272873, 13.133522, 238.970779]
     cube3DComponent:
       Color: [1, 1, 1, 1]
       Tex_Path: Assets\Textures\check4.png
+  - Entity: 12345
+    TagComponent:
+      Tag: wall2
+    TransformComponent:
+      Translation: [-28.025692, 17.5506859, -62.1123161]
+      Rotation: [0, 0, 0]
+      Scale: [102.363167, 72.8647385, 7.46941471]
+    cube3DComponent:
+      Color: [0.191944301, 0.189558119, 0.189558119, 1]
+  - Entity: 12345
+    TagComponent:
+      Tag: Sky Light
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, 0.100000001]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    DirLightComponent:
+      direction: [0, -1, 0, 0]
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [0.800000012, 0.300000012, 0.300000012, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+  - Entity: 12345
+    TagComponent:
+      Tag: Point Light
+    TransformComponent:
+      Translation: [-42.5163422, 23.6809349, 2.12252617]
+      Rotation: [0, 0, 0]
+      Scale: [13.8166008, 13.8166008, 13.8166008]
+    PointLightComponent:
+      ambient: [0, 0, 0, 1]
+      diffuse: [0.800000012, 0.300000012, 0.300000012, 1]
+      specular: [1, 0.968920946, 0.968920946, 1]
+      constant: 1
+      linear: 0.00480000395
+      quadratic: 0.000199999995

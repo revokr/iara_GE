@@ -10,6 +10,7 @@
 #include <filesystem>
 namespace iara {
 
+
 	extern const std::filesystem::path g_assets_path;
 
 	const ImGuiTreeNodeFlags imgui_treenode_flags = ImGuiTreeNodeFlags_DefaultOpen |
@@ -39,6 +40,12 @@ namespace iara {
 
 			if (ImGui::MenuItem("Create Empty Entity")) {
 				m_context->createEntity("Empty Entity");
+			}
+			if (ImGui::MenuItem("Create Point Light")) {
+				m_context->createPointLight("Point Light");
+			}
+			if (ImGui::MenuItem("Create Directional Light")) {
+				m_context->createDirLight("Sky Light");
 			}
 
 			ImGui::EndPopup();
@@ -86,6 +93,7 @@ namespace iara {
 		}
 
 		if (entity_deleted) {
+			if (m_selection_context.hasComponent<PointLightComponent>()) m_context->decreasePointLights();
 			m_context->destroyEntity(entity);
 			if (m_selection_context == entity) {
 				m_selection_context = {};
@@ -225,8 +233,16 @@ namespace iara {
 				ImGui::CloseCurrentPopup();
 			}
 
-			if (ImGui::MenuItem("Light")) {
-				m_selection_context.addComponent<LightComponent>();
+			if (ImGui::MenuItem("PointLight")) {
+				m_selection_context.addComponent<PointLightComponent>();
+
+				m_context->increasePointLights();
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (ImGui::MenuItem("SkyLight")) {
+				m_selection_context.addComponent<DirLightComponent>();
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -256,7 +272,7 @@ namespace iara {
 					bool is_selected = cameraProjTypes[i] == currentProjType;
 					if (ImGui::Selectable(cameraProjTypes[i], is_selected)) {
 						currentProjType = cameraProjTypes[i];
-						camera.setProjectionType((SceneCamera::ProjectionType)i);
+						camera.setProjectionType((uint32_t)i);
 					}
 
 					if (is_selected) {
@@ -314,6 +330,11 @@ namespace iara {
 
 		drawComponent<cube3DComponent>("Cube3D", entity, [](auto& component) {
 			ImGui::ColorEdit4("Color", &component.color.x);
+			/*ImGui::ColorEdit4("Ambient", &component.material.ambient.x);
+			ImGui::ColorEdit4("Diffuse", &component.material.diffuse.x);
+			ImGui::ColorEdit4("Specular", &component.material.specular.x);
+			ImGui::SliderFloat("Shininess", &component.material.shininess, 0.1f, 100.0f);*/
+			ImGui::InputInt("Material Index", &component.material_index);
 
 			ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
 			if (ImGui::BeginDragDropTarget()) {
@@ -342,7 +363,22 @@ namespace iara {
 			if (ImGui::Button("create")) {
 				component.texture = Texture2D::Create(std::string(buffer));
 			}
-			});
+		});
+
+		drawComponent<PointLightComponent>("Point Light", entity, [&](auto& component) {
+			ImGui::ColorEdit4("Ambient", &component.plight.ambient.x);
+			ImGui::ColorEdit4("Diffuse", &component.plight.diffuse.x);
+			ImGui::ColorEdit4("Specular", &component.plight.specular.x);
+			ImGui::SliderFloat("Constant", &component.plight.constant, 0.00001f, 0.9999);
+			ImGui::InputFloat("Linear", &component.plight.linear, 0.0001f, 0.1);
+			ImGui::InputFloat("Quadratic", &component.plight.quadratic, 0.0001f);
+		});
+
+		drawComponent<DirLightComponent>("Sky Light", entity, [&](auto& component) {
+			ImGui::ColorEdit4("Ambient", &component.dlight.ambient.x);
+			ImGui::ColorEdit4("Diffuse", &component.dlight.diffuse.x);
+			ImGui::ColorEdit4("Specular", &component.dlight.specular.x);
+		});
 
 	}
 

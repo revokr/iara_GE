@@ -11,6 +11,7 @@ namespace iara {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+		glEnable(GL_MULTISAMPLE);
 		//glEnable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
 	}

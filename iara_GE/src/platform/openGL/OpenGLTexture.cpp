@@ -101,8 +101,14 @@ namespace iara {
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	}
 
+	OpenGLCubeMapTexture::OpenGLCubeMapTexture(const OpenGLCubeMapTexture& other) {
+		auto new_tex = OpenGLCubeMapTexture(other.m_paths);
+		m_RendererID = new_tex.m_RendererID;
+	}
+
 	OpenGLCubeMapTexture::~OpenGLCubeMapTexture() {
 		glDeleteTextures(1, &m_RendererID);
+		m_paths.clear();
 	}
 
 	void OpenGLCubeMapTexture::bind(uint32_t slot) const {

@@ -153,9 +153,6 @@
     <ClInclude Include="src\iara\Renderer\Renderer2D.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\iara\Renderer\Renderer3D.h">
-      <Filter>src\iara\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\iara\Renderer\RendererAPI.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
@@ -1488,6 +1485,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Scene\SceneRenderer.h" />
+    <ClInclude Include="src\iara\Renderer\MeshRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Windows\Window_Win.cpp">
@@ -1542,9 +1541,6 @@
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\Renderer2D.cpp">
-      <Filter>src\iara\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\iara\Renderer\Renderer3D.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Renderer\RendererAPI.cpp">
@@ -1613,5 +1609,6 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\Scene\SceneRenderer.cpp" />
   </ItemGroup>
 </Project>
