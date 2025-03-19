@@ -15,6 +15,7 @@ namespace iara {
 		virtual const uint32_t getWidth() const = 0;
 		virtual const uint32_t getHeight() const = 0;
 		virtual const uint32_t getRendererID() const = 0;
+		virtual const std::string getPath() const = 0;
 
 		virtual bool operator==(const Texture& other) const = 0;
 	private:
@@ -25,7 +26,7 @@ namespace iara {
 	public:
 		static Ref<Texture2D> Create(uint32_t width, uint32_t height);
 		static Ref<Texture2D> Create(const std::string& path);
-		static Ref<Texture2D> CreateCubemap(const std::vector<std::string>& faces);
+		static Ref<Texture2D> CreateCubemap(const std::string& faces);
 	};
 
 }

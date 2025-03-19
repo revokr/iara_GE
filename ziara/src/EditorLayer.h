@@ -24,10 +24,10 @@ namespace iara {
 
 		void onImGuiRenderMenuBar();
 		void onImGuiRenderSettings();
-		void onImGuiRenderMaterialCP();
 		void onImGuiRenderViewport();
 		void onImGuiRenderActionBar();
 		void onImGuiRenderBeginDocking();
+		void onImGuiRenderEnvironment();
 
 		void NewScene();
 		void OpenScene();

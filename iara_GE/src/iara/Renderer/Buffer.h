@@ -105,6 +105,7 @@ namespace iara {
 
 		static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(uint32_t size);
+		static Ref<VertexBuffer> Create();
 	};
 
 	class IndexBuffer {
@@ -113,10 +114,12 @@ namespace iara {
 
 		virtual void bind() const = 0;
 		virtual void unbind() const = 0;
+		virtual void setData(uint32_t* data, uint32_t size) = 0;
 
 		virtual uint32_t getCount() const = 0;
 
 		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t size);
+		static Ref<IndexBuffer> Create();
 	};
 
 }

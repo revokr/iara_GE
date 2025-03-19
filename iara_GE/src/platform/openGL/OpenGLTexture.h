@@ -20,11 +20,13 @@ namespace iara {
 		virtual const uint32_t getHeight() const override { return m_height; }
 		virtual const uint32_t getRendererID() const override { return m_RendererID; }
 
+		virtual const std::string getPath() const override { return m_path; }
+
 		virtual bool operator==(const Texture& other) const override {
 			return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
 		}
 	private:
-		std::string m_path;
+		std::string m_path = "";
 
 		uint32_t m_width;
 		uint32_t m_height;
@@ -34,7 +36,7 @@ namespace iara {
 
 	class OpenGLCubeMapTexture : public Texture2D {
 	public:
-		OpenGLCubeMapTexture(const std::vector<std::string>& path);
+		OpenGLCubeMapTexture(const std::string& path);
 		OpenGLCubeMapTexture(const OpenGLCubeMapTexture& other);
 		virtual ~OpenGLCubeMapTexture();
 
@@ -46,12 +48,13 @@ namespace iara {
 		virtual const uint32_t getWidth() const override { return 0; }
 		virtual const uint32_t getHeight() const override { return 0; }
 		virtual const uint32_t getRendererID() const override { return m_RendererID; }
+		virtual const std::string getPath() const override { return ""; }
 
 		virtual bool operator==(const Texture& other) const override {
 			return m_RendererID == ((OpenGLCubeMapTexture&)other).m_RendererID;
 		}
 	private:
-		std::vector<std::string> m_paths;
+		std::string m_path;
 
 		uint32_t m_RendererID;
 	};

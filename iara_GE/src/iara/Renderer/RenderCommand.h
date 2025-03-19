@@ -28,6 +28,10 @@ namespace iara {
 		inline static void drawArrays(const Ref<VertexArray>& vertexArray, uint32_t start, uint32_t end) {
 			s_RendererAPI->drawArray(vertexArray, start, end);
 		}
+
+		inline static void DrawIndexedBaseVertex(const Ref<VertexArray>& vertexArray, uint32_t indexCount, uint32_t indexStart, uint32_t vertexStart) {
+			s_RendererAPI->DrawIndexedBaseVertex(vertexArray, indexCount, indexStart, vertexStart);
+		}
 	private:
 		static RendererAPI* s_RendererAPI;
 	};

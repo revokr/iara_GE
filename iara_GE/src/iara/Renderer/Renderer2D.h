@@ -14,6 +14,10 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
+#include <assimp\Importer.hpp>
+#include <assimp\postprocess.h>
+#include <assimp\scene.h>
+
 namespace iara {
 
 	struct Statistics {
@@ -35,8 +39,8 @@ namespace iara {
 		static void Init();
 		static void Shutdown();
 
-		static void BeginScene(const Camera& camera, const glm::mat4& transform, const uint32_t& plights);
-		static void BeginScene(EditorCamera& camera, const uint32_t& plights);
+		static void BeginScene(const Camera& camera, const glm::mat4& transform, const uint32_t& plights, const uint32_t& dlight);
+		static void BeginScene(EditorCamera& camera, const uint32_t& plights, const uint32_t& dlight);
 		static void BeginScene(const OrthographicCamera& camera);
 		static void EndScene();
 		static void Flush();
@@ -73,30 +77,26 @@ namespace iara {
 namespace iara {
 	class Renderer3D {
 	public:
-		static void Init3D();
-		static void Shutdown3D();
-
-		static void BeginScene3D(const Camera& camera, const glm::mat4& transform);
-		static void BeginScene3D(EditorCamera& camera);
-		static void EndScene3D();
-		static void Flush3D();
-		static void Reset3D();
-
-		// Primitives
-		static void drawCubeC(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
-		static void drawCubeCT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, int entityID = -1);
-		static void drawCubeM(const glm::mat4& transform, const glm::vec4& color, int material_index, int entityID = -1);
-
-		//static void drawLightSource(const glm::vec3& pos, const glm::vec3& size, int entityID = -1);
-		static void addMaterial(const glm::vec4& ambient, const glm::vec4& diffuse, const glm::vec4& specular, const float& shininess);
-		static void addMaterial(const uint32_t index, const glm::vec4& ambient, const glm::vec4& diffuse, const glm::vec4& specular, const float& shininess);
-		
+		static void Renderer3D::Init3D();
 		/// SKYBOX
-		static void drawSkyBox(const glm::mat4& view, const glm::mat4& projection);
+		static void drawSkyBox(const glm::mat4& view, const glm::mat4& projection, const Ref<Texture2D>& skybox);
 
-		static void ResetStats3D();
-		static Statistics getStats3D();
-		static uint32_t getNrMaterials();
-		static Material getMaterial(uint32_t index);
+	};
+}
+
+namespace iara {
+
+	class MeshRenderer {
+	public:
+		static void InitMeshRenderer();
+
+		static void BeginSceneMesh(const Camera& camera, const glm::mat4& transform);
+		static void BeginSceneMesh(EditorCamera& camera);
+		static void EndSceneMesh();
+
+		/// This will load the mesh, and store the data inside the VAO, VBO and so on, preparing data for flush at the end of the scene
+		static void drawMesh(const glm::mat4& transform, MeshComponent& mesh /*OR STRING PATH*/, int entityID);
+	private:
+		static void FlushMesh();
 	};
 }

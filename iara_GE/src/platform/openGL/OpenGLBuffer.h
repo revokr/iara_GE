@@ -6,6 +6,7 @@ namespace iara {
 
 	class OpenGLVertexBuffer : public VertexBuffer {
 	public:
+		OpenGLVertexBuffer();
 		OpenGLVertexBuffer(uint32_t size);
 		OpenGLVertexBuffer(float* vertices, uint32_t size);
 
@@ -27,16 +28,18 @@ namespace iara {
 	class OpenGLIndexBuffer : public IndexBuffer {
 	public:
 		OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
+		OpenGLIndexBuffer();
 
 		virtual ~OpenGLIndexBuffer();
 
 		virtual void bind() const;
 		virtual void unbind() const;
+		virtual void setData(uint32_t* data, uint32_t count);
 		virtual uint32_t getCount() const { return m_count; }
 
 	private:
 		uint32_t m_RendererID;
-		uint32_t m_count;
+		uint32_t m_count = 0;
 	};
 
 }

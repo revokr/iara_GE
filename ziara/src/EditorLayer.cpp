@@ -43,8 +43,7 @@ namespace iara {
 
         m_stop_icon = Texture2D::Create("Assets\\Textures\\stop3.png");
         m_play_icon = Texture2D::Create("Assets\\Textures\\play.png");
-
-        OpenScene(std::filesystem::path("Assets/scenes/cube2.iara"));
+        m_active_scene->setSkyBox("Assets\\Textures\\skybox2\\sky1.png");
     }
 
     void EditorLayer::onDetach() {
@@ -66,7 +65,6 @@ namespace iara {
         /// Render
         m_framebuffer->bind();
         iara::Renderer2D::ResetStats();
-        iara::Renderer3D::ResetStats3D();
         iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
         iara::RenderCommand::Clear();
 
@@ -110,13 +108,15 @@ namespace iara {
 
             onImGuiRenderMenuBar();
             onImGuiRenderSettings();
-            onImGuiRenderMaterialCP();
 
             m_scene_h_panel.onImGuiRender();
             m_browser_panel.onImGuiRender();
 
             onImGuiRenderViewport();
             onImGuiRenderActionBar();
+            onImGuiRenderEnvironment();
+
+            ///ImGui::ShowDemoWindow();
             
             ImGui::End();
         }
@@ -305,31 +305,6 @@ namespace iara {
         ImGui::Text("Total Vertices: %d", stats.GetVertices());
         ImGui::Text("Total Indices: %d", stats.GetIndices());
 
-        auto stats2 = iara::Renderer3D::getStats3D();
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-            1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::Text("Renderer 3D Stats: ");
-        ImGui::Text("Draw Calls: %d", stats2.draw_calls_3d);
-        ImGui::Text("Cubes: %d", stats2.cube_count);
-        ImGui::Text("Total Vertices: %d", stats2.GetVertices3D());
-        ImGui::Text("Total Indices: %d", stats2.GetIndices3D());
-
-        ImGui::End();
-    }
-
-    void EditorLayer::onImGuiRenderMaterialCP() {
-        ImGui::Begin("Material Control Panel");
-
-        if (ImGui::InputInt("Material Index", &m_selected_material))
-            m_editable_material = Renderer3D::getMaterial(m_selected_material);
-        ImGui::ColorEdit4("Ambient", &m_editable_material.ambient.x);
-        ImGui::ColorEdit4("Diffuse", &m_editable_material.diffuse.x);
-        ImGui::ColorEdit4("Specular", &m_editable_material.specular.x);
-        ImGui::SliderFloat("Shininess", &m_editable_material.shininess, 0, 40);
-        if (ImGui::Button("Update Material")) {
-            Renderer3D::addMaterial((uint32_t)m_selected_material, m_editable_material.ambient, m_editable_material.diffuse, m_editable_material.specular, m_editable_material.shininess);
-        }
-
         ImGui::End();
     }
 
@@ -444,5 +419,26 @@ namespace iara {
 
         ImGui::PopStyleVar();
         ImGui::PopStyleColor();
+    }
+
+    void EditorLayer::onImGuiRenderEnvironment() {
+        ImGui::Begin("Environment");
+
+        ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+        if (ImGui::BeginDragDropTarget()) {
+            /// this payload can be null, that's why it's going through a check
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
+                const wchar_t* path = (const wchar_t*)payload->Data;
+                std::string iara = std::filesystem::path(path).extension().string();
+
+                std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
+                if (iara == ".png") {
+                    m_active_scene->setSkyBox(tex_path.string());
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        ImGui::End();
     }
 }

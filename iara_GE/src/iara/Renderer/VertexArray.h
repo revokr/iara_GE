@@ -12,6 +12,7 @@ namespace iara {
 		virtual void bind() const = 0;
 		virtual void unbind() const = 0;
 
+		virtual void setVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) = 0;
 		virtual void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) = 0;
 		virtual void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer) = 0;
 

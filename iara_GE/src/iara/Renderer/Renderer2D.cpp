@@ -10,7 +10,6 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
-
 #define rad(x) glm::radians(x)
 #define MAX_MATERIALS 10
 #define MAX_LIGHTS 10
@@ -38,7 +37,6 @@ namespace iara {
 
 		/// Editor Only
 		int entityID;
-		int material_index;
 	};
 
 	struct Renderer_Storeage {
@@ -53,47 +51,34 @@ namespace iara {
 		const uint32_t MaxQuads3D = 20000;
 		const uint32_t MaxVertices3D = MaxQuads3D * 4;
 		const uint32_t MaxIndices3D = MaxQuads3D * 36;
-		uint32_t current_material_index;
+
 		uint32_t current_lights;
-		Material material[MAX_MATERIALS];
+
 		PointLight point_lights[MAX_LIGHTS];
 		uint32_t scene_plights;
 		DirLight skyLight;
 
 		Ref<VertexArray> vao;
-		Ref<VertexArray> vao3D;
 		Ref<VertexBuffer> vertexBuffer;
-		Ref<VertexBuffer> vertexBuffer3D;
 		Ref<Shader> tex_shader;
-		Ref<Shader> tex_shader3D;
 		Ref<Texture2D> white_tex;
 
 		uint32_t QuadIndCnt = 0;
-		uint32_t CubeIndCnt = 0;
 		QuadVertex* quadVertexBufferBase = nullptr;
 		QuadVertex* quadVertexBufferPtr = nullptr;
 
-		CubeVertex* cubeVertexBufferBase = nullptr;
-		CubeVertex* cubeVertexBufferPtr = nullptr;
 
 		std::array<Ref<Texture2D>, MaxTexSlots> texture_slots;
 		uint32_t textureSlotInd = 1; /// 0 = white texture
 
 		glm::vec4 quadVertices[4];
-		glm::vec4 cubeVertices[36];
-		glm::vec3 cubeNormals[36];
 		glm::vec2 texCoords[4];
-		glm::vec2 cubeTexCoords[6];
 
 		Statistics stats;
 
 		struct CameraData {
 			glm::mat4 view_projection3D;
 			glm::vec4 camPos;
-		};
-
-		struct MaterialsData {
-			Material material[MAX_MATERIALS];
 		};
 
 		struct PointLightsData {
@@ -108,17 +93,6 @@ namespace iara {
 		CameraData camera_buffer;
 		Ref<UniformBuffer> camera_uniform_buffer;
 
-		CameraData camera_buffer3D;
-		Ref<UniformBuffer> camera_uniform_buffer3D;
-
-		DirLightData dlight_buffer3D;
-		Ref<UniformBuffer> dlight_uniform_buffer3D;
-		
-		MaterialsData materials_buffer3D;
-		Ref<UniformBuffer> materials_uniform_buffer3D;
-
-		PointLightsData plights_buffer3D;
-		Ref<UniformBuffer> plights_uniform_buffer3D;
 	};
 
 	Renderer_Storeage s_Data;
@@ -137,7 +111,7 @@ namespace iara {
 			{ ShaderDataType::Float,  "a_tex_id" },
 			{ ShaderDataType::Float,  "a_tiling_mult" },
 			{ ShaderDataType::Int,	  "a_entityID"}
-			});
+		});
 		s_Data.vao->AddVertexBuffer(s_Data.vertexBuffer);
 
 		s_Data.quadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
@@ -161,83 +135,6 @@ namespace iara {
 		s_Data.vao->SetIndexBuffer(indexBuffer);
 		delete[] quadIndices;
 
-		/// 3D /////////////////////////////////////////
-
-		s_Data.vao3D = (VertexArray::Create());
-
-		s_Data.vertexBuffer3D = (VertexBuffer::Create(s_Data.MaxVertices3D * sizeof(CubeVertex)));
-
-		s_Data.tex_shader3D = Shader::Create("texture3D-light", "Shaders/texture3-light.vert", "Shaders/texture3-light.frag");
-
-		s_Data.vertexBuffer3D->setLayout({
-			{ ShaderDataType::Float3, "a_pos" },
-			{ ShaderDataType::Float3, "a_normal" },
-			{ ShaderDataType::Float4, "a_color" },
-			{ ShaderDataType::Float2, "a_tex" },
-			{ ShaderDataType::Float,  "a_tex_id" },
-			{ ShaderDataType::Float,  "a_tiling_mult" },
-			{ ShaderDataType::Int,	  "a_entityID"},
-			{ ShaderDataType::Int,    "a_Material_Index"}
-			});
-		s_Data.vao3D->AddVertexBuffer(s_Data.vertexBuffer3D);
-
-		s_Data.cubeVertexBufferBase = new CubeVertex[s_Data.MaxVertices3D];
-
-		uint32_t* cubeIndices = new uint32_t[s_Data.MaxIndices3D];
-
-		offset = 0;
-		for (uint32_t i = 0; i < s_Data.MaxIndices3D; i += 36) {
-			cubeIndices[i + 0] = offset + 0;
-			cubeIndices[i + 1] = offset + 1;
-			cubeIndices[i + 2] = offset + 2;
-			cubeIndices[i + 3] = offset + 3;
-			cubeIndices[i + 4] = offset + 4;
-			cubeIndices[i + 5] = offset + 5;
-
-			cubeIndices[i + 6] = offset + 6;
-			cubeIndices[i + 7] = offset + 7;
-			cubeIndices[i + 8] = offset + 8;
-			cubeIndices[i + 9] = offset + 9;
-			cubeIndices[i + 10] = offset + 10;
-			cubeIndices[i + 11] = offset + 11;
-
-			cubeIndices[i + 12] = offset + 12;
-			cubeIndices[i + 13] = offset + 13;
-			cubeIndices[i + 14] = offset + 14;
-			cubeIndices[i + 15] = offset + 15;
-			cubeIndices[i + 16] = offset + 16;
-			cubeIndices[i + 17] = offset + 17;
-
-			cubeIndices[i + 18] = offset + 18;
-			cubeIndices[i + 19] = offset + 19;
-			cubeIndices[i + 20] = offset + 20;
-			cubeIndices[i + 21] = offset + 21;
-			cubeIndices[i + 22] = offset + 22;
-			cubeIndices[i + 23] = offset + 23;
-
-			cubeIndices[i + 24] = offset + 24;
-			cubeIndices[i + 25] = offset + 25;
-			cubeIndices[i + 26] = offset + 26;
-			cubeIndices[i + 27] = offset + 27;
-			cubeIndices[i + 28] = offset + 28;
-			cubeIndices[i + 29] = offset + 29;
-
-			cubeIndices[i + 30] = offset + 30;
-			cubeIndices[i + 31] = offset + 31;
-			cubeIndices[i + 32] = offset + 32;
-			cubeIndices[i + 33] = offset + 33;
-			cubeIndices[i + 34] = offset + 34;
-			cubeIndices[i + 35] = offset + 35;
-
-			offset += 36;
-		}
-
-		Ref<IndexBuffer> indexBuffer2 = IndexBuffer::Create(cubeIndices, s_Data.MaxIndices3D);
-		s_Data.vao3D->SetIndexBuffer(indexBuffer2);
-		delete[] cubeIndices;
-
-		/// 3D /////////////////////////////////////////
-
 		s_Data.white_tex = Texture2D::Create(1, 1);
 		uint32_t whiteTextureData = 0xffffffff;
 		s_Data.white_tex->setData(&whiteTextureData, sizeof(uint32_t));
@@ -250,8 +147,6 @@ namespace iara {
 		s_Data.tex_shader = Shader::Create("texture", "Shaders/texture.vert", "Shaders/texture.frag");
 		s_Data.tex_shader->bind();
 		s_Data.tex_shader->setUniformIntArray("u_textures", samplers, s_Data.MaxTexSlots);
-		s_Data.tex_shader3D->bind();
-		s_Data.tex_shader3D->setUniformIntArray("u_textures", samplers, s_Data.MaxTexSlots);
 
 		s_Data.texture_slots[0] = s_Data.white_tex;
 
@@ -265,17 +160,6 @@ namespace iara {
 		s_Data.texCoords[2] = { 1.0f, 1.0f };
 		s_Data.texCoords[3] = { 0.0f, 1.0f };
 
-		s_Data.cubeTexCoords[0] = { 0.0f, 0.0f };
-		s_Data.cubeTexCoords[1] = { 1.0f, 0.0f };
-		s_Data.cubeTexCoords[2] = { 1.0f, 1.0f };
-		s_Data.cubeTexCoords[3] = { 1.0f, 1.0f };
-		s_Data.cubeTexCoords[4] = { 0.0f, 1.0f };
-		s_Data.cubeTexCoords[5] = { 0.0f, 0.0f };
-
-		s_Data.camera_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::CameraData), 2);
-		s_Data.materials_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::MaterialsData), 3);
-		s_Data.plights_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::PointLightsData), 4);
-		s_Data.dlight_uniform_buffer3D = UniformBuffer::Create(sizeof(Renderer_Storeage::DirLightData), 5);
 		s_Data.camera_uniform_buffer = UniformBuffer::Create(sizeof(Renderer_Storeage::CameraData), 0);
 
 	}
@@ -284,7 +168,7 @@ namespace iara {
 		delete[] s_Data.quadVertexBufferBase;
 	}
 
-	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform, const uint32_t& plights) {
+	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform, const uint32_t& plights, const uint32_t& dlight) {
 		glm::mat4 viewproj = camera.getProjection() * glm::inverse(transform);
 
 		s_Data.camera_buffer.view_projection3D = camera.getProjection() * glm::inverse(transform);
@@ -299,10 +183,8 @@ namespace iara {
 		s_Data.textureSlotInd = 1;
 	}
 
-	void Renderer2D::BeginScene(EditorCamera& camera, const uint32_t& plights) {
+	void Renderer2D::BeginScene(EditorCamera& camera, const uint32_t& plights, const uint32_t& dlight) {
 		s_Data.tex_shader->bind();
-		/*glm::mat4 viewproj = camera.getViewProjection();
-		s_Data.tex_shader->setUniformMat4f("u_VP", viewproj);*/
 
 		s_Data.camera_buffer.view_projection3D = camera.getViewProjection();
 		auto camPos = camera.getPosition();
@@ -687,7 +569,7 @@ namespace iara {
 namespace iara {
 
 	struct CubeMap_Resources {
-		Ref<Texture2D> skybox;
+		Ref<Texture2D> m_cubemap;
 		Ref<Shader> cubemap_shader;
 		Ref<VertexArray> vao_cubemap;
 		Ref<VertexBuffer> vb_cubemap;
@@ -703,104 +585,8 @@ namespace iara {
 	static CubeMap_Resources s_cubemap;
 
 	void Renderer3D::Init3D() {
-		{
-			s_Data.cubeVertices[0] = { -0.5f, -0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[1] = { 0.5f, -0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[2] = { 0.5f,  0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[3] = { 0.5f,  0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[4] = { -0.5f,  0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[5] = { -0.5f, -0.5f, -0.5f,  1.0f };
-
-			s_Data.cubeVertices[6] = { -0.5f, -0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[7] = { 0.5f, -0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[8] = { 0.5f,  0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[9] = { 0.5f,  0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[10] = { -0.5f,  0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[11] = { -0.5f, -0.5f,  0.5f,  1.0f };
-
-			s_Data.cubeVertices[12] = { -0.5f,  0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[13] = { -0.5f,  0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[14] = { -0.5f, -0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[15] = { -0.5f, -0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[16] = { -0.5f, -0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[17] = { -0.5f,  0.5f,  0.5f,  1.0f };
-
-			s_Data.cubeVertices[18] = { 0.5f,  0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[19] = { 0.5f,  0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[20] = { 0.5f, -0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[21] = { 0.5f, -0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[22] = { 0.5f, -0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[23] = { 0.5f,  0.5f,  0.5f,  1.0f };
-
-			s_Data.cubeVertices[24] = { -0.5f, -0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[25] = { 0.5f, -0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[26] = { 0.5f, -0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[27] = { 0.5f, -0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[28] = { -0.5f, -0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[29] = { -0.5f, -0.5f, -0.5f,  1.0f };
-
-			s_Data.cubeVertices[30] = { -0.5f,  0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[31] = { 0.5f,  0.5f, -0.5f,  1.0f };
-			s_Data.cubeVertices[32] = { 0.5f,  0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[33] = { 0.5f,  0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[34] = { -0.5f,  0.5f,  0.5f,  1.0f };
-			s_Data.cubeVertices[35] = { -0.5f,  0.5f, -0.5f,  1.0f };
-
-			s_Data.cubeNormals[0] = { 0.0f, 0.0f, -1.0f };
-			s_Data.cubeNormals[1] = { 0.0f, 0.0f, -1.0f };
-			s_Data.cubeNormals[2] = { 0.0f, 0.0f, -1.0f };
-			s_Data.cubeNormals[3] = { 0.0f, 0.0f, -1.0f };
-			s_Data.cubeNormals[4] = { 0.0f, 0.0f, -1.0f };
-			s_Data.cubeNormals[5] = { 0.0f, 0.0f, -1.0f };
-
-			s_Data.cubeNormals[6] = { 0.0f, 0.0f, 1.0f };
-			s_Data.cubeNormals[7] = { 0.0f, 0.0f, 1.0f };
-			s_Data.cubeNormals[8] = { 0.0f, 0.0f, 1.0f };
-			s_Data.cubeNormals[9] = { 0.0f, 0.0f, 1.0f };
-			s_Data.cubeNormals[10] = { 0.0f, 0.0f, 1.0f };
-			s_Data.cubeNormals[11] = { 0.0f, 0.0f, 1.0f };
-
-			s_Data.cubeNormals[12] = { -1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[13] = { -1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[14] = { -1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[15] = { -1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[16] = { -1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[17] = { -1.0f, 0.0f, 0.0f };
-
-			s_Data.cubeNormals[18] = { 1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[19] = { 1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[20] = { 1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[21] = { 1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[22] = { 1.0f, 0.0f, 0.0f };
-			s_Data.cubeNormals[23] = { 1.0f, 0.0f, 0.0f };
-
-			s_Data.cubeNormals[24] = { 0.0f, -1.0f, 0.0f };
-			s_Data.cubeNormals[25] = { 0.0f, -1.0f, 0.0f };
-			s_Data.cubeNormals[26] = { 0.0f, -1.0f, 0.0f };
-			s_Data.cubeNormals[27] = { 0.0f, -1.0f, 0.0f };
-			s_Data.cubeNormals[28] = { 0.0f, -1.0f, 0.0f };
-			s_Data.cubeNormals[29] = { 0.0f, -1.0f, 0.0f };
-
-			s_Data.cubeNormals[30] = { 0.0f, 1.0f, 0.0f };
-			s_Data.cubeNormals[31] = { 0.0f, 1.0f, 0.0f };
-			s_Data.cubeNormals[32] = { 0.0f, 1.0f, 0.0f };
-			s_Data.cubeNormals[33] = { 0.0f, 1.0f, 0.0f };
-			s_Data.cubeNormals[34] = { 0.0f, 1.0f, 0.0f };
-			s_Data.cubeNormals[35] = { 0.0f, 1.0f, 0.0f };
-		}
-
-		std::vector<std::string> faces = {
-			"Assets/Textures/skybox/right.jpg",
-			"Assets/Textures/skybox/left.jpg",
-			"Assets/Textures/skybox/top.jpg",
-			"Assets/Textures/skybox/bottom.jpg",
-			"Assets/Textures/skybox/front.jpg",
-			"Assets/Textures/skybox/back.jpg",
-		};
-		s_cubemap.skybox = Texture2D::CreateCubemap(faces);
-
+		s_cubemap.m_cubemap = Texture2D::CreateCubemap("Assets/Textures/skybox2/sky2.png");
 		s_cubemap.cubemap_shader = Shader::Create("cubemap", "Shaders/cubemap.vert", "Shaders/cubemap.frag");
-
 
 		float skyboxVertices[] = {
 			// positions          
@@ -860,195 +646,11 @@ namespace iara {
 		s_cubemap.camera_uniform_buffer_skybox = UniformBuffer::Create(sizeof(CubeMap_Resources::CameraData_skybox), 1);
 	}
 
-	void Renderer3D::Shutdown3D() {
-		delete[] s_Data.cubeVertexBufferBase;
-	}
-
-	void Renderer3D::BeginScene3D(const Camera& camera, const glm::mat4& transform) {
-		s_Data.tex_shader3D->bind();
-
-		s_Data.camera_buffer3D.view_projection3D = camera.getProjection() * glm::inverse(transform);
-		s_Data.camera_buffer3D.camPos = glm::vec4(transform[3][0], transform[3][1], transform[3][2], 1.0f);
-		s_Data.camera_uniform_buffer3D->setData(&s_Data.camera_buffer3D, sizeof(Renderer_Storeage::CameraData));
-		s_Data.CubeIndCnt = 0;
-		s_Data.cubeVertexBufferPtr = s_Data.cubeVertexBufferBase;
-
-		s_Data.textureSlotInd = 1;
-	}
-
-	void Renderer3D::BeginScene3D(EditorCamera& camera) {
-		s_Data.tex_shader3D->bind();
-
-		s_Data.camera_buffer3D.view_projection3D = camera.getViewProjection();
-		auto camPos = camera.getPosition();
-		s_Data.camera_buffer3D.camPos = glm::vec4(camPos.x, camPos.y, camPos.z, 1.0f);
-		s_Data.camera_uniform_buffer3D->setData(&s_Data.camera_buffer3D, sizeof(Renderer_Storeage::CameraData));
-		s_Data.CubeIndCnt = 0;
-		s_Data.cubeVertexBufferPtr = s_Data.cubeVertexBufferBase;
-
-		s_Data.textureSlotInd = 1;
-	}
-
-	void Renderer3D::EndScene3D() {
-		for (uint32_t i = 0; i < s_Data.textureSlotInd; i++) {
-			s_Data.texture_slots[i]->bind(i);
-		}
-
-		for (size_t i = 0; i < MAX_MATERIALS; i++) {
-			s_Data.materials_buffer3D.material[i] = s_Data.material[i];
-		}
-
-		for (size_t i = 0; i < s_Data.scene_plights; i++) {
-			s_Data.plights_buffer3D.point_lights[i] = s_Data.point_lights[i];
-		}
-		s_Data.plights_buffer3D.nrLights = s_Data.scene_plights;
-
-		s_Data.dlight_buffer3D.dlight = s_Data.skyLight;
-		s_Data.dlight_uniform_buffer3D->setData(&s_Data.dlight_buffer3D, sizeof(Renderer_Storeage::DirLightData));
-		s_Data.materials_uniform_buffer3D->setData(&s_Data.materials_buffer3D, sizeof(Renderer_Storeage::MaterialsData));
-		s_Data.plights_uniform_buffer3D->setData(&s_Data.plights_buffer3D, sizeof(Renderer_Storeage::PointLightsData));
-
-		Flush3D();
-	}
-
-	void Renderer3D::Flush3D() {
-		uint32_t data_size = (uint32_t)((uint8_t*)s_Data.cubeVertexBufferPtr - (uint8_t*)s_Data.cubeVertexBufferBase);
-		s_Data.vertexBuffer3D->SetData(s_Data.cubeVertexBufferBase, data_size);
-
-		s_Data.tex_shader3D->bind();
-		s_Data.vao3D->bind();
-		RenderCommand::DrawIndexed(s_Data.vao3D, s_Data.CubeIndCnt);
-
-		s_Data.stats.draw_calls_3d++;
-		s_Data.FRAMES++;
-	}
-
-	void Renderer3D::Reset3D() {
-		s_Data.CubeIndCnt = 0;
-		s_Data.cubeVertexBufferPtr = s_Data.cubeVertexBufferBase;
-
-		s_Data.textureSlotInd = 1;
-	}
-
-	void Renderer3D::drawCubeC(const glm::mat4& transform, const glm::vec4& color, int entityID) {
-		if (s_Data.CubeIndCnt >= s_Data.MaxIndices3D) {
-			EndScene3D();
-			Reset3D();
-		}
-
-		const float textureInd = 0.0f; /// White texture
-		const float tiling_mult = 1.0f;
-
-		for (size_t i = 0; i < 36; i++) {
-			s_Data.cubeVertexBufferPtr->position = transform * s_Data.cubeVertices[i];
-			s_Data.cubeVertexBufferPtr->normal = s_Data.cubeNormals[i];
-			s_Data.cubeVertexBufferPtr->color = color;
-			s_Data.cubeVertexBufferPtr->tex_coord = s_Data.cubeTexCoords[i % 6];
-			s_Data.cubeVertexBufferPtr->tex_index = textureInd;
-			s_Data.cubeVertexBufferPtr->tiling_mult = tiling_mult;
-			s_Data.cubeVertexBufferPtr->entityID = entityID;
-			s_Data.cubeVertexBufferPtr++;
-		}
-
-		s_Data.CubeIndCnt += 36;
-
-		s_Data.stats.cube_count++;
-	}
-
-	void Renderer3D::drawCubeCT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, int entityID) {
-		if (s_Data.CubeIndCnt >= s_Data.MaxIndices3D) {
-			EndScene3D();
-			Reset3D();
-		}
-
-		/// Check if texture exists
-		float textureInd = 0.0f;
-
-		for (uint32_t i = 1; i < s_Data.textureSlotInd; i++) {
-			if (*s_Data.texture_slots[i].get() == *texture.get()) {
-				textureInd = float(i);
-				break;
-			}
-		}
-
-		if (textureInd == 0.0f) {
-			textureInd = (float)s_Data.textureSlotInd;
-			s_Data.texture_slots[s_Data.textureSlotInd] = texture;
-			s_Data.textureSlotInd++;
-		}
-
-		const float tiling_mult = 1.0f;
-
-		for (size_t i = 0; i < 36; i++) {
-			s_Data.cubeVertexBufferPtr->position = transform * s_Data.cubeVertices[i];
-			s_Data.cubeVertexBufferPtr->normal = s_Data.cubeNormals[i];
-			s_Data.cubeVertexBufferPtr->color = color;
-			s_Data.cubeVertexBufferPtr->tex_coord = s_Data.cubeTexCoords[i % 6];
-			s_Data.cubeVertexBufferPtr->tex_index = textureInd;
-			s_Data.cubeVertexBufferPtr->tiling_mult = tiling_mult;
-			s_Data.cubeVertexBufferPtr->entityID = entityID;
-			s_Data.cubeVertexBufferPtr++;
-		}
-
-		s_Data.CubeIndCnt += 36;
-
-		s_Data.stats.cube_count++;
-	}
-
-	void Renderer3D::drawCubeM(const glm::mat4& transform, const glm::vec4& color, int material_index, int entityID) {
-		if (s_Data.CubeIndCnt >= s_Data.MaxIndices3D) {
-			EndScene3D();
-			Reset3D();
-		}
-
-		const float textureInd = 0.0f; /// White texture
-		const float tiling_mult = 1.0f;
-
-		for (size_t i = 0; i < 36; i++) {
-			s_Data.cubeVertexBufferPtr->position = transform * s_Data.cubeVertices[i];
-			s_Data.cubeVertexBufferPtr->normal = transform * glm::vec4(s_Data.cubeNormals[i].x, s_Data.cubeNormals[i].y, s_Data.cubeNormals[i].z, 0.0f);
-			s_Data.cubeVertexBufferPtr->color = color;
-			s_Data.cubeVertexBufferPtr->tex_coord = s_Data.cubeTexCoords[i % 6];
-			s_Data.cubeVertexBufferPtr->tex_index = textureInd;
-			s_Data.cubeVertexBufferPtr->tiling_mult = tiling_mult;
-			s_Data.cubeVertexBufferPtr->entityID = entityID;
-			s_Data.cubeVertexBufferPtr->material_index = material_index;
-			s_Data.cubeVertexBufferPtr++;
-
-			//IARA_CORE_TRACE("Material Index: {0}", material_index);
-		}
-
-		s_Data.CubeIndCnt += 36;
-
-		s_Data.stats.cube_count++;
-
-	}
-
-	void Renderer3D::addMaterial(const glm::vec4& ambient, const glm::vec4& diffuse, const glm::vec4& specular, const float& shininess) {
-		Material mat;
-		mat.ambient = ambient;
-		mat.diffuse = diffuse;
-		mat.specular = specular;
-		mat.shininess = shininess;
-		s_Data.material[s_Data.current_material_index++] = mat;
-
-	}
-
-	void Renderer3D::addMaterial(const uint32_t index, const glm::vec4& ambient, const glm::vec4& diffuse, const glm::vec4& specular, const float& shininess) {
-		Material mat;
-		mat.ambient = ambient;
-		mat.diffuse = diffuse;
-		mat.specular = specular;
-		mat.shininess = shininess;
-		s_Data.material[index] = mat;
-	}
-
-	void Renderer3D::drawSkyBox(const glm::mat4& view, const glm::mat4& projection) {
+	void Renderer3D::drawSkyBox(const glm::mat4& view, const glm::mat4& projection, const Ref<Texture2D>& skybox) {
 		RenderCommand::setDepthMask(false);
 		s_cubemap.cubemap_shader->bind();
 
-		//s_cubemap.cubemap_shader->setUniformInt("skybox", s_cubemap.skybox->getRendererID());
-		s_cubemap.skybox->bind();
+		skybox->bind();
 		s_cubemap.camera_buffer_skybox.view_projection3D = projection * view;
 		s_cubemap.camera_uniform_buffer_skybox->setData(&s_cubemap.camera_buffer_skybox, sizeof(CubeMap_Resources::CameraData_skybox));
 
@@ -1057,22 +659,174 @@ namespace iara {
 		RenderCommand::setDepthMask(true);
 	}
 
-	void Renderer3D::ResetStats3D() {
-		memset(&s_Data.stats, 0, sizeof(Statistics));
+}
+
+
+namespace iara {
+
+	struct ShaderMaterial {
+		glm::vec4 albedo;
+		float shininess;
+		glm::vec3 padding;
+	};
+
+	struct SceneMeshData {
+		std::string path;
+		std::vector<Material> materials;
+		glm::mat4 transform;
+	};
+
+	struct MeshRendererStoreage {
+		Ref<VertexArray> m_vao;
+		Ref<Shader> m_shader;
+
+		std::unordered_map<std::string, Mesh> m_stored_meshes;
+		std::vector<SceneMeshData> m_scene_meshes;
+
+		Assimp::Importer m_importer;
+
+		struct CameraData {
+			glm::mat4 view_projection3D;
+			glm::vec4 camPos;
+		};
+
+		struct ModelData {
+			glm::mat4 model;
+		};
+
+		struct MaterialsData {
+			ShaderMaterial material;
+		};
+
+		struct PointLightsData {
+			PointLight point_lights[MAX_LIGHTS];
+			int nrLights;
+		};
+
+		struct DirLightData {
+			DirLight dlight;
+		};
+
+		CameraData camera_buffer_mesh;
+		Ref<UniformBuffer> camera_uniform_buffer_mesh;
+
+		ModelData model_buffer_mesh;
+		Ref<UniformBuffer> model_uniform_buffer_mesh;
+
+		DirLightData dlight_buffer_mesh;
+		Ref<UniformBuffer> dlight_uniform_buffer_mesh;
+
+		MaterialsData materials_buffer_mesh;
+		Ref<UniformBuffer> materials_uniform_buffer_mesh;
+
+		PointLightsData plights_buffer_mesh;
+		Ref<UniformBuffer> plights_uniform_buffer_mesh;
+	};
+
+	static MeshRendererStoreage s_MeshData;
+
+	void MeshRenderer::InitMeshRenderer() {
+		s_MeshData.m_vao = VertexArray::Create();
+		s_MeshData.m_shader = Shader::Create("mesh-light", "Shaders/light-mesh.vert", "Shaders/light-mesh.frag");
+
+		s_MeshData.camera_uniform_buffer_mesh = UniformBuffer::Create(sizeof(MeshRendererStoreage::CameraData), 6);
+		s_MeshData.model_uniform_buffer_mesh = UniformBuffer::Create(sizeof(MeshRendererStoreage::ModelData), 7);
+		s_MeshData.materials_uniform_buffer_mesh = UniformBuffer::Create(sizeof(MeshRendererStoreage::MaterialsData), 8);
+		s_MeshData.plights_uniform_buffer_mesh = UniformBuffer::Create(sizeof(Renderer_Storeage::PointLightsData), 9);
+		s_MeshData.dlight_uniform_buffer_mesh = UniformBuffer::Create(sizeof(Renderer_Storeage::DirLightData), 10);
 	}
 
-	Statistics Renderer3D::getStats3D() {
-		return s_Data.stats;
+	void MeshRenderer::BeginSceneMesh(const Camera& camera, const glm::mat4& transform) {
+		s_MeshData.m_shader->bind();
+		
+		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getProjection() * glm::inverse(transform);
+		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(transform[3][0], transform[3][1], transform[3][2], 1.0f);
+		s_MeshData.camera_uniform_buffer_mesh->setData(&s_MeshData.camera_buffer_mesh, sizeof(Renderer_Storeage::CameraData));
+
+		s_MeshData.m_scene_meshes.clear();
 	}
 
-	uint32_t Renderer3D::getNrMaterials() {
-		return s_Data.current_material_index;
+	void MeshRenderer::BeginSceneMesh(EditorCamera& camera) {
+		s_MeshData.m_shader->bind();
+
+		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getViewProjection();
+		auto camPos = camera.getPosition();
+		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(camPos.x, camPos.y, camPos.z, 1.0f);
+		s_MeshData.camera_uniform_buffer_mesh->setData(&s_MeshData.camera_buffer_mesh, sizeof(MeshRendererStoreage::CameraData));
+
+		s_MeshData.m_scene_meshes.clear();
 	}
 
-	Material Renderer3D::getMaterial(uint32_t index) {
-		if (index < 10)
-			return s_Data.material[index];
-		return {};
+	void MeshRenderer::EndSceneMesh() {
+		for (size_t i = 0; i < s_Data.scene_plights; i++) {
+			s_MeshData.plights_buffer_mesh.point_lights[i] = s_Data.point_lights[i];
+		}
+		s_MeshData.plights_buffer_mesh.nrLights = s_Data.scene_plights;
+
+		s_MeshData.dlight_buffer_mesh.dlight = s_Data.skyLight;
+		s_MeshData.dlight_uniform_buffer_mesh->setData(&s_MeshData.dlight_buffer_mesh, sizeof(MeshRendererStoreage::DirLightData));
+		s_MeshData.plights_uniform_buffer_mesh->setData(&s_MeshData.plights_buffer_mesh, sizeof(MeshRendererStoreage::PointLightsData));
+		FlushMesh();
+		s_MeshData.m_scene_meshes.clear();
+	}
+
+	void MeshRenderer::drawMesh(const glm::mat4& transform,MeshComponent& meshcomp, int entityID) {
+		/// TODO: Fa sa poti sa stochezi mesh-ul pentru fufture uses, dar in acelasi timp sa poti sa pui entityID-uri noi pentru noi meshes
+		/// IDEE: Creeaza mesh-ul pentru prima data, cu un VertexBuffer fara entityID, iar cand introduci aici entityID extinde VAO cu inca un INT pentru ID
+		///		 si incarca intr-un VertexBuffer ID-ul
+		
+		if (s_MeshData.m_stored_meshes.find(meshcomp.path) == s_MeshData.m_stored_meshes.end()) {
+			if (meshcomp.path != "") {
+				Mesh new_mesh;
+				new_mesh.loadModel(meshcomp.path, entityID);
+				s_MeshData.m_stored_meshes[meshcomp.path] = new_mesh;
+				for (auto mat : new_mesh.materials)
+					meshcomp.materials.push_back(mat);
+				meshcomp.first_pass = true;
+			}
+		}
+		else if (!meshcomp.first_pass && meshcomp.path != "") {
+			meshcomp.materials = s_MeshData.m_stored_meshes[meshcomp.path].materials;
+			meshcomp.first_pass = true;
+		}
+		
+		if (meshcomp.path != "") {
+			s_MeshData.m_scene_meshes.push_back({ meshcomp.path, meshcomp.materials, transform });
+		}
+	}
+
+	void MeshRenderer::FlushMesh() {
+		s_MeshData.m_vao->bind();
+		for (auto &mesh_entry : s_MeshData.m_scene_meshes) {
+			auto &raw_mesh_data = s_MeshData.m_stored_meshes[mesh_entry.path];
+			s_MeshData.model_uniform_buffer_mesh->setData(&mesh_entry.transform, sizeof(MeshRendererStoreage::ModelData));			
+			/// Setting data in the vertex buffer AND index buffer
+
+			s_MeshData.m_vao->setVertexBuffer(raw_mesh_data.vb);
+			s_MeshData.m_vao->SetIndexBuffer(raw_mesh_data.ib);
+
+			//// **Create an Entity ID buffer for this specific instance (all vertices share the same entityID)**
+			//std::vector<int> entityIDBuffer(raw_mesh_data.numVertices, mesh_entry.entityID);
+			//Ref<VertexBuffer> entityIDBufferObj = VertexBuffer::Create(entityIDBuffer.data(), entityIDBuffer.size() * sizeof(int));
+
+			for (auto &mesh : raw_mesh_data.meshes) {
+				uint8_t tex_slot = 0;
+				ShaderMaterial sh_mat;
+				sh_mat.albedo = mesh_entry.materials[mesh.materialInd].diffuse;
+				sh_mat.shininess = mesh_entry.materials[mesh.materialInd].shininess;
+				s_MeshData.materials_uniform_buffer_mesh->setData(&sh_mat, sizeof(ShaderMaterial));
+
+				mesh_entry.materials[mesh.materialInd].diffuse_map->bind(tex_slot);
+				s_MeshData.m_shader->setUniformInt("diffuse_map", tex_slot);
+				tex_slot++;
+
+				mesh_entry.materials[mesh.materialInd].specular_map->bind(tex_slot);
+				s_MeshData.m_shader->setUniformInt("specular_map", tex_slot);
+				tex_slot++;
+
+				RenderCommand::DrawIndexedBaseVertex(s_MeshData.m_vao, mesh.numInd, mesh.baseIndex, mesh.baseVertex);
+			}
+		}
 	}
 
 }

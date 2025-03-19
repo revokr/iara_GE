@@ -207,6 +207,9 @@ namespace iara {
 		}
 
 		out << YAML::EndSeq;
+
+		out << YAML::Key << "CubemapPath" << YAML::Value << m_scene->m_skybox_path;
+
 		out << YAML::EndMap;
 
 		std::ofstream fout(path);
@@ -326,6 +329,12 @@ namespace iara {
 
 			}
 		}
+
+		auto cubemapPath = data["CubemapPath"];
+		if (cubemapPath) {
+			m_scene->setSkyBox(cubemapPath.as<std::string>());
+		}
+
 		return true;
 	}
 

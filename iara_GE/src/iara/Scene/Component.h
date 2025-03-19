@@ -1,9 +1,9 @@
 #pragma once
 
 #include "iara/Renderer/Camera.h"
-#include "iara/Renderer/Texture.h"
 #include "ScriptableEntity.h"
 #include "SceneCamera.h"
+#include "iara\Renderer\Mesh.h"
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 
@@ -39,7 +39,7 @@ namespace iara {
 
 			return glm::translate(glm::mat4(1.0f), translation) * rotation_mat * glm::scale(glm::mat4(1.0f), scale);
 		}
-	};
+	};	
 
 	struct SpriteRendererComponent {
 
@@ -67,15 +67,6 @@ namespace iara {
 		operator const glm::vec4& () const { return color; }
 	};
 
-	struct Material {
-		glm::vec4 ambient = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		glm::vec4 diffuse = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		glm::vec4 specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		float shininess;
-		float padding1;
-		glm::vec2 padding2;
-	};
-
 	struct PointLight {
 		glm::vec4 position = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
@@ -91,11 +82,11 @@ namespace iara {
 	};
 
 	struct DirLight {
-		glm::vec4 direction = glm::vec4(0.0, -1.0, 0.0, 0.0);
+		glm::vec4 direction = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
 
-		glm::vec4 ambient = glm::vec4(0.3, 0.3, 0.3, 1.0);
-		glm::vec4 diffuse = glm::vec4(0.8, 0.3, 0.3, 1.0);
-		glm::vec4 specular = glm::vec4(0.5, 0.5, 0.5, 1.0);
+		glm::vec4 ambient = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
+		glm::vec4 diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		glm::vec4 specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 	};
 
 	struct cube3DComponent {
@@ -119,6 +110,12 @@ namespace iara {
 
 		operator glm::vec4& () { return color; }
 		operator const glm::vec4& () const { return color; }
+	};
+
+	struct MeshComponent {
+		std::string path;
+		std::vector<Material> materials;
+		bool first_pass = false;
 	};
 
 	struct Texture2DComponent {

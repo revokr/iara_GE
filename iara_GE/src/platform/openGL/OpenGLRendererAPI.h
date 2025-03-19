@@ -14,6 +14,7 @@ namespace iara {
 		virtual void setDepthMask(bool set) override;
 
 		virtual void DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount = 0) override;
+		virtual void DrawIndexedBaseVertex(const Ref<VertexArray>& va, uint32_t indexCount, uint32_t indexStart, uint32_t vertexStart) override;
 		virtual void drawArray(const Ref<VertexArray>& va, uint32_t start, uint32_t end) override;
 	};
 

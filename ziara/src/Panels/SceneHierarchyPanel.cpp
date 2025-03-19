@@ -45,7 +45,10 @@ namespace iara {
 				m_context->createPointLight("Point Light");
 			}
 			if (ImGui::MenuItem("Create Directional Light")) {
-				m_context->createDirLight("Sky Light");
+				if (!m_context->getDirLight())
+					m_context->createDirLight("Sky Light");
+				else
+					IARA_CORE_WARN("This Scene Alreay has a directional light!!");
 			}
 
 			ImGui::EndPopup();
@@ -94,6 +97,7 @@ namespace iara {
 
 		if (entity_deleted) {
 			if (m_selection_context.hasComponent<PointLightComponent>()) m_context->decreasePointLights();
+			if (m_selection_context.hasComponent<DirLightComponent>()) m_context->clearDirLight();
 			m_context->destroyEntity(entity);
 			if (m_selection_context == entity) {
 				m_selection_context = {};
@@ -233,16 +237,8 @@ namespace iara {
 				ImGui::CloseCurrentPopup();
 			}
 
-			if (ImGui::MenuItem("PointLight")) {
-				m_selection_context.addComponent<PointLightComponent>();
-
-				m_context->increasePointLights();
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			if (ImGui::MenuItem("SkyLight")) {
-				m_selection_context.addComponent<DirLightComponent>();
+			if (ImGui::MenuItem("Render Mesh")) {
+				m_selection_context.addComponent<MeshComponent>();
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -378,6 +374,54 @@ namespace iara {
 			ImGui::ColorEdit4("Ambient", &component.dlight.ambient.x);
 			ImGui::ColorEdit4("Diffuse", &component.dlight.diffuse.x);
 			ImGui::ColorEdit4("Specular", &component.dlight.specular.x);
+			});
+
+		drawComponent<MeshComponent>("Mesh", entity, [](auto& component) {
+			ImGui::Text(component.path.c_str());
+			ImGui::Button("Mesh Path", ImVec2(100.0f, 0.0f));
+			if (ImGui::BeginDragDropTarget()) {
+				/// this payload can be null, that's why it's going through a check
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::string iara = std::filesystem::path(path).extension().string();
+
+					std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
+					if (iara == ".obj") {
+						component.path = tex_path.string();
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			int i = 0;
+			for (auto& mat : component.materials) {
+				ImGui::ColorEdit4(("Diffuse##" + std::to_string(i)).c_str(), &(mat.diffuse.x));
+				ImGui::SliderFloat(("Shininess##" + std::to_string(i)).c_str(), &(mat.shininess), 0, 40);
+				if (mat.diffuse_map->getPath() != "") {
+					std::string path_diff = mat.diffuse_map->getPath();
+					ImGui::ImageButton(("Diffuse Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)mat.diffuse_map->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+					if (ImGui::BeginDragDropTarget()) {
+						/// this payload can be null, that's why it's going through a check
+						/// "content_browser_item"  --- this payload is created in ContentBrowserPanel
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
+							const wchar_t* path = (const wchar_t*)payload->Data;
+							std::string iara = std::filesystem::path(path).extension().string();
+
+							std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
+							if (iara == ".png") {
+								mat.diffuse_map = Texture2D::Create(tex_path.string());
+							}
+						}
+						ImGui::EndDragDropTarget();
+					}
+					ImGui::Text(path_diff.c_str(), mat.diffuse_map->getPath().size());
+				}
+				if (mat.specular_map->getPath() != "") {
+					std::string path_spec = mat.specular_map->getPath();
+					ImGui::Text(path_spec.c_str(), mat.specular_map->getPath().size());
+				}
+				i++;
+			}
 		});
 
 	}

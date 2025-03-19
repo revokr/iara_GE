@@ -39,6 +39,10 @@ namespace iara {
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 	}
 
+	void OpenGLRendererAPI::DrawIndexedBaseVertex(const Ref<VertexArray>& va, uint32_t indexCount, uint32_t indexStart, uint32_t vertexStart) {
+		glDrawElementsBaseVertex(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * indexStart), vertexStart);
+	}
+
 	void OpenGLRendererAPI::drawArray(const Ref<VertexArray>& va, uint32_t start, uint32_t end) {
 		glDrawArrays(GL_TRIANGLES, start, end);
 	}

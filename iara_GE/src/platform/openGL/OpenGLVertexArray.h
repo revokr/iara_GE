@@ -12,7 +12,8 @@ namespace iara {
 
 		virtual void bind() const override;
 		virtual void unbind() const override;
-
+		 
+		virtual void setVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) override;
 		virtual void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) override;
 		virtual void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer) override;
 
@@ -21,6 +22,7 @@ namespace iara {
 
 	private:
 		uint32_t m_RendererID;
+		uint32_t m_current_index = 0;
 
 		std::vector<Ref<VertexBuffer>> m_vertexbuffers;
 		Ref<IndexBuffer> m_indexbuffer;

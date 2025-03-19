@@ -21,6 +21,7 @@ namespace iara {
 
 		virtual void DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount = 0) = 0;
 		virtual void drawArray(const Ref<VertexArray>& va, uint32_t start, uint32_t end) = 0;
+		virtual void DrawIndexedBaseVertex(const Ref<VertexArray>& va, uint32_t indexCount, uint32_t indexStart, uint32_t vertexStart) = 0;
 
 		inline static API getAPI() { return s_API; }
 	private:

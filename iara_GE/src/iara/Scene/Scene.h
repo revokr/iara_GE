@@ -4,6 +4,7 @@
 
 #include "iara/Core/Timestep.h"
 #include "iara\Renderer\EditorCamera.h"
+#include "iara\Renderer\Texture.h"
 
 namespace iara {
 
@@ -33,6 +34,12 @@ namespace iara {
 		void decreasePointLights() { m_plights--; }
 		void increasePointLights() { m_plights++; }
 
+		void setSkyBox(const std::string& path) { m_skybox = Texture2D::CreateCubemap(path); m_skybox_path = path; }
+
+		bool getDirLight() { return m_dlight; }
+		void setDirLight() { m_dlight = true; }
+		void clearDirLight() { m_dlight = false; }
+
 		void setSceneState(SceneState state) { m_scene_state = state; }
 		SceneState getSceneState() { return m_scene_state; }
 	private:
@@ -44,6 +51,9 @@ namespace iara {
 		uint32_t m_vp_height = 1;
 
 		uint32_t m_plights = 0;
+		bool m_dlight = false;
+		std::string m_skybox_path;
+		Ref<Texture2D> m_skybox = nullptr;
 
 		entt::registry m_registry;
 

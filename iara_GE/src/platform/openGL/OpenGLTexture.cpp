@@ -76,22 +76,48 @@ namespace iara {
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_width, m_height, m_data_format, GL_UNSIGNED_BYTE, data);
 	}
 
-	OpenGLCubeMapTexture::OpenGLCubeMapTexture(const std::vector<std::string>& faces)
-		: m_paths{ faces } {
+	OpenGLCubeMapTexture::OpenGLCubeMapTexture(const std::string& cubemap)
+		: m_path{ cubemap } {
+
 		glGenTextures(1, &m_RendererID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
+		stbi_set_flip_vertically_on_load(false);
+		int width, height, channels;
+		unsigned char* data = stbi_load(cubemap.c_str(), &width, &height, &channels, 0);
 
-		int width, height, nrChannels;
-		for (uint32_t i = 0; i < faces.size(); i++) {
-			unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-			if (data) {
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-				stbi_image_free(data);
+		if (!data) {
+			IARA_CORE_ERROR("Could not load cubemap texture at path: {0}", cubemap);
+			return;
+		}
+
+		int faceSize = width / 4;
+		// Define offsets for each face
+		int offsets[6][2] = {
+			{2 * faceSize, faceSize}, // +X
+			{0, faceSize},            // -X
+			{faceSize, 0},            // +Y
+			{faceSize, 2 * faceSize}, // -Y
+			{faceSize, faceSize},     // +Z
+			{3 * faceSize, faceSize}  // -Z
+		};
+
+		for (int i = 0; i < 6; i++) {
+			int xOffset = offsets[i][0];
+			int yOffset = offsets[i][1];
+
+			unsigned char* faceData = new unsigned char[faceSize * faceSize * channels];
+			for (int y = 0; y < faceSize; y++) {
+				memcpy(
+					faceData + (y * faceSize * channels),
+					data + ((yOffset + y) * width + xOffset) * channels,
+					faceSize * channels
+				);
 			}
-			else {
-				IARA_CORE_ERROR("Failed to load texture at path {0}", faces[i]);
-				stbi_image_free(data);
-			}
+
+			// Upload each face to OpenGL
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, faceSize, faceSize, 0,
+				(channels == 4 ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, faceData);
+			delete[] faceData;
 		}
 
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -102,13 +128,12 @@ namespace iara {
 	}
 
 	OpenGLCubeMapTexture::OpenGLCubeMapTexture(const OpenGLCubeMapTexture& other) {
-		auto new_tex = OpenGLCubeMapTexture(other.m_paths);
+		auto new_tex = OpenGLCubeMapTexture(other.m_path);
 		m_RendererID = new_tex.m_RendererID;
 	}
 
 	OpenGLCubeMapTexture::~OpenGLCubeMapTexture() {
 		glDeleteTextures(1, &m_RendererID);
-		m_paths.clear();
 	}
 
 	void OpenGLCubeMapTexture::bind(uint32_t slot) const {

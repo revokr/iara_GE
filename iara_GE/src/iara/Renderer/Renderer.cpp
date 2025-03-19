@@ -11,6 +11,7 @@ namespace iara {
         RenderCommand::Init();
         Renderer2D::Init();
         Renderer3D::Init3D();
+        MeshRenderer::InitMeshRenderer();
     }
 
     void Renderer::onWindowResize(uint32_t width, uint32_t height) {

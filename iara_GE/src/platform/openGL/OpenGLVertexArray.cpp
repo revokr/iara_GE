@@ -40,13 +40,14 @@ namespace iara {
 		glBindVertexArray(0);
 	}
 
-	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) {
+	void OpenGLVertexArray::setVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) {
 		IARA_CORE_ASSERT(vertexBuffer->getLayout().getElems().size(), "Vertex Buffer has no layout!");
+
+		m_vertexbuffers.clear();
 
 		glBindVertexArray(m_RendererID);
 		vertexBuffer->bind();
-		
-		uint32_t index = 0;
+		m_current_index = 0;
 		const auto& layout = vertexBuffer->getLayout();
 		for (const auto& el : layout) {
 			switch (el.type)
@@ -56,12 +57,12 @@ namespace iara {
 			case ShaderDataType::Float3:
 			case ShaderDataType::Float4:
 			{
-				glEnableVertexAttribArray(index);
-				glVertexAttribPointer(index, el.getComponentCount(),
+				glEnableVertexAttribArray(m_current_index);
+				glVertexAttribPointer(m_current_index, el.getComponentCount(),
 					ShaderDataType_to_OpenGLBaseType(el.type),
 					el.normalized ? GL_TRUE : GL_FALSE,
 					layout.getStride(), (const void*)el.offset);
-				index++;
+				m_current_index++;
 				break;
 			}
 			case ShaderDataType::Int:
@@ -70,11 +71,53 @@ namespace iara {
 			case ShaderDataType::Int4:
 			case ShaderDataType::Bool:
 			{
-				glEnableVertexAttribArray(index);
-				glVertexAttribIPointer(index, el.getComponentCount(),
+				glEnableVertexAttribArray(m_current_index);
+				glVertexAttribIPointer(m_current_index, el.getComponentCount(),
 					ShaderDataType_to_OpenGLBaseType(el.type),
 					layout.getStride(), (const void*)el.offset);
-				index++;
+				m_current_index++;
+				break;
+			}
+
+			}
+		}
+		m_vertexbuffers.push_back(vertexBuffer);
+	}
+
+	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) {
+		IARA_CORE_ASSERT(vertexBuffer->getLayout().getElems().size(), "Vertex Buffer has no layout!");
+
+		glBindVertexArray(m_RendererID);
+		vertexBuffer->bind();
+		
+		const auto& layout = vertexBuffer->getLayout();
+		for (const auto& el : layout) {
+			switch (el.type)
+			{
+			case ShaderDataType::Float:
+			case ShaderDataType::Float2:
+			case ShaderDataType::Float3:
+			case ShaderDataType::Float4:
+			{
+				glEnableVertexAttribArray(m_current_index);
+				glVertexAttribPointer(m_current_index, el.getComponentCount(),
+					ShaderDataType_to_OpenGLBaseType(el.type),
+					el.normalized ? GL_TRUE : GL_FALSE,
+					layout.getStride(), (const void*)el.offset);
+				m_current_index++;
+				break;
+			}
+			case ShaderDataType::Int:
+			case ShaderDataType::Int2:
+			case ShaderDataType::Int3:
+			case ShaderDataType::Int4:
+			case ShaderDataType::Bool:
+			{
+				glEnableVertexAttribArray(m_current_index);
+				glVertexAttribIPointer(m_current_index, el.getComponentCount(),
+					ShaderDataType_to_OpenGLBaseType(el.type),
+					layout.getStride(), (const void*)el.offset);
+				m_current_index++;
 				break;
 			}
 
