@@ -13,3 +13,6 @@
 [submodule "iara_GE/vendor/yaml"]
 	path = iara_GE/vendor/yaml
 	url = https://github.com/revokr/yaml-cpp.git
+[submodule "iara_GE/vendor/assimp_premake"]
+	path = iara_GE/vendor/assimp_premake
+	url = https://github.com/revokr/assimp_premake.git

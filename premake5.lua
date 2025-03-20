@@ -24,7 +24,7 @@ IncludeDir["ENTT"] = "iara_GE/vendor/entt/include"
 IncludeDir["YAML"] = "iara_GE/vendor/yaml/include"
 IncludeDir["SPIRV"] = "iara_GE/vendor/spirv/"
 IncludeDir["VULKANSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["ASSIMP"] = "iara_GE/vendor/assimp/include"
+IncludeDir["ASSIMP"] = "iara_GE/vendor/assimp_premake/include"
 IncludeDir["SPIRV_Cross"] = "%{wks.location}/Hazel/vendor/SPIRV-Cross"
 
 LibraryDir = {}
@@ -48,7 +48,7 @@ include "iara_GE/vendor/glfw"
 include "iara_GE/vendor/glad"
 include "iara_GE/vendor/imgui"
 include "iara_GE/vendor/yaml"
-include "iara_GE/vendor/assimp"
+include "iara_GE/vendor/assimp_premake"
 
 
 project "iara_GE" 
@@ -104,7 +104,7 @@ project "iara_GE"
 		"GLAD",
 		"IMGUI",
 		"YAML",
-		"ASSIMP"
+		"ASSIMP",
 		--"opengl32.lib"
 	}
 
@@ -225,9 +225,9 @@ project "ziara"
 		"iara_GE/vendor",
 		"iara_GE/src",
 		"%{IncludeDir.GLM}",
-		"iara_GE/vendor/assimp/include",
 		"%{IncludeDir.ENTT}",
 		"%{IncludeDir.VULKANSDK}",
+		"%{IncludeDir.ASSIMP}",
 		"sandbox/Assets",
 		"sandbox/Shaders"
 	}

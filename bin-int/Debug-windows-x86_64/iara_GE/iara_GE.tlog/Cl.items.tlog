@@ -13,10 +13,10 @@ C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Camera.cpp;C:\Use
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\CameraController.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\CameraController.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\EditorCamera.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\EditorCamera.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Framebuffer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Framebuffer.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Mesh.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Mesh.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\RenderCommand.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\RenderCommand.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Renderer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Renderer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Renderer2D.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Renderer2D.obj
-C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Renderer3D.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Renderer3D.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\RendererAPI.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\RendererAPI.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\Texture.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Texture.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\UniformBuffer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\UniformBuffer.obj
@@ -25,6 +25,7 @@ C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Renderer\shader.cpp;C:\Use
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\Entity.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Entity.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\Scene.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\Scene.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\SceneCamera.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\SceneCamera.obj
+C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\SceneRenderer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\SceneRenderer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Scene\SceneSerializer.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\SceneSerializer.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\iara\Utils\WindowsUtils.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\WindowsUtils.obj
 C:\Users\rafael\source\repos\iara_GE\iara_GE\src\ir_pch.cpp;C:\Users\rafael\source\repos\iara_GE\bin-int\Debug-windows-x86_64\iara_GE\ir_pch.obj
