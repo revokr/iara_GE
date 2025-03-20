@@ -10,9 +10,6 @@
 [submodule "iara_GE/vendor/ImGuizmo"]
 	path = iara_GE/vendor/ImGuizmo
 	url = https://github.com/revokr/ImGuizmo.git
-[submodule "iara_GE/vendor/yaml-cpp"]
-	path = iara_GE/vendor/yaml
-	url = https://github.com/revokr/yaml-cpp.git
 [submodule "iara_GE/vendor/yaml"]
 	path = iara_GE/vendor/yaml
 	url = https://github.com/revokr/yaml-cpp.git
