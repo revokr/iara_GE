@@ -12,14 +12,14 @@
 
 **Current Features**
 
-**3D Mesh Loading:** Support for loading and rendering 3D models with ASSIMP
-**Basic Lighting System:** Point lights and sky lights
-**Shadow Mapping:** Single cascade PCF shadows
-**Editor Interface:** Simple gizmos for scene manipulation
-**Multisample Anti-Aliasing:** For smoother rendering
-**Scene Hierarchy:** Basic parent-child relationship between objects
-**Material System:** Simple (non-PBR) material application
-**Performance Metrics:** Frame rate and rendering statistics
+**3D Mesh Loading:** Support for loading and rendering 3D models with ASSIMP<br/>
+**Basic Lighting System:** Point lights and sky lights<br/>
+**Shadow Mapping:** Single cascade PCF shadows<br/>
+**Editor Interface:** Simple gizmos for scene manipulation<br/>
+**Multisample Anti-Aliasing:** For smoother rendering<br/>
+**Scene Hierarchy:** Basic parent-child relationship between objects<br/>
+**Material System:** Simple (non-PBR) material application<br/>
+**Performance Metrics:** Frame rate and rendering statistics<br/>
 
 ![Screen1](https://github.com/revokr/iara_GE/blob/master/ss_engine2.png)
 
