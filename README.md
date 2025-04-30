@@ -1,6 +1,6 @@
 **IARA Engine**
 ![Screen1](https://github.com/revokr/iara_GE/blob/master/ss_engine1.png)
-**Overview**
+**Overview**<br/>
 **IARA Engine** is a personal project I've developed to learn OpenGL and computer graphics fundamentals. As I progress through my graphics programming journey, this engine serves as my playground for implementing and experimenting with various rendering techniques.
 
 **This project has helped me understand:**
