@@ -91,7 +91,7 @@ namespace iara {
         m_distance -= delta * zoomSpeed();
         if (m_distance < 1.0f) {
             m_focal_point += getForwardDirection();
-            m_distance = 1.0f;
+            m_distance = 1.0f;  
         }
     }
 

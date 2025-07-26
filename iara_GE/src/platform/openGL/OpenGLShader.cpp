@@ -345,7 +345,6 @@ namespace iara {
 		IARA_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", utils::glShaderToString(stage), stage == GL_VERTEX_SHADER ? m_filepath_vert : m_filepath_frag);
 		IARA_CORE_TRACE("     {0} uniform buffers", resources.uniform_buffers.size());
 		IARA_CORE_TRACE("     {0} resources", resources.sampled_images.size());
-
 		IARA_CORE_TRACE("Uniform buffers: ");
 		for (const auto& res : resources.uniform_buffers) {
 			const auto& buffer_type = compiler.get_type(res.base_type_id);

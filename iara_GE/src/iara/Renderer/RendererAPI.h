@@ -18,6 +18,8 @@ namespace iara {
 		virtual void Clear() = 0;
 
 		virtual void setDepthMask(bool set) = 0;
+		virtual void polygonMode(bool enable) = 0;
+		virtual void BindTextureUnit(uint32_t slot, uint32_t tex) = 0;
 
 		virtual void DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount = 0) = 0;
 		virtual void drawArray(const Ref<VertexArray>& va, uint32_t start, uint32_t end) = 0;

@@ -1,5 +1,6 @@
 #include "ir_pch.h"
 #include "Window_Win.h"
+#include "glad\glad.h"
 
 #include "platform/openGL/OpenGLContext.h"
 
@@ -59,11 +60,11 @@ namespace iara {
 			s_GLFWInit = true;
 		}
 
+		glfwWindowHint(GLFW_SAMPLES, 8);
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, props.Title.c_str(), nullptr, nullptr);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		m_context = new OpenGLContext(m_Window);
 		m_context->Init();
@@ -71,6 +72,9 @@ namespace iara {
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 		//glfwWindowHint(GLFW_SAMPLES, 4);
+		int samples;
+		glGetIntegerv(GL_SAMPLES, &samples);
+		IARA_CORE_INFO("MSAA Samples: {0}", samples);
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* wnd, int width, int height) {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(wnd);

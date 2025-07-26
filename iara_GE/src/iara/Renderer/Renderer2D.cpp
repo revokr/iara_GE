@@ -1,4 +1,4 @@
-#include "ir_pch.h"
+﻿#include "ir_pch.h"
 #include "Renderer2D.h"
 #include "VertexArray.h"
 #include "shader.h"
@@ -6,6 +6,12 @@
 #include "iara\Renderer\UniformBuffer.h"
 #include "RenderCommand.h"
 #include "iara\Math\Math.h"
+
+#include <thread>
+#include <future>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
@@ -43,14 +49,10 @@ namespace iara {
 
 		uint32_t FRAMES = 0;
 
-		const uint32_t MaxQuads = 20000;
+		const uint32_t MaxQuads = 100;
 		const uint32_t MaxVertices = MaxQuads * 4;
 		const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTexSlots = 32;
-
-		const uint32_t MaxQuads3D = 20000;
-		const uint32_t MaxVertices3D = MaxQuads3D * 4;
-		const uint32_t MaxIndices3D = MaxQuads3D * 36;
 
 		uint32_t current_lights;
 
@@ -92,13 +94,46 @@ namespace iara {
 
 		CameraData camera_buffer;
 		Ref<UniformBuffer> camera_uniform_buffer;
-
 	};
 
-	Renderer_Storeage s_Data;
+	static Renderer_Storeage s_Data;
+
+	struct ShadowMapData {
+		Ref<VertexArray> shadow_quad_vao;
+		Ref<VertexBuffer> shadow_quad_vb;
+		Ref<IndexBuffer> shadow_quad_ib;
+
+		Ref<Shader> quad_shadowmap_shader;
+	};
+
+	static ShadowMapData s_shadowMapData;
 
 	void Renderer2D::Init() {
 		IARA_PROFILE_FUNCTION();
+
+		/// SHADOWMAP
+
+		s_shadowMapData.shadow_quad_vao = VertexArray::Create();
+		float quadVertices[] = {
+			//  positions        // texCoords
+			-1.0f,  1.0f, 0.0f,   0.0f, 1.0f, // top-left
+			-1.0f, -1.0f, 0.0f,   0.0f, 0.0f, // bottom-left
+			 1.0f, -1.0f, 0.0f,   1.0f, 0.0f, // bottom-right
+
+			-1.0f,  1.0f, 0.0f,   0.0f, 1.0f, // top-left
+			 1.0f, -1.0f, 0.0f,   1.0f, 0.0f, // bottom-right
+			 1.0f,  1.0f, 0.0f,   1.0f, 1.0f  // top-right
+		};
+		s_shadowMapData.quad_shadowmap_shader = Shader::Create("shadowMapQuad", "Shaders/shadowmap_quad.vert", "Shaders/shadowmap_quad.frag");
+		s_shadowMapData.shadow_quad_vb = VertexBuffer::Create(quadVertices, sizeof(float) * 30);
+
+		s_shadowMapData.shadow_quad_vb->setLayout({
+			{ ShaderDataType::Float3, "a_pos" },
+			{ ShaderDataType::Float2, "a_tex_coord" }
+			});
+		s_shadowMapData.shadow_quad_vao->AddVertexBuffer(s_shadowMapData.shadow_quad_vb);
+
+		///-------------
 
 		s_Data.vao = (VertexArray::Create());
 
@@ -144,6 +179,7 @@ namespace iara {
 			samplers[i] = i;
 		}
 
+		
 		s_Data.tex_shader = Shader::Create("texture", "Shaders/texture.vert", "Shaders/texture.frag");
 		s_Data.tex_shader->bind();
 		s_Data.tex_shader->setUniformIntArray("u_textures", samplers, s_Data.MaxTexSlots);
@@ -553,8 +589,32 @@ namespace iara {
 		}
 	}
 
+	void Renderer2D::drawLight(const glm::mat4& transform, const PointLightComponent& light, Camera& camera, int entityID) {
+		if (s_Data.current_lights < s_Data.scene_plights) {
+			PointLight plight = light.plight;
+			plight.position = transform * plight.position;
+			s_Data.point_lights[s_Data.current_lights] = plight;
+			s_Data.current_lights++;
+		}
+	}
+
 	void Renderer2D::drawDirLight(const DirLightComponent& dlight) {
 		s_Data.skyLight = dlight.dlight;
+		//IARA_CORE_ERROR("DE UNDE ESTI AICI????");
+	}
+
+	void Renderer2D::drawShadowMapToQuad(uint32_t shadowmap)
+	{
+		s_shadowMapData.quad_shadowmap_shader->bind();
+		s_shadowMapData.shadow_quad_vao->bind();
+
+		RenderCommand::BindTextureUnit(0, shadowmap);
+		s_shadowMapData.quad_shadowmap_shader->setUniformInt("depthMap", 0);
+
+		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 7);
+
+		s_shadowMapData.quad_shadowmap_shader->unbind();
+
 	}
 
 	void Renderer2D::ResetStats() {
@@ -643,20 +703,21 @@ namespace iara {
 			});
 		s_cubemap.vao_cubemap->AddVertexBuffer(s_cubemap.vb_cubemap);
 
-		s_cubemap.camera_uniform_buffer_skybox = UniformBuffer::Create(sizeof(CubeMap_Resources::CameraData_skybox), 1);
+		s_cubemap.camera_uniform_buffer_skybox = UniformBuffer::Create(sizeof(CubeMap_Resources::CameraData_skybox), 20);
 	}
 
-	void Renderer3D::drawSkyBox(const glm::mat4& view, const glm::mat4& projection, const Ref<Texture2D>& skybox) {
+	void Renderer3D::drawSkyBox(const glm::mat4& view_proj, const Ref<Texture2D>& skybox) {
 		RenderCommand::setDepthMask(false);
 		s_cubemap.cubemap_shader->bind();
 
 		skybox->bind();
-		s_cubemap.camera_buffer_skybox.view_projection3D = projection * view;
+		s_cubemap.camera_buffer_skybox.view_projection3D = view_proj;
 		s_cubemap.camera_uniform_buffer_skybox->setData(&s_cubemap.camera_buffer_skybox, sizeof(CubeMap_Resources::CameraData_skybox));
 
 		s_cubemap.vao_cubemap->bind();
 		RenderCommand::drawArrays(s_cubemap.vao_cubemap, 0, 36);
 		RenderCommand::setDepthMask(true);
+		s_cubemap.cubemap_shader->unbind();
 	}
 
 }
@@ -674,16 +735,32 @@ namespace iara {
 		std::string path;
 		std::vector<Material> materials;
 		glm::mat4 transform;
+
+		Ref<VertexBuffer> entityID_VB;
 	};
+
+	struct ModelLoadTask {
+		std::string path;
+		int entityID;
+		std::promise<void> donePromise;
+	};
+
+	static std::queue<ModelLoadTask> g_modelLoadQueue;
+	static std::mutex g_modelLoadMutex;
+	static std::condition_variable g_modelLoadCV;
+	static bool g_terminateLoader = false;
+	static std::unordered_map<std::string, std::shared_future<void>> g_pendingLoads;
+	static std::thread g_thread;
 
 	struct MeshRendererStoreage {
 		Ref<VertexArray> m_vao;
 		Ref<Shader> m_shader;
 
+		Ref<Shader> m_shadowmap_shader;
+
+		std::unordered_map<std::string, std::pair<bool, Mesh>> m_stored_meshes_concurrent;
 		std::unordered_map<std::string, Mesh> m_stored_meshes;
 		std::vector<SceneMeshData> m_scene_meshes;
-
-		Assimp::Importer m_importer;
 
 		struct CameraData {
 			glm::mat4 view_projection3D;
@@ -707,6 +784,10 @@ namespace iara {
 			DirLight dlight;
 		};
 
+		struct LightVPData {
+			glm::mat4 light_view_projection;
+		};
+
 		CameraData camera_buffer_mesh;
 		Ref<UniformBuffer> camera_uniform_buffer_mesh;
 
@@ -721,33 +802,98 @@ namespace iara {
 
 		PointLightsData plights_buffer_mesh;
 		Ref<UniformBuffer> plights_uniform_buffer_mesh;
+
+		LightVPData light_vp_buffer_shadowmap;
+		Ref<UniformBuffer> light_vp_uniform_buffer_shadowmap;
+
+		ModelData model_buffer_shadowmap;
+		Ref<UniformBuffer> model_uniform_buffer_shadowmap;
 	};
 
 	static MeshRendererStoreage s_MeshData;
 
+	static void modelLoaderThreadFunc() {
+		IARA_CORE_TRACE("AM INTRAT IN MESH LOADER!");
+		while (!g_terminateLoader) {
+			ModelLoadTask task;
+
+			{
+				std::unique_lock lock(g_modelLoadMutex);
+				g_modelLoadCV.wait(lock, [] { return !g_modelLoadQueue.empty() || g_terminateLoader; });
+				IARA_CORE_TRACE("AM TRECUT DE CONDITION VARIABLE");
+				if (g_terminateLoader) break;
+			}
+
+			task = std::move(g_modelLoadQueue.front());
+			g_modelLoadQueue.pop();
+
+			IARA_CORE_TRACE("START MESH LOADING!");
+
+			Mesh mesh;
+			mesh.loadModel(task.path, task.entityID);
+
+			{
+				std::unique_lock lock(g_modelLoadMutex);
+				s_MeshData.m_stored_meshes[task.path] = std::move(mesh);
+			}
+			IARA_CORE_TRACE("MESH LOADING FINISHED!");
+
+			task.donePromise.set_value();
+		}
+	}
+
 	void MeshRenderer::InitMeshRenderer() {
 		s_MeshData.m_vao = VertexArray::Create();
 		s_MeshData.m_shader = Shader::Create("mesh-light", "Shaders/light-mesh.vert", "Shaders/light-mesh.frag");
+		s_MeshData.m_shadowmap_shader = Shader::Create("shadowmap", "Shaders/shadowmap.vert", "Shaders/shadowmap.frag");
 
-		s_MeshData.camera_uniform_buffer_mesh = UniformBuffer::Create(sizeof(MeshRendererStoreage::CameraData), 6);
-		s_MeshData.model_uniform_buffer_mesh = UniformBuffer::Create(sizeof(MeshRendererStoreage::ModelData), 7);
-		s_MeshData.materials_uniform_buffer_mesh = UniformBuffer::Create(sizeof(MeshRendererStoreage::MaterialsData), 8);
-		s_MeshData.plights_uniform_buffer_mesh = UniformBuffer::Create(sizeof(Renderer_Storeage::PointLightsData), 9);
-		s_MeshData.dlight_uniform_buffer_mesh = UniformBuffer::Create(sizeof(Renderer_Storeage::DirLightData), 10);
+		s_MeshData.camera_uniform_buffer_mesh        = UniformBuffer::Create(sizeof(MeshRendererStoreage::CameraData), 6);
+		s_MeshData.model_uniform_buffer_mesh         = UniformBuffer::Create(sizeof(MeshRendererStoreage::ModelData), 7);
+		s_MeshData.materials_uniform_buffer_mesh     = UniformBuffer::Create(sizeof(MeshRendererStoreage::MaterialsData), 8);
+
+		s_MeshData.plights_uniform_buffer_mesh       = UniformBuffer::Create(sizeof(Renderer_Storeage::PointLightsData), 9);
+		s_MeshData.dlight_uniform_buffer_mesh        = UniformBuffer::Create(sizeof(Renderer_Storeage::DirLightData), 10);
+
+		s_MeshData.light_vp_uniform_buffer_shadowmap = UniformBuffer::Create(sizeof(MeshRendererStoreage::LightVPData), 11);
+		s_MeshData.model_uniform_buffer_shadowmap    = UniformBuffer::Create(sizeof(MeshRendererStoreage::ModelData), 12);
+
+		g_thread = std::thread(modelLoaderThreadFunc);
 	}
 
-	void MeshRenderer::BeginSceneMesh(const Camera& camera, const glm::mat4& transform) {
+	void MeshRenderer::Shutdown() {
+		{
+			std::lock_guard<std::mutex> lock(g_modelLoadMutex);
+			g_terminateLoader = true;
+		}
+		g_modelLoadCV.notify_one();
+		if (g_thread.joinable())
+			g_thread.join();
+	}
+
+	void MeshRenderer::BeginShadowMapPass(const glm::mat4& transform) {
+		s_MeshData.m_shadowmap_shader->bind();
+
+		MeshRendererStoreage::LightVPData data;
+		data.light_view_projection = transform;
+
+		s_MeshData.light_vp_uniform_buffer_shadowmap->setData(&data, sizeof(MeshRendererStoreage::LightVPData));
+	}
+
+	void MeshRenderer::BeginSceneMesh(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp) {
 		s_MeshData.m_shader->bind();
 		
 		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getProjection() * glm::inverse(transform);
 		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(transform[3][0], transform[3][1], transform[3][2], 1.0f);
 		s_MeshData.camera_uniform_buffer_mesh->setData(&s_MeshData.camera_buffer_mesh, sizeof(Renderer_Storeage::CameraData));
+		s_MeshData.light_vp_uniform_buffer_shadowmap->setData(&light_vp, sizeof(MeshRendererStoreage::LightVPData));
 
 		s_MeshData.m_scene_meshes.clear();
 	}
 
-	void MeshRenderer::BeginSceneMesh(EditorCamera& camera) {
+	void MeshRenderer::BeginSceneMesh(EditorCamera& camera, const glm::mat4& light_vp) {
 		s_MeshData.m_shader->bind();
+
+		s_MeshData.light_vp_uniform_buffer_shadowmap->setData(&light_vp, sizeof(MeshRendererStoreage::LightVPData));
 
 		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getViewProjection();
 		auto camPos = camera.getPosition();
@@ -757,7 +903,12 @@ namespace iara {
 		s_MeshData.m_scene_meshes.clear();
 	}
 
-	void MeshRenderer::EndSceneMesh() {
+	void MeshRenderer::EndShadowMapPass() {
+		FlushMeshShadowMapPass();
+		s_MeshData.m_scene_meshes.clear();
+	}
+
+	void MeshRenderer::EndSceneMesh(uint32_t shadowmap) {
 		for (size_t i = 0; i < s_Data.scene_plights; i++) {
 			s_MeshData.plights_buffer_mesh.point_lights[i] = s_Data.point_lights[i];
 		}
@@ -766,36 +917,109 @@ namespace iara {
 		s_MeshData.dlight_buffer_mesh.dlight = s_Data.skyLight;
 		s_MeshData.dlight_uniform_buffer_mesh->setData(&s_MeshData.dlight_buffer_mesh, sizeof(MeshRendererStoreage::DirLightData));
 		s_MeshData.plights_uniform_buffer_mesh->setData(&s_MeshData.plights_buffer_mesh, sizeof(MeshRendererStoreage::PointLightsData));
-		FlushMesh();
+		FlushMesh(shadowmap);
 		s_MeshData.m_scene_meshes.clear();
 	}
 
 	void MeshRenderer::drawMesh(const glm::mat4& transform,MeshComponent& meshcomp, int entityID) {
-		/// TODO: Fa sa poti sa stochezi mesh-ul pentru fufture uses, dar in acelasi timp sa poti sa pui entityID-uri noi pentru noi meshes
-		/// IDEE: Creeaza mesh-ul pentru prima data, cu un VertexBuffer fara entityID, iar cand introduci aici entityID extinde VAO cu inca un INT pentru ID
-		///		 si incarca intr-un VertexBuffer ID-ul
-		
-		if (s_MeshData.m_stored_meshes.find(meshcomp.path) == s_MeshData.m_stored_meshes.end()) {
-			if (meshcomp.path != "") {
-				Mesh new_mesh;
-				new_mesh.loadModel(meshcomp.path, entityID);
-				s_MeshData.m_stored_meshes[meshcomp.path] = new_mesh;
-				for (auto mat : new_mesh.materials)
-					meshcomp.materials.push_back(mat);
-				meshcomp.first_pass = true;
+		if (meshcomp.path == "") return;
+
+		bool mesh_is_ready = false;
+		std::unique_lock<std::mutex> lock(g_modelLoadMutex);
+		auto iterator = s_MeshData.m_stored_meshes.find(meshcomp.path);
+		lock.unlock();
+		if (iterator == s_MeshData.m_stored_meshes.end()) {
+			if (g_pendingLoads.find(meshcomp.path) == g_pendingLoads.end()) {
+				// Trimitem un task de încărcare
+				ModelLoadTask task;
+				task.path = meshcomp.path;
+				task.entityID = entityID;
+				std::promise<void> p;
+				std::shared_future<void> future = p.get_future().share();
+				task.donePromise = std::move(p);
+				g_pendingLoads[meshcomp.path] = future;
+
+				{
+					std::lock_guard<std::mutex> lock(g_modelLoadMutex);
+					g_modelLoadQueue.push(std::move(task));
+				}
+				g_modelLoadCV.notify_one();
 			}
 		}
-		else if (!meshcomp.first_pass && meshcomp.path != "") {
-			meshcomp.materials = s_MeshData.m_stored_meshes[meshcomp.path].materials;
-			meshcomp.first_pass = true;
-		}
 		
-		if (meshcomp.path != "") {
-			s_MeshData.m_scene_meshes.push_back({ meshcomp.path, meshcomp.materials, transform });
+		//if (!meshcomp.first_pass && meshcomp.initialized == false && iterator != s_MeshData.m_stored_meshes.end()) {
+		//	// Setăm materialele dacă modelul era deja încărcat
+		//	meshcomp.materials.clear();
+		//	for (auto& mat : s_MeshData.m_stored_meshes[meshcomp.path].materials) {
+		//		meshcomp.materials.push_back(mat);
+		//	}
+		//	meshcomp.first_pass = true;
+		//	meshcomp.initialized = true;
+		//	mesh_is_ready = true;
+		//}
+		
+		if (!meshcomp.first_pass && iterator != s_MeshData.m_stored_meshes.end() && meshcomp.initialized == false) {
+			Mesh& stored_mesh = s_MeshData.m_stored_meshes[meshcomp.path];
+
+			IARA_CORE_TRACE("STARTING TO CREATE THE MESH MATERIALS");
+			stored_mesh.createMaterials();
+
+			IARA_CORE_TRACE("STARTING TO CREATE THE MESH BUFFERS!");
+			stored_mesh.createBuffers();
+			stored_mesh.vb->SetData(s_MeshData.m_stored_meshes[meshcomp.path].mesh_vertex_array.data(), sizeof(MeshVertex) * (uint32_t)s_MeshData.m_stored_meshes[meshcomp.path].mesh_vertex_array.size());
+			stored_mesh.ib->setData(s_MeshData.m_stored_meshes[meshcomp.path].indices.data(), (uint32_t)s_MeshData.m_stored_meshes[meshcomp.path].indices.size());
+
+			stored_mesh.vao->setVertexBuffer(s_MeshData.m_stored_meshes[meshcomp.path].vb);
+			stored_mesh.vao->SetIndexBuffer(s_MeshData.m_stored_meshes[meshcomp.path].ib);
+
+			if (meshcomp.materials.empty()) {
+				meshcomp.materials = stored_mesh.materials;
+			}
+			else {
+				stored_mesh.materials = meshcomp.materials;
+			}
+
+			meshcomp.first_pass = true;
+			mesh_is_ready = true;
+			meshcomp.initialized = true;
+		}
+
+		
+		if (meshcomp.initialized) {
+			// Adăugăm mesh-ul în lista de randare (asumăm că e încărcat acum)
+			std::vector<int> entityIDBuffer(s_MeshData.m_stored_meshes[meshcomp.path].m_num_vertices, entityID);
+			SceneMeshData smd;
+			smd.path = meshcomp.path;
+			smd.materials = meshcomp.materials;
+			smd.transform = transform;
+			smd.entityID_VB = VertexBuffer::Create((void*)entityIDBuffer.data(), entityIDBuffer.size() * sizeof(int));
+			smd.entityID_VB->setLayout({
+				{ ShaderDataType::Int, "a_entity_id" }
+				});
+
+			s_MeshData.m_scene_meshes.push_back(smd);
+		}
+
+		
+	}
+
+	void MeshRenderer::FlushMeshShadowMapPass() {
+		s_MeshData.m_vao->bind();
+		for (auto& mesh_entry : s_MeshData.m_scene_meshes) {
+			auto& raw_mesh_data = s_MeshData.m_stored_meshes[mesh_entry.path];
+			s_MeshData.model_uniform_buffer_shadowmap->setData(&mesh_entry.transform, sizeof(MeshRendererStoreage::ModelData));
+			/// Setting data in the vertex buffer AND index buffer
+
+			s_MeshData.m_vao->setVertexBuffer(raw_mesh_data.vb);
+			s_MeshData.m_vao->SetIndexBuffer(raw_mesh_data.ib);
+
+			for (auto& mesh : raw_mesh_data.meshes) {
+				RenderCommand::DrawIndexedBaseVertex(s_MeshData.m_vao, mesh.numInd, mesh.baseIndex, mesh.baseVertex);
+			}
 		}
 	}
 
-	void MeshRenderer::FlushMesh() {
+	void MeshRenderer::FlushMesh(uint32_t shadowmap) {
 		s_MeshData.m_vao->bind();
 		for (auto &mesh_entry : s_MeshData.m_scene_meshes) {
 			auto &raw_mesh_data = s_MeshData.m_stored_meshes[mesh_entry.path];
@@ -806,8 +1030,9 @@ namespace iara {
 			s_MeshData.m_vao->SetIndexBuffer(raw_mesh_data.ib);
 
 			//// **Create an Entity ID buffer for this specific instance (all vertices share the same entityID)**
-			//std::vector<int> entityIDBuffer(raw_mesh_data.numVertices, mesh_entry.entityID);
-			//Ref<VertexBuffer> entityIDBufferObj = VertexBuffer::Create(entityIDBuffer.data(), entityIDBuffer.size() * sizeof(int));
+			/// AYOOOOO IT FUCKING WORKES
+			/// VALID ENTITYIDS FOR EVERYONE YOOHOOOO
+			s_MeshData.m_vao->AddVertexBuffer(mesh_entry.entityID_VB);
 
 			for (auto &mesh : raw_mesh_data.meshes) {
 				uint8_t tex_slot = 0;
@@ -816,12 +1041,22 @@ namespace iara {
 				sh_mat.shininess = mesh_entry.materials[mesh.materialInd].shininess;
 				s_MeshData.materials_uniform_buffer_mesh->setData(&sh_mat, sizeof(ShaderMaterial));
 
-				mesh_entry.materials[mesh.materialInd].diffuse_map->bind(tex_slot);
+				Material& material = mesh_entry.materials[mesh.materialInd];
+
+				material.diffuse_map->bind(tex_slot);
 				s_MeshData.m_shader->setUniformInt("diffuse_map", tex_slot);
 				tex_slot++;
 
-				mesh_entry.materials[mesh.materialInd].specular_map->bind(tex_slot);
+				material.specular_map->bind(tex_slot);
 				s_MeshData.m_shader->setUniformInt("specular_map", tex_slot);
+				tex_slot++;
+
+				material.normal_map->bind(tex_slot);
+				s_MeshData.m_shader->setUniformInt("normal_map", tex_slot);
+				tex_slot++;
+
+				RenderCommand::BindTextureUnit(tex_slot, shadowmap);
+				s_MeshData.m_shader->setUniformInt("shadow_map", tex_slot);
 				tex_slot++;
 
 				RenderCommand::DrawIndexedBaseVertex(s_MeshData.m_vao, mesh.numInd, mesh.baseIndex, mesh.baseVertex);

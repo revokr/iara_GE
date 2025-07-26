@@ -2,13 +2,65 @@
 #include "Mesh.h"
 
 namespace iara {
+	void Mesh::createBuffers() {
+		vao = VertexArray::Create();
+		vb = VertexBuffer::Create();
+
+		vb->setLayout({
+			{ ShaderDataType::Float3, "a_pos" },
+			{ ShaderDataType::Float3, "a_normal" },
+			{ ShaderDataType::Float2, "a_tex_coords" },
+			{ ShaderDataType::Float3, "a_tangent" },
+			{ ShaderDataType::Float3, "a_bitangent" }
+			//{ ShaderDataType::Int,    "a_entity_id" }
+			});
+
+		ib = IndexBuffer::Create();
+	}
+
+	void Mesh::createMaterials() {
+		m_white_tex = Texture2D::Create(1, 1);
+		uint32_t whiteTextureData = 0xffffffff;
+		m_white_tex->setData(&whiteTextureData, sizeof(uint32_t));
+
+		for (const auto& mat_path : material_paths) {
+			Material mat;
+			if (mat_path.diff_path == "") {
+				mat.diffuse_map = m_white_tex;
+			}
+			else {
+				mat.diffuse_map = Texture2D::Create(mat_path.diff_path);
+				IARA_CORE_TRACE("Loaded Diffuse texture {0}", mat_path.diff_path);
+			}
+			
+			if (mat_path.spec_path == "") {
+				mat.specular_map = m_white_tex;
+			}
+			else {
+				mat.specular_map = Texture2D::Create(mat_path.spec_path);
+				IARA_CORE_TRACE("Loaded Specular texture {0}", mat_path.spec_path);
+			}
+
+			if (mat_path.norm_path == "") {
+				mat.normal_map = m_white_tex;
+			}
+			else {
+				mat.normal_map = Texture2D::Create(mat_path.norm_path);
+				IARA_CORE_TRACE("Loaded Normal texture {0}", mat_path.norm_path);
+			}
+
+			materials.push_back(mat);
+		}
+	}
 
 	bool Mesh::loadModel(const std::string& path, int entityID) {
 		bool ret = false;
-
+		std::filesystem::path file_path = path;
+		
+		aiPostProcessSteps flags = file_path.extension() == ".fbx" ? aiProcess_None : aiProcess_FlipUVs;
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate |
-			aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices);
+			 aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices | flags);
 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 			IARA_CORE_ERROR("Error Assimp: {0}", importer.GetErrorString());
@@ -17,7 +69,8 @@ namespace iara {
 		else {
 			ret = initFromScene(scene, path, entityID);
 		}
-
+		//delete scene;
+		//aiReleaseImport(scene);
 		return ret;
 	}
 
@@ -32,14 +85,11 @@ namespace iara {
 		meshes.resize(scene->mNumMeshes);
 		//materials.resize(scene->mNumMaterials);
 
-		uint32_t num_vertices = 0;
-		uint32_t num_indices = 0;
-
-		countVerticesIndices(scene, num_vertices, num_indices);
+		countVerticesIndices(scene, m_num_vertices, m_num_indices);
 
 		/// reserve space
-		mesh_vertex_array.reserve(num_vertices);
-		indices.reserve(num_indices);
+		mesh_vertex_array.reserve(m_num_vertices);
+		indices.reserve(m_num_indices);
 
 		initAllSubMeshes(scene, entityID);
 
@@ -47,23 +97,27 @@ namespace iara {
 			return false;
 		}
 
-		vb->SetData(&mesh_vertex_array[0], sizeof(MeshVertex) * (uint32_t)mesh_vertex_array.size());
-		ib->setData(&indices[0], (uint32_t)indices.size());
+		/*vb->SetData(mesh_vertex_array.data(), sizeof(MeshVertex) * (uint32_t)mesh_vertex_array.size());
+		ib->setData(indices.data(), (uint32_t)indices.size());
+
+		IARA_CORE_TRACE("Max index: {0}", *std::max_element(indices.begin(), indices.end()));
 
 		vao->setVertexBuffer(vb);
 		vao->SetIndexBuffer(ib);
 
+		mesh_vertex_array.clear();
+		indices.clear();*/
 	}
 
 	void Mesh::countVerticesIndices(const aiScene* scene, uint32_t& vert, uint32_t& ind) {
 		for (size_t i = 0; i < meshes.size(); i++) {
 			meshes[i].materialInd = scene->mMeshes[i]->mMaterialIndex;
 			meshes[i].numInd = scene->mMeshes[i]->mNumFaces * 3;
-			meshes[i].baseVertex = vert;
-			meshes[i].baseIndex = ind;
+			meshes[i].baseVertex = m_num_vertices;
+			meshes[i].baseIndex = m_num_indices;
 
-			vert += scene->mMeshes[i]->mNumVertices;
-			ind += meshes[i].numInd;
+			m_num_vertices += scene->mMeshes[i]->mNumVertices;
+			m_num_indices += meshes[i].numInd;
 		}
 	}
 
@@ -81,8 +135,11 @@ namespace iara {
 			const aiVector3D& pos = mesh->mVertices[i];
 			const aiVector3D& normal = mesh->mNormals[i];
 			const aiVector3D& tc = mesh->HasTextureCoords(0) ? mesh->mTextureCoords[0][i] : zero3D;
+			const aiVector3D& tangent = mesh->mTangents[i];
+			const aiVector3D& bitangent = mesh->mBitangents[i];
 
-			mesh_vertex_array.push_back({ {pos.x, pos.y, pos.z} , {normal.x, normal.y, normal.z}, {tc.x, tc.y}/*, entityID*/});
+			mesh_vertex_array.push_back({ {pos.x, pos.y, pos.z} , {normal.x, normal.y, normal.z}, {tc.x, tc.y}, 
+										  {tangent.x, tangent.y, tangent.z}, {bitangent.x, bitangent.y, bitangent.z}/*, entityID*/ });
 		}
 
 		for (size_t i = 0; i < mesh->mNumFaces; i++) {
@@ -90,7 +147,7 @@ namespace iara {
 
 			indices.push_back(face.mIndices[0]);
 			indices.push_back(face.mIndices[1]);
-			indices.push_back(face.mIndices[2]);
+			indices.push_back(face.mIndices[2]);	
 		}
 	}
 
@@ -102,8 +159,7 @@ namespace iara {
 		for (size_t i = 0; i < scene->mNumMaterials; i++) {
 			const aiMaterial* material = scene->mMaterials[i];
 			
-			Material mat;
-			mat.diffuse.x += i;
+			MaterialPaths mat;
 
 			if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
 				aiString path;
@@ -116,13 +172,14 @@ namespace iara {
 
 					std::string fullpath = directory + "\\" + p;
 
-					mat.diffuse_map = Texture2D::Create(fullpath);
+					mat.diff_path = fullpath;
+					//mat.diffuse_map = Texture2D::Create(fullpath);
 
-					IARA_CORE_TRACE("Loaded Diffuse texture {0}", fullpath);
+					//IARA_CORE_TRACE("Loaded Diffuse texture {0}", fullpath);
 				}
 			}
 			else {
-				mat.diffuse_map = m_white_tex;
+				mat.diff_path = "";
 			}
 
 			if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
@@ -136,19 +193,42 @@ namespace iara {
 
 					std::string fullpath = directory + "\\" + p;
 
-					mat.specular_map = Texture2D::Create(fullpath);
+					mat.spec_path = fullpath;
+					//mat.specular_map = Texture2D::Create(fullpath);
 
-					IARA_CORE_TRACE("Loaded Specular texture {0}", fullpath);
+					//IARA_CORE_TRACE("Loaded Specular texture {0}", fullpath);
 				}
 			}
 			else {
-				mat.specular_map = m_white_tex;
+				mat.spec_path = "";
 			}
 
-			materials.push_back(mat);
+			if (material->GetTextureCount(aiTextureType_HEIGHT) > 0) {
+				aiString path2;
+				if (material->GetTexture(aiTextureType_HEIGHT, 0, &path2, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
+					std::string p(path2.data);
+
+					if (p.substr(0, 2) == ".\\") {
+						p = p.substr(2, p.size() - 2);
+					}
+
+					std::string fullpath = directory + "\\" + p;
+
+					mat.norm_path = fullpath;
+					//mat.normal_map = Texture2D::Create(fullpath);
+
+					//IARA_CORE_TRACE("Loaded Normal texture {0}", fullpath);
+				}
+			}
+			else {
+				mat.norm_path = "";
+			}
+
+			material_paths.push_back(mat);
 		}
 
 		return ret;
 	}
+
 
 }

@@ -1,0 +1,146 @@
+Scene: Untitled
+Entities:
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [1.05862117, 0.099999994, 0.100000001]
+      Rotation: [0, 0, 0.775769651]
+      Scale: [18.1634026, 18.1634026, 18.1633987]
+    MeshComponent:
+      path: Assets\Models\car2\obj\2015_dodge_challenger_rt_tuned_with_armor.obj
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material1:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material2:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material3:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015LightA_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material4:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015ManufacturerPlateA_Material1_baseColor.jpg
+          shininess: 10
+          specular_map_path: ""
+        Material5:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material6:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material7:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material8:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material9:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material10:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015_Wheel1A_3D_3DWheel1A_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material11:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material12:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material13:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015Coloured_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material14:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015Grille1A_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material15:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015Grille2A_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material16:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015Grille3A_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material17:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015Grille4A_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material18:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015Grille5A_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material19:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015InteriorTillingA_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+        Material20:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\car2\obj\dDodge_ChallengerRTShakerF7_2015InteriorA_Material1_baseColor.png
+          shininess: 10
+          specular_map_path: ""
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [-2.35104251, 0.100000001, 0.100000001]
+      Rotation: [-0.513820767, 0, 0]
+      Scale: [1, 0.999999881, 0.999999881]
+    MeshComponent:
+      path: Assets\Models\backpack\backpack.obj
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material1:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\backpack\diffuse.jpg
+          shininess: 10
+          specular_map_path: Assets\Models\backpack\specular.jpg
+  - Entity: 12345
+    TagComponent:
+      Tag: Sky Light
+    DirLightComponent:
+      direction: [0, -1, 0, 0]
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [0.102158137, 0.292705446, 0.91919446, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+CubemapPath: Assets\Textures\skybox2\sky1.png

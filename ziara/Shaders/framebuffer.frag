@@ -3,9 +3,11 @@
 out vec4 fragColor;
 in vec2 texCoords;
 
-uniform sampler2D screenTex;
+uniform sampler2DMS screenTex;
 
 void main()
 {
-    fragColor = texture(screenTex, texCoords);
+    ivec2 texelCoord = ivec2(gl_FragCoord.xy);
+    vec4 color = texelFetch(screenTex, texelCoord, 0); // Fetch a sample
+    fragColor = color;
 }  

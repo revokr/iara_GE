@@ -1,0 +1,74 @@
+Scene: Untitled
+Entities:
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [0.100000001, -2.68246055, 1.94532824]
+      Rotation: [0, 0, 0]
+      Scale: [3.86650014, 0.100969896, 3.86650014]
+    MeshComponent:
+      path: Assets\Models\Cube\untitled.obj
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+        Material1:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\Cube\diffuse.jpg
+          shininess: 10
+          specular_map_path: ""
+  - Entity: 12345
+    TagComponent:
+      Tag: Point Light
+    TransformComponent:
+      Translation: [-55.2350769, -14.9017925, 23.0205441]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [0.800000012, 0.300000012, 0.300000012, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+      constant: 1
+      linear: 0.00700000022
+      quadratic: 0.000199999995
+  - Entity: 12345
+    TagComponent:
+      Tag: Point Light
+    TransformComponent:
+      Translation: [6.60446978, 1.56376874, 2.8902328]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [1, 1, 1, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+      constant: 1
+      linear: 0.00700000022
+      quadratic: 0.000199999995
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, 0.100000001]
+      Rotation: [-1.57079589, 2.98023224e-08, 0.435359597]
+      Scale: [0.0399999991, 0.0399992131, 0.0399995036]
+    MeshComponent:
+      path: Assets\Models\pbr\Cerberus_LP.fbx
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\pbr\Textures\Cerberus_A.tga
+          shininess: 10
+          specular_map_path: ""
+  - Entity: 12345
+    TagComponent:
+      Tag: Sky Light
+    DirLightComponent:
+      direction: [0, -1, 0, 0]
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [1, 1, 1, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+CubemapPath: Assets\Textures\skybox2\sky1.png

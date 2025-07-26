@@ -24,7 +24,4 @@
     </ClCompile>
     <ClCompile Include="src\ziara_app.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="Assets\Textures\skybox\right.jpg" />
-  </ItemGroup>
 </Project>

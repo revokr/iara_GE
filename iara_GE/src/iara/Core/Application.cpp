@@ -92,6 +92,7 @@ namespace iara {
 	}
 
 	bool Application::onWindowClose(WindowCloseEvent& e) {
+		Renderer::Shutdown();
 		m_Running = false;
 		return true;
 	}

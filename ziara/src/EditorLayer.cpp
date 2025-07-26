@@ -9,8 +9,12 @@
 #include "iara\Scene\SceneSerializer.h" 
 #include "iara\Utils\FileDialogsUtils.h"
 #include "iara\Math\Math.h"
+#include "iara\Core\Timer.h"
 
 #include "iara\Scene\SceneRenderer.h"
+
+static float g_on_update_time = 0.0f;
+static float g_on_imgui_render_time = 0.0f;
 
 namespace iara {
 
@@ -27,54 +31,40 @@ namespace iara {
     }
 
     void EditorLayer::onAttach() {
-        FramebufferSpecification fb_spec;
-        fb_spec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::Depth };
-        fb_spec.width = 1280;
-        fb_spec.height = 720;
-        m_viewportSize.x = 1280.0f;
-        m_viewportSize.y = 720.0f;
-        m_framebuffer = iara::Framebuffer::Create(fb_spec);
-
         m_active_scene = CreateRef<Scene>();
+        FramebufferSpecification specs = m_active_scene->getMainFramebuffer()->getSpecification();
+        m_viewportSize.x = (uint32_t)specs.width;
+        m_viewportSize.y = (uint32_t)specs.height;
 
-        m_editor_camera = EditorCamera(30.0f, 1.778f, 0.1f, 10000.0f);
+        m_editor_camera = EditorCamera(60.0f, 1.778f, 0.01f, 10000.0f);
         
         m_scene_h_panel.setContext(m_active_scene);
 
         m_stop_icon = Texture2D::Create("Assets\\Textures\\stop3.png");
         m_play_icon = Texture2D::Create("Assets\\Textures\\play.png");
         m_active_scene->setSkyBox("Assets\\Textures\\skybox2\\sky1.png");
-    }
+        }
 
     void EditorLayer::onDetach() {
 
     }
 
     void EditorLayer::onUpdate(iara::Timestep ts) {
+        Timer timer;
+        m_frame_interval_acc = ts;
+        //IARA_CORE_INFO("FRAME INTERVAL ACCUMULATOR : {0}", m_frame_interval_acc);
 
         /// Resize
-        if (FramebufferSpecification spec = m_framebuffer->getSpecification();
+        if (FramebufferSpecification spec = m_active_scene->getMainFramebuffer()->getSpecification();
             m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
             (spec.width != m_viewportSize.x || spec.height != m_viewportSize.y)) {
             
-            m_framebuffer->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+            m_active_scene->getMainFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
             m_editor_camera.setViewportSize(m_viewportSize.x, m_viewportSize.y);
             m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
         }
   
         /// Render
-        m_framebuffer->bind();
-        iara::Renderer2D::ResetStats();
-        iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
-        iara::RenderCommand::Clear();
-
-        /// Clear our entityID att to -1
-        m_framebuffer->clearAttachment(1, -1);
-
-        /// update scene
-        //if (m_active_scene->getSceneState() == SceneState::EDIT) m_editor_camera.onUpdate(ts);
-        
-
         if (m_active_scene->getSceneState() == SceneState::EDIT) {
             m_editor_camera.onUpdate(ts);
             m_active_scene->onUpdateEditor(ts, m_editor_camera);
@@ -82,7 +72,8 @@ namespace iara {
         else {
             m_active_scene->onUpdateRuntime(ts);
         }
-        
+
+
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_viewport_bounds[0].x;
         my -= m_viewport_bounds[0].y;
@@ -93,10 +84,10 @@ namespace iara {
         int mousey = (int)my;
 
         if (mousex >= 0 && mousey >= 0 && mousex <= (int)viewport_size.x && mousey <= (int)viewport_size.y) {
-            m_hovered_pixel_entity = m_framebuffer->readPixel(1, mousex, mousey);
+            m_hovered_pixel_entity = m_active_scene->getMainFramebuffer()->readPixel(1, mousex, mousey);
         }
-        
-        m_framebuffer->unbind();
+        //IARA_CORE_TRACE("Hovored pixel: {0}", m_hovered_pixel_entity);
+        g_on_update_time = timer.elapsedMilliseconds();
     }
 
     void EditorLayer::onImGuiRender() {
@@ -104,6 +95,7 @@ namespace iara {
         bool dockspace = true;
 
         if (dockspace) {
+            Timer timer;
             onImGuiRenderBeginDocking();
 
             onImGuiRenderMenuBar();
@@ -117,7 +109,16 @@ namespace iara {
             onImGuiRenderEnvironment();
 
             ///ImGui::ShowDemoWindow();
-            
+            g_on_imgui_render_time = timer.elapsedMilliseconds();
+            ImGui::Begin("##asdddd");
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("FrameInterval %f", m_frame_interval_acc * 1000 );
+            ImGui::Text("EditorLayer::OnImGuiRender %f", g_on_imgui_render_time);
+            ImGui::Text("EditorLayer::onUpdate %f", g_on_update_time);
+            ImGui::Text("ShadowMap Render %f", m_active_scene->render_shadowmap_timer);
+            ImGui::End();
             ImGui::End();
         }
     }
@@ -155,6 +156,9 @@ namespace iara {
                     OpenScene();
                 }
                 break;
+
+            /*case IARA_KEY_S:
+                m_editor_camera.moveDown();*/
            
 
             /// Gizmo
@@ -212,8 +216,8 @@ namespace iara {
     void EditorLayer::SaveSceneAs() {
         std::string filepath = FileDialogs::saveFile("IARA Scene (*.iara)\0*.iara\0");
         if (!filepath.empty()) {
-            SceneSerializer serializer2(m_active_scene);
-            serializer2.serialize(filepath);
+            SceneSerializer serializer(m_active_scene);
+            serializer.serialize(filepath);
         }
     }
 
@@ -299,11 +303,17 @@ namespace iara {
         auto stats = iara::Renderer2D::getStats();
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
             1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("EditorLayer::onUpdate %f", g_on_update_time);
         ImGui::Text("Renderer Stats: ");
         ImGui::Text("Draw Calls: %d", stats.draw_calls);
         ImGui::Text("Quads: %d", stats.quad_count);
         ImGui::Text("Total Vertices: %d", stats.GetVertices());
         ImGui::Text("Total Indices: %d", stats.GetIndices());
+        
+
+        //IARA_CORE_TRACE("ShadowMapQuad Color Attachment ID: {}", m_active_scene->getShadowMapQuad()->getColorAtt(0));
+        uint32_t texID = m_active_scene->getShadowMapQuad()->getColorAtt(0);  /// Get the texture from the framebuffer
+        ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
         ImGui::End();
     }
@@ -329,7 +339,7 @@ namespace iara {
             m_viewportSize = { viewportPaneSize.x , viewportPaneSize.y };
         }
         //ZIARA_INFO("Viewport size: {0} x {1}", viewportPaneSize.x, viewportPaneSize.y);
-        uint32_t texID = m_framebuffer->getColorAtt(0);  /// Get the texture from the framebuffer
+        uint32_t texID = m_active_scene->getMainFramebuffer()->getColorAtt(0);  /// Get the texture from the framebuffer
         ImGui::Image((void*)(intptr_t)texID, ImVec2(m_viewportSize.x, m_viewportSize.y), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
         if (ImGui::BeginDragDropTarget()) {
@@ -437,6 +447,10 @@ namespace iara {
                 }
             }
             ImGui::EndDragDropTarget();
+        }
+
+        if (ImGui::Checkbox("PolygonMode", &m_polygonMode)) {
+            RenderCommand::polygonMode(m_polygonMode);
         }
 
         ImGui::End();

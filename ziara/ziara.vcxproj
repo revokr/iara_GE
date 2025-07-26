@@ -59,7 +59,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_DEBUG;IARA_PROFILE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;..\iara_GE\vendor\entt\include;C:\VulkanSDK\1.3.296.0\Include;..\sandbox\Assets;..\sandbox\Shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;..\iara_GE\vendor\entt\include;C:\VulkanSDK\1.3.296.0\Include;..\iara_GE\vendor\assimp_premake\include;..\sandbox\Assets;..\sandbox\Shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -76,7 +76,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;..\iara_GE\vendor\entt\include;C:\VulkanSDK\1.3.296.0\Include;..\sandbox\Assets;..\sandbox\Shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\iara_GE\vendor\spdlog\include;..\iara_GE\vendor;..\iara_GE\src;..\iara_GE\vendor\glm;..\iara_GE\vendor\entt\include;C:\VulkanSDK\1.3.296.0\Include;..\iara_GE\vendor\assimp_premake\include;..\sandbox\Assets;..\sandbox\Shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -107,9 +107,6 @@
     <ProjectReference Include="..\iara_GE\iara_GE.vcxproj">
       <Project>{4DA5EC80-B984-6B1C-C29C-F6F22EFBD17D}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Assets\Textures\skybox\right.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,0 +1,33 @@
+Scene: Untitled
+Entities:
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, 0.100000001]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      path: Assets\Models\backpack\backpack.obj
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material1:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\backpack\diffuse.jpg
+          shininess: 10
+          specular_map_path: Assets\Models\backpack\specular.jpg
+          normal_map_path: Assets\Models\backpack\normal.png
+  - Entity: 12345
+    TagComponent:
+      Tag: Sky Light
+    DirLightComponent:
+      direction: [0, -1, 0, 0]
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [1, 1, 1, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+CubemapPath: Assets\Textures\skybox2\sky1.png

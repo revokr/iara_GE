@@ -186,6 +186,41 @@ namespace iara {
 			out << YAML::EndMap;
 		}
 
+		if (entity.hasComponent<MeshComponent>()) {
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap;
+
+			std::string path = entity.getComponent<MeshComponent>().path;
+			out << YAML::Key << "path" << YAML::Value << path;
+			std::vector<Material> materials = entity.getComponent<MeshComponent>().materials;
+			if (materials.size() > 0) {
+				out << YAML::Key << "Materials" << YAML::BeginMap;
+				for (int i = 0; i < materials.size(); i++) {
+					auto diffuse = materials[i].diffuse;
+					auto diffuse_map_path = materials[i].diffuse_map->getPath();
+					auto shininess = materials[i].shininess;
+					auto specular_map_path = materials[i].specular_map->getPath();
+					auto normal_map_path = materials[i].normal_map->getPath();
+
+					out << YAML::Key << "Material" + std::to_string(i);
+					out << YAML::BeginMap;
+
+					out << YAML::Key << "diffuse" << YAML::Value << diffuse;
+					out << YAML::Key << "diffuse_map_path" << YAML::Value << diffuse_map_path;
+					out << YAML::Key << "shininess" << YAML::Value << shininess;
+					out << YAML::Key << "specular_map_path" << YAML::Value << specular_map_path;
+					out << YAML::Key << "normal_map_path" << YAML::Value << normal_map_path;
+
+					out << YAML::EndMap;
+
+				}
+				out << YAML::EndMap;
+			}
+
+			out << YAML::EndMap;
+			
+		}
+
 		out << YAML::EndMap; /// Entity
 	}
 
@@ -325,6 +360,42 @@ namespace iara {
 					src.dlight.ambient = dlightComp["ambient"].as<glm::vec4>();
 					src.dlight.diffuse = dlightComp["diffuse"].as<glm::vec4>();
 					src.dlight.specular = dlightComp["specular"].as<glm::vec4>();
+				}
+
+				auto meshComp = entity["MeshComponent"];
+				if (meshComp) {
+					auto& mshcmp = deserializedEntity.addComponent<MeshComponent>();
+					mshcmp.path = meshComp["path"].as<std::string>();
+					auto materials = meshComp["Materials"];
+					if (materials) {
+						Ref<Texture2D> white_tex = Texture2D::Create(1, 1);
+						for (auto material : materials) {
+							auto& materialValues = material.second;
+							Material mat;
+							mat.diffuse = materialValues["diffuse"].as<glm::vec4>();
+							if (materialValues["diffuse_map_path"].as<std::string>() != "") {
+								mat.diffuse_map = Texture2D::Create(materialValues["diffuse_map_path"].as<std::string>());
+							}
+							else {
+								mat.diffuse_map = white_tex;
+							}
+							mat.shininess = materialValues["shininess"].as<float>();
+							if (materialValues["specular_map_path"].as<std::string>() != "") {
+								mat.specular_map = Texture2D::Create(materialValues["specular_map_path"].as<std::string>());
+							}
+							else {
+								mat.specular_map = white_tex;
+							}
+							if (materialValues["normal_map_path"].as<std::string>() != "") {
+								mat.normal_map = Texture2D::Create(materialValues["normal_map_path"].as<std::string>());
+							}
+							else {
+								mat.normal_map = white_tex;
+							}
+
+							mshcmp.materials.push_back(mat);
+						}
+					}
 				}
 
 			}

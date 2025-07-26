@@ -66,7 +66,12 @@ namespace iara {
 	
 		static void drawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
 		static void drawLight(const glm::mat4& transform ,const PointLightComponent& light, EditorCamera& camera, int entityID);
+		static void drawLight(const glm::mat4& transform, const PointLightComponent& light, Camera& camera, int entityID);
 		static void drawDirLight(const DirLightComponent& dlight);
+
+
+		/// TEMPORARY
+		static void drawShadowMapToQuad(uint32_t shadowmap);
 		
 		static void ResetStats();
 		static Statistics getStats();
@@ -79,7 +84,7 @@ namespace iara {
 	public:
 		static void Renderer3D::Init3D();
 		/// SKYBOX
-		static void drawSkyBox(const glm::mat4& view, const glm::mat4& projection, const Ref<Texture2D>& skybox);
+		static void drawSkyBox(const glm::mat4& view_proj, const Ref<Texture2D>& skybox);
 
 	};
 }
@@ -89,14 +94,19 @@ namespace iara {
 	class MeshRenderer {
 	public:
 		static void InitMeshRenderer();
+		static void Shutdown();
 
-		static void BeginSceneMesh(const Camera& camera, const glm::mat4& transform);
-		static void BeginSceneMesh(EditorCamera& camera);
-		static void EndSceneMesh();
+		static void BeginShadowMapPass(const glm::mat4& transform);
+		static void BeginSceneMesh(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp);
+		static void BeginSceneMesh(EditorCamera& camera, const glm::mat4& light_vp);
+		
+		static void EndShadowMapPass();
+		static void EndSceneMesh(uint32_t shadowmap);
 
 		/// This will load the mesh, and store the data inside the VAO, VBO and so on, preparing data for flush at the end of the scene
 		static void drawMesh(const glm::mat4& transform, MeshComponent& mesh /*OR STRING PATH*/, int entityID);
 	private:
-		static void FlushMesh();
+		static void FlushMesh(uint32_t shadowmap);
+		static void FlushMeshShadowMapPass();
 	};
 }

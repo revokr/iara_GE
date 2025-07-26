@@ -9,9 +9,10 @@ namespace iara {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-		glEnable(GL_MULTISAMPLE);
+		
 		//glEnable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
 	}
@@ -33,6 +34,19 @@ namespace iara {
 			glDepthMask(GL_TRUE);
 		else
 			glDepthMask(GL_FALSE);
+	}
+
+	void OpenGLRendererAPI::polygonMode(bool enable) {
+		if (enable) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+	}
+
+	void OpenGLRendererAPI::BindTextureUnit(uint32_t slot, uint32_t tex) {
+		glBindTextureUnit(slot, tex);
 	}
 
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount) {

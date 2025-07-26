@@ -11,7 +11,9 @@ namespace iara {
 		virtual void SetClearColor(const glm::vec4& color) override;
 		virtual void Clear() override;
 
+		virtual void polygonMode(bool enable) override;
 		virtual void setDepthMask(bool set) override;
+		virtual void BindTextureUnit(uint32_t slot, uint32_t tex) override;
 
 		virtual void DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount = 0) override;
 		virtual void DrawIndexedBaseVertex(const Ref<VertexArray>& va, uint32_t indexCount, uint32_t indexStart, uint32_t vertexStart) override;

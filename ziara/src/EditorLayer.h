@@ -55,8 +55,11 @@ namespace iara {
 		int m_selected_material = 0;
 
 		bool once = true;
+		bool m_polygonMode = false;
 
 		Ref<Texture2D> m_play_icon;
 		Ref<Texture2D> m_stop_icon;
+
+		float m_frame_interval_acc = 0.0f;
 	};
 }

@@ -87,6 +87,7 @@ namespace iara {
 		glm::vec4 ambient = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
 		glm::vec4 diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		glm::vec4 specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+		bool activeSkyLight = true;
 	};
 
 	struct cube3DComponent {
@@ -116,6 +117,7 @@ namespace iara {
 		std::string path;
 		std::vector<Material> materials;
 		bool first_pass = false;
+		bool initialized = false;
 	};
 
 	struct Texture2DComponent {

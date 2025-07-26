@@ -32,6 +32,14 @@ namespace iara {
 		inline static void DrawIndexedBaseVertex(const Ref<VertexArray>& vertexArray, uint32_t indexCount, uint32_t indexStart, uint32_t vertexStart) {
 			s_RendererAPI->DrawIndexedBaseVertex(vertexArray, indexCount, indexStart, vertexStart);
 		}
+
+		inline static void polygonMode(bool enable) {
+			s_RendererAPI->polygonMode(enable);
+		}
+
+		inline static void BindTextureUnit(uint32_t slot, uint32_t tex) {
+			s_RendererAPI->BindTextureUnit(slot, tex);
+		}
 	private:
 		static RendererAPI* s_RendererAPI;
 	};

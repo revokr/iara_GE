@@ -8,6 +8,7 @@
 #include <assimp\postprocess.h>
 #include <assimp\scene.h>
 
+
 namespace iara {
 
 	struct Material {
@@ -15,14 +16,31 @@ namespace iara {
 		float shininess = 10.0f;
 		Ref<Texture2D> diffuse_map = nullptr;
 		Ref<Texture2D> specular_map = nullptr;
+		Ref<Texture2D> normal_map = nullptr;
+	};
+
+	struct MaterialPaths {
+		std::string diff_path;
+		std::string spec_path;
+		std::string norm_path;
 	};
 
 	struct MeshVertex {
 		glm::vec3 position;
 		glm::vec3 normal;
 		glm::vec2 tex_coord;
+		glm::vec3 tangent;
+		glm::vec3 bitangent;
 
 		//int entityID;
+
+		bool operator==(const MeshVertex& other) const {
+			return position == other.position &&
+				normal == other.normal &&
+				tex_coord == other.tex_coord &&
+				tangent == other.tangent &&
+				bitangent == other.bitangent;
+		}
 	};
 
 	struct BasicMeshEntry {
@@ -43,22 +61,12 @@ namespace iara {
 	class Mesh {
 	public:
 		Mesh() {
-			vao = VertexArray::Create();
-			vb = VertexBuffer::Create();
-
-			vb->setLayout({
-				{ ShaderDataType::Float3, "a_pos" },
-				{ ShaderDataType::Float3, "a_normal" },
-				{ ShaderDataType::Float2, "a_tex_coords" }
-				//{ ShaderDataType::Int,    "a_entity_id" }
-			});
-
-			ib = IndexBuffer::Create();
-			m_white_tex = Texture2D::Create(1, 1);
-			uint32_t whiteTextureData = 0xffffffff;
-			m_white_tex->setData(&whiteTextureData, sizeof(uint32_t));
+			
+			
 		}
-
+		
+		void createBuffers();
+		void createMaterials();
 		bool loadModel(const std::string& path, int entityID);
 		void reloadVertices(const glm::mat4& transform);
 
@@ -81,9 +89,13 @@ namespace iara {
 		Ref<IndexBuffer> ib;
 
 		std::vector<BasicMeshEntry> meshes;
+		std::vector<MaterialPaths> material_paths;
 		std::vector<Material> materials;
 
 		std::vector<MeshVertex> mesh_vertex_array;
 		std::vector<uint32_t>  indices;
+
+		uint32_t m_num_vertices = 0;
+		uint32_t m_num_indices = 0;
 	};
 }

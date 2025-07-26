@@ -52,7 +52,7 @@ namespace iara {
 
 		glm::mat4 m_view_matrix;
 		glm::vec3 m_position = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 m_focal_point = { 0.0f,0.0f, 0.0f };
+		glm::vec3 m_focal_point = { 0.0f, 0.0f, 0.0f };
 
 		glm::vec2 m_initial_mouse_pos;
 

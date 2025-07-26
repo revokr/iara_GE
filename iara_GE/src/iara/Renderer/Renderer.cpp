@@ -18,6 +18,10 @@ namespace iara {
         RenderCommand::setViewPort(0, 0, width, height);
     }
 
+    void Renderer::Shutdown() {
+        MeshRenderer::Shutdown();
+    }
+
     void Renderer::BeginScene(PerspectiveCamera& camera) {
         s_sceneData->ViewProj = camera.getVP();
     }

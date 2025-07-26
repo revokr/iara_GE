@@ -103,7 +103,7 @@ namespace iara {
 
 		virtual void SetData(const void* data, uint32_t size) = 0;
 
-		static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
+		static Ref<VertexBuffer> Create(void* vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(uint32_t size);
 		static Ref<VertexBuffer> Create();
 	};

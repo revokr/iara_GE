@@ -15,6 +15,9 @@ namespace iara {
 		/// Depth/Stencil
 		DEPTH24STENCIL8,
 
+		/// Depth for shadowMap
+		DEPTH_COMPONENT,
+
 		/// Defaults
 		Depth = DEPTH24STENCIL8
 	};
@@ -61,7 +64,9 @@ namespace iara {
 		/// virtual FramebufferSpecification getSpecification() = 0;
 		virtual const FramebufferSpecification& getSpecification() const = 0;
 
+		static Ref<Framebuffer> CreateMSAA(const FramebufferSpecification& frame_buf_specs);
 		static Ref<Framebuffer> Create(const FramebufferSpecification& frame_buf_specs);
+		static Ref<Framebuffer> Create(const FramebufferSpecification& frame_buf_specs, const std::string& name);
 	};
 
 }

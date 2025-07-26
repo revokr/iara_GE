@@ -24,6 +24,9 @@ namespace iara {
 	private:
 		Ref<Scene> m_context;
 		Entity m_selection_context;
+
+		Ref<Texture2D> m_texture_placeholder = Texture2D::Create("Assets\\Textures\\check2.png");
+
 	};
 
 }

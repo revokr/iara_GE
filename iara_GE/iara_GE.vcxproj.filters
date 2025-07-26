@@ -144,6 +144,9 @@
     <ClInclude Include="src\iara\Renderer\GraphicsContext.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\iara\Renderer\Mesh.h">
+      <Filter>src\iara\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\iara\Renderer\RenderCommand.h">
       <Filter>src\iara\Renderer</Filter>
     </ClInclude>
@@ -178,6 +181,9 @@
       <Filter>src\iara\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Scene\SceneCamera.h">
+      <Filter>src\iara\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Scene\SceneRenderer.h">
       <Filter>src\iara\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Scene\SceneSerializer.h">
@@ -1485,8 +1491,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\iara\Scene\SceneRenderer.h" />
-    <ClInclude Include="src\iara\Renderer\MeshRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Windows\Window_Win.cpp">
@@ -1534,6 +1538,9 @@
     <ClCompile Include="src\iara\Renderer\Framebuffer.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\iara\Renderer\Mesh.cpp">
+      <Filter>src\iara\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\iara\Renderer\RenderCommand.cpp">
       <Filter>src\iara\Renderer</Filter>
     </ClCompile>
@@ -1565,6 +1572,9 @@
       <Filter>src\iara\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Scene\SceneCamera.cpp">
+      <Filter>src\iara\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Scene\SceneRenderer.cpp">
       <Filter>src\iara\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Scene\SceneSerializer.cpp">
@@ -1609,6 +1619,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\iara\Scene\SceneRenderer.cpp" />
   </ItemGroup>
 </Project>
