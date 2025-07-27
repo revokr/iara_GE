@@ -9,6 +9,7 @@ CTRL + E              -- activate rotation gizmo of the currently selected entit
 CTRL + R              -- activate scale gizmo of the currently selected entity  
 CTRL + Q              -- no gizmo  
 
+![Editor Screenshot](screenshots/ss_engine.png)
 
 ## ✨ Features
 
