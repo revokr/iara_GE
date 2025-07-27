@@ -61,8 +61,10 @@ namespace iara {
 	class Mesh {
 	public:
 		Mesh() {
-			
-			
+			createBuffers();
+			m_white_tex = Texture2D::Create(1, 1);
+			uint32_t whiteTextureData = 0xffffffff;
+			m_white_tex->setData(&whiteTextureData, sizeof(uint32_t));
 		}
 		
 		void createBuffers();

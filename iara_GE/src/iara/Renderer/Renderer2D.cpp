@@ -739,19 +739,6 @@ namespace iara {
 		Ref<VertexBuffer> entityID_VB;
 	};
 
-	struct ModelLoadTask {
-		std::string path;
-		int entityID;
-		std::promise<void> donePromise;
-	};
-
-	static std::queue<ModelLoadTask> g_modelLoadQueue;
-	static std::mutex g_modelLoadMutex;
-	static std::condition_variable g_modelLoadCV;
-	static bool g_terminateLoader = false;
-	static std::unordered_map<std::string, std::shared_future<void>> g_pendingLoads;
-	static std::thread g_thread;
-
 	struct MeshRendererStoreage {
 		Ref<VertexArray> m_vao;
 		Ref<Shader> m_shader;
@@ -812,36 +799,6 @@ namespace iara {
 
 	static MeshRendererStoreage s_MeshData;
 
-	static void modelLoaderThreadFunc() {
-		IARA_CORE_TRACE("AM INTRAT IN MESH LOADER!");
-		while (!g_terminateLoader) {
-			ModelLoadTask task;
-
-			{
-				std::unique_lock lock(g_modelLoadMutex);
-				g_modelLoadCV.wait(lock, [] { return !g_modelLoadQueue.empty() || g_terminateLoader; });
-				IARA_CORE_TRACE("AM TRECUT DE CONDITION VARIABLE");
-				if (g_terminateLoader) break;
-			}
-
-			task = std::move(g_modelLoadQueue.front());
-			g_modelLoadQueue.pop();
-
-			IARA_CORE_TRACE("START MESH LOADING!");
-
-			Mesh mesh;
-			mesh.loadModel(task.path, task.entityID);
-
-			{
-				std::unique_lock lock(g_modelLoadMutex);
-				s_MeshData.m_stored_meshes[task.path] = std::move(mesh);
-			}
-			IARA_CORE_TRACE("MESH LOADING FINISHED!");
-
-			task.donePromise.set_value();
-		}
-	}
-
 	void MeshRenderer::InitMeshRenderer() {
 		s_MeshData.m_vao = VertexArray::Create();
 		s_MeshData.m_shader = Shader::Create("mesh-light", "Shaders/light-mesh.vert", "Shaders/light-mesh.frag");
@@ -856,18 +813,10 @@ namespace iara {
 
 		s_MeshData.light_vp_uniform_buffer_shadowmap = UniformBuffer::Create(sizeof(MeshRendererStoreage::LightVPData), 11);
 		s_MeshData.model_uniform_buffer_shadowmap    = UniformBuffer::Create(sizeof(MeshRendererStoreage::ModelData), 12);
-
-		g_thread = std::thread(modelLoaderThreadFunc);
 	}
 
 	void MeshRenderer::Shutdown() {
-		{
-			std::lock_guard<std::mutex> lock(g_modelLoadMutex);
-			g_terminateLoader = true;
-		}
-		g_modelLoadCV.notify_one();
-		if (g_thread.joinable())
-			g_thread.join();
+		
 	}
 
 	void MeshRenderer::BeginShadowMapPass(const glm::mat4& transform) {
@@ -924,83 +873,33 @@ namespace iara {
 	void MeshRenderer::drawMesh(const glm::mat4& transform,MeshComponent& meshcomp, int entityID) {
 		if (meshcomp.path == "") return;
 
-		bool mesh_is_ready = false;
-		std::unique_lock<std::mutex> lock(g_modelLoadMutex);
-		auto iterator = s_MeshData.m_stored_meshes.find(meshcomp.path);
-		lock.unlock();
-		if (iterator == s_MeshData.m_stored_meshes.end()) {
-			if (g_pendingLoads.find(meshcomp.path) == g_pendingLoads.end()) {
-				// Trimitem un task de încărcare
-				ModelLoadTask task;
-				task.path = meshcomp.path;
-				task.entityID = entityID;
-				std::promise<void> p;
-				std::shared_future<void> future = p.get_future().share();
-				task.donePromise = std::move(p);
-				g_pendingLoads[meshcomp.path] = future;
-
-				{
-					std::lock_guard<std::mutex> lock(g_modelLoadMutex);
-					g_modelLoadQueue.push(std::move(task));
-				}
-				g_modelLoadCV.notify_one();
+		if (s_MeshData.m_stored_meshes.find(meshcomp.path) == s_MeshData.m_stored_meshes.end()) {
+			if (meshcomp.path != "") {
+				Mesh& new_mesh = s_MeshData.m_stored_meshes[meshcomp.path];
+				new_mesh.loadModel(meshcomp.path, entityID);
+				for (auto mat : new_mesh.materials)
+					meshcomp.materials.push_back(mat);
+				meshcomp.first_pass = true;
 			}
 		}
-		
-		//if (!meshcomp.first_pass && meshcomp.initialized == false && iterator != s_MeshData.m_stored_meshes.end()) {
-		//	// Setăm materialele dacă modelul era deja încărcat
-		//	meshcomp.materials.clear();
-		//	for (auto& mat : s_MeshData.m_stored_meshes[meshcomp.path].materials) {
-		//		meshcomp.materials.push_back(mat);
-		//	}
-		//	meshcomp.first_pass = true;
-		//	meshcomp.initialized = true;
-		//	mesh_is_ready = true;
-		//}
-		
-		if (!meshcomp.first_pass && iterator != s_MeshData.m_stored_meshes.end() && meshcomp.initialized == false) {
-			Mesh& stored_mesh = s_MeshData.m_stored_meshes[meshcomp.path];
-
-			IARA_CORE_TRACE("STARTING TO CREATE THE MESH MATERIALS");
-			stored_mesh.createMaterials();
-
-			IARA_CORE_TRACE("STARTING TO CREATE THE MESH BUFFERS!");
-			stored_mesh.createBuffers();
-			stored_mesh.vb->SetData(s_MeshData.m_stored_meshes[meshcomp.path].mesh_vertex_array.data(), sizeof(MeshVertex) * (uint32_t)s_MeshData.m_stored_meshes[meshcomp.path].mesh_vertex_array.size());
-			stored_mesh.ib->setData(s_MeshData.m_stored_meshes[meshcomp.path].indices.data(), (uint32_t)s_MeshData.m_stored_meshes[meshcomp.path].indices.size());
-
-			stored_mesh.vao->setVertexBuffer(s_MeshData.m_stored_meshes[meshcomp.path].vb);
-			stored_mesh.vao->SetIndexBuffer(s_MeshData.m_stored_meshes[meshcomp.path].ib);
-
-			if (meshcomp.materials.empty()) {
-				meshcomp.materials = stored_mesh.materials;
-			}
-			else {
-				stored_mesh.materials = meshcomp.materials;
-			}
-
+		else if (!meshcomp.first_pass && meshcomp.path != "") {
+			meshcomp.materials = s_MeshData.m_stored_meshes[meshcomp.path].materials;
 			meshcomp.first_pass = true;
-			mesh_is_ready = true;
-			meshcomp.initialized = true;
 		}
 
-		
-		if (meshcomp.initialized) {
-			// Adăugăm mesh-ul în lista de randare (asumăm că e încărcat acum)
-			std::vector<int> entityIDBuffer(s_MeshData.m_stored_meshes[meshcomp.path].m_num_vertices, entityID);
-			SceneMeshData smd;
-			smd.path = meshcomp.path;
-			smd.materials = meshcomp.materials;
-			smd.transform = transform;
-			smd.entityID_VB = VertexBuffer::Create((void*)entityIDBuffer.data(), entityIDBuffer.size() * sizeof(int));
-			smd.entityID_VB->setLayout({
-				{ ShaderDataType::Int, "a_entity_id" }
-				});
+		// Adăugăm mesh-ul în lista de randare (asumăm că e încărcat acum)
+		std::vector<int> entityIDBuffer(s_MeshData.m_stored_meshes[meshcomp.path].m_num_vertices, entityID);
+		SceneMeshData smd;
+		smd.path = meshcomp.path;
+		smd.materials = meshcomp.materials;
+		smd.transform = transform;
+		smd.entityID_VB = VertexBuffer::Create((void*)entityIDBuffer.data(), entityIDBuffer.size() * sizeof(int));
+		smd.entityID_VB->setLayout({
+			{ ShaderDataType::Int, "a_entity_id" }
+			});
 
-			s_MeshData.m_scene_meshes.push_back(smd);
-		}
+		s_MeshData.m_scene_meshes.push_back(smd);
 
-		
 	}
 
 	void MeshRenderer::FlushMeshShadowMapPass() {
