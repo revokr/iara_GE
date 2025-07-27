@@ -8,3 +8,30 @@ CTRL + W              -- activate translation gizmo of the currently selected en
 CTRL + E              -- activate rotation gizmo of the currently selected entity  
 CTRL + R              -- activate scale gizmo of the currently selected entity  
 CTRL + Q              -- no gizmo  
+
+
+## ✨ Features
+
+- 🧱 **Entity-Component-System (ECS)** architecture using `entt`
+- 🎮 **Scene Editor** with ImGui-based interface
+- 🖱️ **Mouse Picking** support
+- 🗂️ **Drag-and-Drop Scene Loading**
+- 💾 **YAML Serialization** for scene saving/loading
+- 📦 **Asynchronous Model Loading** using threads and shared futures
+- 🌐 **OpenGL Renderer** with support for SPIR-V shader compilation
+- 🧭 **Editor Camera** for scene navigation
+- 📐 **Modular VAO/VBO setup** with per-vertex `entityID`
+- ⚙️ Custom build system with CMake
+
+---
+
+## 🧰 Technologies Used
+
+- C++17
+- OpenGL 4.x
+- GLAD – OpenGL function loader
+- GLFW – Window and input handling
+- ImGui – Immediate Mode GUI
+- EnTT – Entity Component System
+- Assimp – Asset importing (e.g., 3D models)
+- YAML-CPP – YAML parser for scene serialization
