@@ -18,11 +18,8 @@ CTRL + Q              -- no gizmo
 - 🖱️ **Mouse Picking** support
 - 🗂️ **Drag-and-Drop Scene Loading**
 - 💾 **YAML Serialization** for scene saving/loading
-- 📦 **Asynchronous Model Loading** using threads and shared futures
-- 🌐 **OpenGL Renderer** with support for SPIR-V shader compilation
+- 🌐 **OpenGL Renderer** with support for SPIR-V shader compilation (Blinn-Phong, shadows)
 - 🧭 **Editor Camera** for scene navigation
-- 📐 **Modular VAO/VBO setup** with per-vertex `entityID`
-- ⚙️ Custom build system with CMake
 
 ---
 
