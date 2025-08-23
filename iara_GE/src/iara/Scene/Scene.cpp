@@ -226,7 +226,7 @@ namespace iara {
 			/// BLACK TEXTURE --- ADD RENDERCOMMAND::CLEAR for color_buffer_bit
 			/// MADE IT WORK  --- RUNS IN 2FPS
 			/// MADE IT WORK 2 ---- RUNS BETTER - fixed the texture output, now it moves with the camera, but is not aligned with the normals
-			m_ssao_framebuffer->bind();
+			/*m_ssao_framebuffer->bind();
 			RenderCommand::Clear();
 			MeshRenderer::BeginGeometryPassSSAO(camera, m_vp_width, m_vp_height, m_main_framebuffer->getColorAtt(0), m_main_framebuffer->getColorAtt(1), m_main_framebuffer->getColorAtt(3));
 
@@ -236,7 +236,7 @@ namespace iara {
 			}
 
 			MeshRenderer::EndGeometrySSAOPass();
-			m_ssao_framebuffer->unbind();
+			m_ssao_framebuffer->unbind();*/
 
 
 			m_final2_framebuffer->bind();

@@ -91,7 +91,7 @@ namespace iara {
 			const aiVector3D& tangent = mesh->mTangents[i];
 			const aiVector3D& bitangent = mesh->mBitangents[i];
 
-			mesh_vertex_array.push_back({ {pos.x, pos.y, pos.z} , {normal.x, normal.y, normal.z}, {tc.x, tc.y}, 
+			mesh_vertex_array.push_back({ {pos.x, pos.y, pos.z} , {tc.x, tc.y}, {normal.x, normal.y, normal.z},
 										  {tangent.x, tangent.y, tangent.z}, {bitangent.x, bitangent.y, bitangent.z}/*, entityID*/ });
 		}
 
