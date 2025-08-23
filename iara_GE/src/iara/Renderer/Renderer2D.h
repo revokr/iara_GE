@@ -51,7 +51,7 @@ namespace iara {
 		static void drawQuadC(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color);
 		static void drawQuadRC(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color);
 		static void drawQuadRC(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color);
-	
+
 		static void drawQuadC(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void drawQuadT(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult = 1.0f, int entityID = -1);
 		static void drawQuadTBillboard(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, EditorCamera& camera, float tiling_mult = 1.0f, int entityID = -1);
@@ -63,16 +63,17 @@ namespace iara {
 		static void drawQuadTC(const glm::vec3& pos, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& color, float tiling_mult = 1.0f);
 		static void drawQuadRT(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tiling_m = 1.0f);
 		static void drawQuadRT(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tiling_m = 1.0f);
-	
+
 		static void drawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
-		static void drawLight(const glm::mat4& transform ,const PointLightComponent& light, EditorCamera& camera, int entityID);
+		static void drawLight(const glm::mat4& transform, const PointLightComponent& light, EditorCamera& camera, int entityID);
 		static void drawLight(const glm::mat4& transform, const PointLightComponent& light, Camera& camera, int entityID);
 		static void drawDirLight(const DirLightComponent& dlight);
 
 
 		/// TEMPORARY
 		static void drawShadowMapToQuad(uint32_t shadowmap);
-		
+		static void applyToneMapping(uint32_t hdr_texture, float exposure);
+
 		static void ResetStats();
 		static Statistics getStats();
 	};
@@ -99,7 +100,20 @@ namespace iara {
 		static void BeginShadowMapPass(const glm::mat4& transform);
 		static void BeginSceneMesh(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp);
 		static void BeginSceneMesh(EditorCamera& camera, const glm::mat4& light_vp);
-		
+
+		static void BeginGeometryPassGBuffer(EditorCamera& camera);
+		static void BeginGeometryPassGBuffer(const Camera& camera, const glm::mat4& transform);
+
+		static void BeginGeometryPassSSAO(EditorCamera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map);
+		static void BeginGeometryPassSSAO(const Camera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map);
+
+
+		static void LighintgPass(EditorCamera& camera, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp);
+		static void LighintgPass(const Camera& camera, const glm::mat4& transform, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp);
+
+
+		static void EndGeometryPass();
+		static void EndGeometrySSAOPass();
 		static void EndShadowMapPass();
 		static void EndSceneMesh(uint32_t shadowmap);
 
@@ -107,6 +121,7 @@ namespace iara {
 		static void drawMesh(const glm::mat4& transform, MeshComponent& mesh /*OR STRING PATH*/, int entityID);
 	private:
 		static void FlushMesh(uint32_t shadowmap);
-		static void FlushMeshShadowMapPass();
+		static void FlushMeshGeometryPass();
+		static void FlushMeshGeometryPassShadowMap();
 	};
 }

@@ -6,9 +6,9 @@
 
 namespace iara {
 
-    EditorCamera::EditorCamera(float fov, float aspect_ratio, float near_clip, float far_clip) 
-        : m_fov{fov}, m_aspect_ratio{aspect_ratio}, m_near_clip{near_clip}, m_far_clip{far_clip},
-        Camera{glm::perspective(glm::radians(fov), aspect_ratio, near_clip, far_clip)}
+    EditorCamera::EditorCamera(float fov, float aspect_ratio, float near_clip, float far_clip)
+        : m_fov{ fov }, m_aspect_ratio{ aspect_ratio }, m_near_clip{ near_clip }, m_far_clip{ far_clip },
+        Camera{ glm::perspective(glm::radians(fov), aspect_ratio, near_clip, far_clip) }
     {
         updateView();
     }
@@ -39,7 +39,7 @@ namespace iara {
     }
 
     glm::vec3 EditorCamera::getUpDirection() const {
-        return glm::rotate(getOrientation(), glm::vec3(0.0f, 1.0f, 0.0f)); 
+        return glm::rotate(getOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));
     }
 
     glm::vec3 EditorCamera::getRightDirection() const {
@@ -68,7 +68,7 @@ namespace iara {
         m_view_matrix = glm::inverse(m_view_matrix);
     }
 
-    bool EditorCamera::onMouseScroll(MouseScrolledEvent& e){
+    bool EditorCamera::onMouseScroll(MouseScrolledEvent& e) {
         float delta = e.getOffsetY() * 0.1f;
         mouseZoom(delta);
         updateView();
@@ -91,7 +91,7 @@ namespace iara {
         m_distance -= delta * zoomSpeed();
         if (m_distance < 1.0f) {
             m_focal_point += getForwardDirection();
-            m_distance = 1.0f;  
+            m_distance = 1.0f;
         }
     }
 

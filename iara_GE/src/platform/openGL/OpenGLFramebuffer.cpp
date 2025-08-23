@@ -20,16 +20,22 @@ namespace iara {
 			glBindTexture(textureTarget(multisample), id);
 		}
 
-		static void attachColorTexture(uint32_t id, int samples, GLenum internal_format, GLenum format, uint32_t width, uint32_t height, int index) {
+		static void attachColorTexture(uint32_t id, int samples, GLenum internal_format, GLenum format, GLenum type, uint32_t width, uint32_t height, int index) {
 			bool multisample = samples > 1;
 			if (multisample) {
 				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internal_format, width, height, GL_TRUE);
 			}
 			else {
-				glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+				glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, type, nullptr);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				if (format == GL_RED_INTEGER || format == GL_RED) {
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				}
+				else {
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				}
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -38,31 +44,24 @@ namespace iara {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, textureTarget(multisample), id, 0);
 		}
 
-		static void attachDepthTexture(uint32_t id, int samples, GLenum format, GLenum att_type, uint32_t width, uint32_t height) {
+		static void attachDepthTexture(uint32_t id, int samples, GLenum internal_format, GLenum format, GLenum att_type, GLenum type, uint32_t width, uint32_t height) {
 			bool multisample = samples > 1;
 			if (multisample) {
 				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_TRUE);
 			}
 			else {
-				if (format == GL_DEPTH_COMPONENT) {
-					//glTexStorage2D(GL_TEXTURE_2D, 1, format, width, height);
-					glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, NULL);
+				glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, type, NULL);
 
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+				if (format == GL_DEPTH_COMPONENT) {
 					float borderColor[] = { 1.0, 1.0, 1.0, 1.0 }; // white = no shadow at border
 					glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 				}
-				else {
-					glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, NULL);
 
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-				}
 			}
 			glFramebufferTexture2D(GL_FRAMEBUFFER, att_type, textureTarget(multisample), id, 0);
 		}
@@ -124,13 +123,6 @@ namespace iara {
 				m_depth_att_spec = spec;
 			}
 		}
-
-		/// AI REUSIT SA FACI SA MEARGA PANA LA URMA, DAR NU ISI DADEA REFRESH COLOR_ATT la ResolveFBO for some fking reason
-		/// AFTER SOME TWEAKING IT DOESN'T WORK AT ALL :))))))) KMS
-		/// MISSION: FIND WHY AND MAKE IT WORK
-		/// BITCH
-		/// 
-
 
 		invalidate();
 	}
@@ -203,10 +195,10 @@ namespace iara {
 				switch (m_color_att_specs[i].texture_format)
 				{
 				case FramebufferTextureFormat::RGBA8:
-					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_RGBA8, GL_RGB, m_specs.width, m_specs.height, (uint32_t)i);
+					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, m_specs.width, m_specs.height, (uint32_t)i);
 					break;
 				case FramebufferTextureFormat::RED_INTEGER:
-					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_R32I, GL_RED_INTEGER, m_specs.width, m_specs.height, (uint32_t)i);
+					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_R32I, GL_RED_INTEGER, GL_UNSIGNED_BYTE, m_specs.width, m_specs.height, (uint32_t)i);
 					break;
 				}
 			}
@@ -220,7 +212,7 @@ namespace iara {
 			switch (m_depth_att_spec.texture_format)
 			{
 			case FramebufferTextureFormat::DEPTH24STENCIL8:
-				utils::attachDepthTexture(m_depth_attachment, m_specs.samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL_ATTACHMENT, m_specs.width, m_specs.height);
+				utils::attachDepthTexture(m_depth_attachment, m_specs.samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL_ATTACHMENT, GL_UNSIGNED_INT_24_8, m_specs.width, m_specs.height);
 				break;
 			}
 		}
@@ -291,7 +283,7 @@ namespace iara {
 			glBindFramebuffer(GL_FRAMEBUFFER, m_ResolveFBO);
 			glReadBuffer(GL_COLOR_ATTACHMENT1);
 			int pixel_data;
-			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel_data);
+			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, &pixel_data);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			return pixel_data;
@@ -299,7 +291,7 @@ namespace iara {
 		else {
 			glReadBuffer(GL_COLOR_ATTACHMENT0 + att_index);
 			int pixel_data;
-			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel_data);
+			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, &pixel_data);
 
 			return pixel_data;
 		}
@@ -325,7 +317,7 @@ namespace iara {
 	///-----------------------------------------------
 
 	OpenGLFrameBuffer::OpenGLFrameBuffer(const FramebufferSpecification& frame_buf_specs, const std::string& name)
-		: m_specs{ frame_buf_specs }, m_name{name}
+		: m_specs{ frame_buf_specs }, m_name{ name }
 	{
 		m_specs.samples = 0;
 		for (auto spec : m_specs.attachments.attachments) {
@@ -371,10 +363,19 @@ namespace iara {
 				switch (m_color_att_specs[i].texture_format)
 				{
 				case FramebufferTextureFormat::RGBA8:
-					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_RGBA8, GL_RGBA, m_specs.width, m_specs.height, (uint32_t)i);
+					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, m_specs.width, m_specs.height, (uint32_t)i);
+					break;
+				case FramebufferTextureFormat::RGBA16F:
+					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_RGBA16F, GL_RGBA, GL_FLOAT, m_specs.width, m_specs.height, (uint32_t)i);
+					break;
+				case FramebufferTextureFormat::RGB16F:
+					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_RGB16F, GL_RGB, GL_FLOAT, m_specs.width, m_specs.height, (uint32_t)i);
 					break;
 				case FramebufferTextureFormat::RED_INTEGER:
-					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_R32I, GL_RED_INTEGER, m_specs.width, m_specs.height, (uint32_t)i);
+					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_R32I, GL_RED_INTEGER, GL_INT, m_specs.width, m_specs.height, (uint32_t)i);
+					break;
+				case FramebufferTextureFormat::RED:
+					utils::attachColorTexture(m_color_attachments[i], m_specs.samples, GL_RED, GL_RED, GL_FLOAT, m_specs.width, m_specs.height, (uint32_t)i);
 					break;
 				}
 			}
@@ -387,18 +388,26 @@ namespace iara {
 			switch (m_depth_att_spec.texture_format)
 			{
 			case FramebufferTextureFormat::DEPTH24STENCIL8:
-				utils::attachDepthTexture(m_depth_attachment, m_specs.samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL_ATTACHMENT, m_specs.width, m_specs.height);
+				utils::attachDepthTexture(m_depth_attachment, m_specs.samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL_ATTACHMENT, GL_UNSIGNED_INT_24_8, m_specs.width, m_specs.height);
 				break;
 			case FramebufferTextureFormat::DEPTH_COMPONENT:
-				utils::attachDepthTexture(m_depth_attachment, m_specs.samples, GL_DEPTH_COMPONENT, GL_DEPTH_ATTACHMENT, m_specs.width, m_specs.height);
+				utils::attachDepthTexture(m_depth_attachment, m_specs.samples, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_DEPTH_ATTACHMENT, GL_FLOAT, m_specs.width, m_specs.height);
 				break;
 			}
 		}
 
 		if (m_color_attachments.size() > 0) {
 			//IARA_CORE_ASSERT(m_color_attachments.size() <= 4);
-			GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-			glDrawBuffers((GLsizei)m_color_attachments.size(), buffers);
+			//GLenum buffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1/*, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3*/ };
+			//glDrawBuffers((GLsizei)m_color_attachments.size(), buffers);
+
+			std::vector<GLenum> buffers;
+
+			for (size_t i = 0; i < m_color_attachments.size(); i++) {
+				buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
+			}
+
+			glDrawBuffers((GLsizei)m_color_attachments.size(), buffers.data());
 		}
 		else if (m_color_attachments.empty()) {
 			/// Only depth pass
@@ -435,9 +444,11 @@ namespace iara {
 	}
 
 	int OpenGLFrameBuffer::readPixel(uint32_t att_index, int x, int y) {
+		glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + att_index);
 		int pixel_data;
-		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel_data);
+		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, &pixel_data);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		return pixel_data;
 	}
@@ -450,6 +461,10 @@ namespace iara {
 		glClearTexImage(m_color_attachments[att_indx], 0,
 			utils::iaraFramebufferTexFormatToGL(spec.texture_format), GL_INT, &value);
 
+	}
+
+	bool OpenGLFrameBuffer::saveFramebufferImageToDisk(uint32_t textureID, const std::string& path, uint32_t width, uint32_t height) {
+		return false;
 	}
 
 }

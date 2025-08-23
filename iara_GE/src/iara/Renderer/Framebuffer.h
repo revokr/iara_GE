@@ -10,7 +10,10 @@ namespace iara {
 
 		/// Color
 		RGBA8,
+		RGBA16F,
+		RGB16F,
 		RED_INTEGER,
+		RED,
 
 		/// Depth/Stencil
 		DEPTH24STENCIL8,
@@ -25,7 +28,8 @@ namespace iara {
 	struct FramebufferTextureSpecification {
 		FramebufferTextureSpecification() = default;
 		FramebufferTextureSpecification(FramebufferTextureFormat format)
-			: texture_format{ format } {}
+			: texture_format{ format } {
+		}
 
 		FramebufferTextureFormat texture_format = FramebufferTextureFormat::None;
 	};
@@ -33,7 +37,8 @@ namespace iara {
 	struct FramebufferAttachmentSpecification {
 		FramebufferAttachmentSpecification() = default;
 		FramebufferAttachmentSpecification(std::initializer_list<FramebufferTextureSpecification> att) :
-			attachments{ att } {}
+			attachments{ att } {
+		}
 
 		std::vector<FramebufferTextureSpecification> attachments;
 	};

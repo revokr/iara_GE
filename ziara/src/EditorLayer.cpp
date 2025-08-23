@@ -37,13 +37,13 @@ namespace iara {
         m_viewportSize.y = (uint32_t)specs.height;
 
         m_editor_camera = EditorCamera(60.0f, 1.778f, 0.01f, 10000.0f);
-        
+
         m_scene_h_panel.setContext(m_active_scene);
 
         m_stop_icon = Texture2D::Create("Assets\\Textures\\stop3.png");
         m_play_icon = Texture2D::Create("Assets\\Textures\\play.png");
         m_active_scene->setSkyBox("Assets\\Textures\\skybox2\\sky1.png");
-        }
+    }
 
     void EditorLayer::onDetach() {
 
@@ -58,12 +58,20 @@ namespace iara {
         if (FramebufferSpecification spec = m_active_scene->getMainFramebuffer()->getSpecification();
             m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
             (spec.width != m_viewportSize.x || spec.height != m_viewportSize.y)) {
-            
+
             m_active_scene->getMainFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+            if (m_active_scene->rendering_type == RenderingType::HDR) {
+                m_active_scene->getFinalFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+            }
+            else if (m_active_scene->rendering_type == RenderingType::DEFERRED) {
+                m_active_scene->getFinalFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+                m_active_scene->getFinal2Framebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+                m_active_scene->getSSAOFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+            }
             m_editor_camera.setViewportSize(m_viewportSize.x, m_viewportSize.y);
             m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
         }
-  
+
         /// Render
         if (m_active_scene->getSceneState() == SceneState::EDIT) {
             m_editor_camera.onUpdate(ts);
@@ -84,7 +92,12 @@ namespace iara {
         int mousey = (int)my;
 
         if (mousex >= 0 && mousey >= 0 && mousex <= (int)viewport_size.x && mousey <= (int)viewport_size.y) {
-            m_hovered_pixel_entity = m_active_scene->getMainFramebuffer()->readPixel(1, mousex, mousey);
+            if (m_active_scene->rendering_type == RenderingType::DEFERRED) {
+                m_hovered_pixel_entity = m_active_scene->getMainFramebuffer()->readPixel(3, mousex, mousey);
+            }
+            else {
+                m_hovered_pixel_entity = m_active_scene->getMainFramebuffer()->readPixel(1, mousex, mousey);
+            }
         }
         //IARA_CORE_TRACE("Hovored pixel: {0}", m_hovered_pixel_entity);
         g_on_update_time = timer.elapsedMilliseconds();
@@ -114,7 +127,7 @@ namespace iara {
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::Text("FrameInterval %f", m_frame_interval_acc * 1000 );
+            ImGui::Text("FrameInterval %f", m_frame_interval_acc * 1000);
             ImGui::Text("EditorLayer::OnImGuiRender %f", g_on_imgui_render_time);
             ImGui::Text("EditorLayer::onUpdate %f", g_on_update_time);
             ImGui::Text("ShadowMap Render %f", m_active_scene->render_shadowmap_timer);
@@ -139,41 +152,41 @@ namespace iara {
         bool shiftt = Input::IsKeyPressed(IARA_KEY_LEFT_SHIFT);
         switch (e.getKeyCode())
         {
-            case IARA_KEY_S: 
-                if (controll && shiftt) {
-                    SaveSceneAs();
-                }
-                break;
-            
-            case IARA_KEY_N: 
-                if (controll) {
-                    NewScene();
-                }
-                break;
-            
-            case IARA_KEY_O: 
-                if (controll) {
-                    OpenScene();
-                }
-                break;
+        case IARA_KEY_S:
+            if (controll && shiftt) {
+                SaveSceneAs();
+            }
+            break;
+
+        case IARA_KEY_N:
+            if (controll) {
+                NewScene();
+            }
+            break;
+
+        case IARA_KEY_O:
+            if (controll) {
+                OpenScene();
+            }
+            break;
 
             /*case IARA_KEY_S:
                 m_editor_camera.moveDown();*/
-           
 
-            /// Gizmo
-            case IARA_KEY_Q:
-                m_gizmo_type = -1;
-                break;
-            case IARA_KEY_W:
-                m_gizmo_type = ImGuizmo::OPERATION::TRANSLATE;
-                break;
-            case IARA_KEY_E:
-                m_gizmo_type = ImGuizmo::OPERATION::ROTATE;
-                break;
-            case IARA_KEY_R:
-                m_gizmo_type = ImGuizmo::OPERATION::SCALE;
-                break;
+
+                /// Gizmo
+        case IARA_KEY_Q:
+            m_gizmo_type = -1;
+            break;
+        case IARA_KEY_W:
+            m_gizmo_type = ImGuizmo::OPERATION::TRANSLATE;
+            break;
+        case IARA_KEY_E:
+            m_gizmo_type = ImGuizmo::OPERATION::ROTATE;
+            break;
+        case IARA_KEY_R:
+            m_gizmo_type = ImGuizmo::OPERATION::SCALE;
+            break;
         }
         return false;
     }
@@ -309,11 +322,34 @@ namespace iara {
         ImGui::Text("Quads: %d", stats.quad_count);
         ImGui::Text("Total Vertices: %d", stats.GetVertices());
         ImGui::Text("Total Indices: %d", stats.GetIndices());
-        
+
+
+
 
         //IARA_CORE_TRACE("ShadowMapQuad Color Attachment ID: {}", m_active_scene->getShadowMapQuad()->getColorAtt(0));
         uint32_t texID = m_active_scene->getShadowMapQuad()->getColorAtt(0);  /// Get the texture from the framebuffer
         ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+        // SSAO NOISE TEXTURE
+        ImGui::Image((void*)(intptr_t)3, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+        ImGui::Image((void*)(intptr_t)m_active_scene->getSSAOFramebuffer()->getColorAtt(0), ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+        if (m_active_scene->rendering_type == RenderingType::DEFERRED) {
+            texID = m_active_scene->getMainFramebuffer()->getColorAtt(0);  /// Get the texture from the framebuffer
+            ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+            texID = m_active_scene->getMainFramebuffer()->getColorAtt(1);  /// Get the texture from the framebuffer
+            ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+            texID = m_active_scene->getMainFramebuffer()->getColorAtt(2);  /// Get the texture from the framebuffer
+            ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+            texID = m_active_scene->getMainFramebuffer()->getColorAtt(3);  /// Get the texture from the framebuffer
+            ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+        }
+        /*texID = m_active_scene->getFinalFramebuffer()->getColorAtt(0);
+        ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });*/
 
         ImGui::End();
     }
@@ -339,7 +375,7 @@ namespace iara {
             m_viewportSize = { viewportPaneSize.x , viewportPaneSize.y };
         }
         //ZIARA_INFO("Viewport size: {0} x {1}", viewportPaneSize.x, viewportPaneSize.y);
-        uint32_t texID = m_active_scene->getMainFramebuffer()->getColorAtt(0);  /// Get the texture from the framebuffer
+        uint32_t texID = m_active_scene->getFinalRenderedTexture();  /// Get the texture from the framebuffer
         ImGui::Image((void*)(intptr_t)texID, ImVec2(m_viewportSize.x, m_viewportSize.y), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
         if (ImGui::BeginDragDropTarget()) {
@@ -451,6 +487,30 @@ namespace iara {
 
         if (ImGui::Checkbox("PolygonMode", &m_polygonMode)) {
             RenderCommand::polygonMode(m_polygonMode);
+        }
+
+        ImGui::DragFloat("Exposure", m_editor_camera.getPExposure(), 0.01f, 0.0f, 10.0f);
+
+        const char* rendering_types_names[] = { "MSAA", "HDR", "DEFERRED" };
+        RenderingType rendering_types[] = { RenderingType::MSAA, RenderingType::HDR, RenderingType::DEFERRED };
+
+        const char* current_rendering_type_name = rendering_types_names[(uint8_t)m_active_scene->rendering_type - 1];
+        RenderingType current_rendering_type = m_active_scene->rendering_type;
+        if (ImGui::BeginCombo("Rendering Type", current_rendering_type_name)) {
+            for (int i = 0; i < 3; i++) {
+                bool is_selected = rendering_types[i] == current_rendering_type;
+                if (ImGui::Selectable(rendering_types_names[i], is_selected)) {
+                    current_rendering_type = rendering_types[i];
+                    m_active_scene->rendering_type = current_rendering_type;
+                    m_active_scene->initializeFramebuffers();
+                }
+
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+
+            ImGui::EndCombo();
         }
 
         ImGui::End();

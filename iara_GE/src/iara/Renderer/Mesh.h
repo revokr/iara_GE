@@ -61,12 +61,26 @@ namespace iara {
 	class Mesh {
 	public:
 		Mesh() {
-			
-			
+			vao = VertexArray::Create();
+			vb = VertexBuffer::Create();
+
+			vb->setLayout({
+				{ ShaderDataType::Float3, "a_pos" },
+				{ ShaderDataType::Float2, "a_tex_coords" },
+				{ ShaderDataType::Float3, "a_normal" },
+				{ ShaderDataType::Float3, "a_tangent" },
+				{ ShaderDataType::Float3, "a_bitangent" }
+				//{ ShaderDataType::Int,    "a_entity_id" }
+				});
+
+			ib = IndexBuffer::Create();
+
+			m_white_tex = Texture2D::Create(1, 1);
+			uint32_t whiteTextureData = 0xffffffff;
+			m_white_tex->setData(&whiteTextureData, sizeof(uint32_t));
 		}
 		
 		void createBuffers();
-		void createMaterials();
 		bool loadModel(const std::string& path, int entityID);
 		void reloadVertices(const glm::mat4& transform);
 
@@ -89,7 +103,6 @@ namespace iara {
 		Ref<IndexBuffer> ib;
 
 		std::vector<BasicMeshEntry> meshes;
-		std::vector<MaterialPaths> material_paths;
 		std::vector<Material> materials;
 
 		std::vector<MeshVertex> mesh_vertex_array;

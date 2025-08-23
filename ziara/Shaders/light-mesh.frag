@@ -130,6 +130,7 @@ vec3 getNormalFromMap() {
 
     return normalize(TBN2 * tangentNormal);
 }
+
 float shadowCalculation() {
     vec3 projCoords = pos_light_space.xyz / pos_light_space.w;
     projCoords = projCoords * 0.5 + 0.5;

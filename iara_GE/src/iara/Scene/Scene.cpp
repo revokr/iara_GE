@@ -8,6 +8,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glad\glad.h>
 
+
 #include "iara\Math\Math.h"
 
 
@@ -18,7 +19,7 @@ namespace iara {
 		m_registry = {};
 
 		createDirLight("Sky Light");
-		initializeMainFramebuffer();
+		initializeFramebuffers();
 		initializeShadowMap();
 	}
 
@@ -101,7 +102,7 @@ namespace iara {
 				auto [transform, camera] = view.get< TransformComponent, CameraComponent>(entity);
 
 				if (camera.primary) {
-					main_camera =	   &camera.camera;
+					main_camera = &camera.camera;
 					camera_transform = transform.getTransform();
 					break;
 				}
@@ -109,7 +110,7 @@ namespace iara {
 		}
 
 		if (main_camera) {
-			Timer timer;
+			/*Timer timer;
 			renderToShadowMapPass(cascade1);
 			render_shadowmap_timer = timer.elapsedMilliseconds();
 
@@ -126,7 +127,7 @@ namespace iara {
 			render3DPassRuntime(*main_camera, camera_transform, cascade1);
 
 			render2DPassRuntime(*main_camera, camera_transform);
-			m_main_framebuffer->unbind();
+			m_main_framebuffer->unbind();*/
 		}
 	}
 
@@ -136,25 +137,128 @@ namespace iara {
 		renderShadowMapToColorFBO();
 		//render_shadowmap_timer = timer.elapsedMilliseconds();
 
-		m_main_framebuffer->bind();
-		iara::Renderer2D::ResetStats();
-		iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
-		iara::RenderCommand::Clear();
-		m_main_framebuffer->clearAttachment(1, -1);
+		if (rendering_type == RenderingType::MSAA) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		if (m_skybox) {
-			glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
-			Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox);
+			m_main_framebuffer->bind();
+			iara::Renderer2D::ResetStats();
+			iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
+			iara::RenderCommand::Clear();
+			m_main_framebuffer->clearAttachment(1, -1);
+
+			if (m_skybox) {
+				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
+				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox);
+			}
+
+			render2DPassEdit(camera);
+			render3DPassEdit(camera, cascade1);
+			m_main_framebuffer->unbind();
 		}
+		else if (rendering_type == RenderingType::HDR) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		render2DPassEdit(camera);
-		render3DPassEdit(camera, cascade1);
+			m_main_framebuffer->bind();
+			iara::Renderer2D::ResetStats();
+			iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
+			iara::RenderCommand::Clear();
+			m_main_framebuffer->clearAttachment(1, -1);
 
-		m_main_framebuffer->unbind();
+			if (m_skybox) {
+				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
+				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox);
+			}
+
+			render2DPassEdit(camera);
+			render3DPassEdit(camera, cascade1);
+			m_main_framebuffer->unbind();
+
+			applyToneMapping(camera, m_main_framebuffer->getColorAtt(0));
+		}
+		else if (rendering_type == RenderingType::DEFERRED) {
+			///GEOMETRY PASS
+			/// SKYBOX RENDERS ON TOP OF EVERYTHING --- FIXED USING ENTITY ID AND PASSING THAT TO THE
+			///									   LIGHTINGSHADER WHERE IT TESTS IF THE PIXEL HAS ENTITYID > 10000 (arbitrary)
+
+
+			glDisable(GL_BLEND);
+
+			m_main_framebuffer->bind();
+			iara::RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+			iara::RenderCommand::Clear();
+			/*m_main_framebuffer->clearAttachment(0, -1);
+			m_main_framebuffer->clearAttachment(1, -1);
+			m_main_framebuffer->clearAttachment(2, -1);*/
+			m_main_framebuffer->clearAttachment(3, -1);
+
+			if (m_skybox) {
+				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
+				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox);
+			}
+
+			Renderer2D::BeginScene(camera, m_plights, m_dlight);
+			auto view4 = m_registry.view<TransformComponent, PointLightComponent>();
+			for (auto entity : view4) {
+				auto [transf, plight] = view4.get<TransformComponent, PointLightComponent>(entity);
+				Renderer2D::drawLight(transf.getTransform(), plight, camera, (int)entity);
+			}
+
+			auto view5 = m_registry.view<DirLightComponent>();
+			auto entity = view5.front();
+			for (auto entity : view5) {
+				auto dlight = view5.get<DirLightComponent>(entity);
+				Renderer2D::drawDirLight(dlight);
+			}
+			Renderer2D::EndScene();
+
+
+			MeshRenderer::BeginGeometryPassGBuffer(camera);
+			auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
+			for (auto entity : view_mesh) {
+				auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
+				MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
+			}
+			MeshRenderer::EndGeometryPass();
+			m_main_framebuffer->unbind();
+
+			/// BLACK TEXTURE --- ADD RENDERCOMMAND::CLEAR for color_buffer_bit
+			/// MADE IT WORK  --- RUNS IN 2FPS
+			/// MADE IT WORK 2 ---- RUNS BETTER - fixed the texture output, now it moves with the camera, but is not aligned with the normals
+			m_ssao_framebuffer->bind();
+			RenderCommand::Clear();
+			MeshRenderer::BeginGeometryPassSSAO(camera, m_vp_width, m_vp_height, m_main_framebuffer->getColorAtt(0), m_main_framebuffer->getColorAtt(1), m_main_framebuffer->getColorAtt(3));
+
+			for (auto entity : view_mesh) {
+				auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
+				MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
+			}
+
+			MeshRenderer::EndGeometrySSAOPass();
+			m_ssao_framebuffer->unbind();
+
+
+			m_final2_framebuffer->bind();
+			RenderCommand::Clear();
+			MeshRenderer::LighintgPass(camera, m_main_framebuffer->getColorAtt(0), m_main_framebuffer->getColorAtt(1), m_main_framebuffer->getColorAtt(2), m_main_framebuffer->getColorAtt(3), m_shadow_map->getDepthAtt(), m_ssao_framebuffer->getColorAtt(0), cascade1);
+			m_final2_framebuffer->unbind();
+
+
+			applyToneMapping(camera, m_final2_framebuffer->getColorAtt(0));
+		}
+	}
+
+	void Scene::applyToneMapping(EditorCamera& camera, uint32_t hdr_texture) {
+		m_final_framebuffer->bind();
+
+		Renderer2D::applyToneMapping(hdr_texture, camera.getExposure());
+
+		m_final_framebuffer->unbind();
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
-		m_vp_width  = width;
+		m_vp_width = width;
 		m_vp_height = height;
 
 		auto view = m_registry.view<CameraComponent>();
@@ -166,8 +270,7 @@ namespace iara {
 		}
 	}
 
-	void Scene::render2DPassEdit(EditorCamera& camera)
-	{
+	void Scene::render2DPassEdit(EditorCamera& camera) {
 		Renderer2D::BeginScene(camera, m_plights, m_dlight);
 		auto view = m_registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 		for (auto entity : view) {
@@ -292,7 +395,7 @@ namespace iara {
 		std::string name = "ShadowMap ";
 		FramebufferSpecification specs;
 		specs.attachments = { FramebufferTextureFormat::DEPTH_COMPONENT };
-		specs.width  = 2048;
+		specs.width = 2048;
 		specs.height = 2048;
 		m_shadow_map = Framebuffer::Create(specs, name);
 
@@ -303,7 +406,7 @@ namespace iara {
 		specs2.height = 2048;
 		m_shadowmap_quad = Framebuffer::Create(specs2, name2);
 
-		glm::mat4 lightProjection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f);
+		glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 1000.0f);
 		glm::mat4 lightView = glm::lookAt(glm::vec3(-30.0f, 230.0f, -1.0f),
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f));
@@ -311,13 +414,57 @@ namespace iara {
 		cascade1 = lightProjection * lightView;
 	}
 
-	void Scene::initializeMainFramebuffer()
-	{
-		FramebufferSpecification fb_spec;
-		fb_spec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::Depth };
-		fb_spec.width = 1280;
-		fb_spec.height = 720;
-		m_main_framebuffer = Framebuffer::CreateMSAA(fb_spec);
+	void Scene::initializeFramebuffers() {
+		if (rendering_type == RenderingType::MSAA) {
+
+			FramebufferSpecification fb_spec;
+			fb_spec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
+			fb_spec.width = 1920;
+			fb_spec.height = 1080;
+			m_main_framebuffer = Framebuffer::CreateMSAA(fb_spec);
+		}
+		else if (rendering_type == RenderingType::HDR) {
+			FramebufferSpecification fb_spec;
+			fb_spec.attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
+			fb_spec.width = 1920;
+			fb_spec.height = 1080;
+			m_main_framebuffer = Framebuffer::Create(fb_spec, "HDR Framebuffer ");
+
+			fb_spec.attachments = { FramebufferTextureFormat::RGBA8 };
+			m_final_framebuffer = Framebuffer::Create(fb_spec, "LDR Framebuffer ");
+		}
+		else if (rendering_type == RenderingType::DEFERRED) {
+			/// TERMINA DEFERRED RENDERING
+			/// SALVARE FRAMEBUFFER CA .EXR --- HDR RENDER TARGET
+			/// PENTRU ATMOSPHERIC LIGHT SCATTERING -- SHADERTOY TONE MAPPING
+
+			FramebufferSpecification fb_spec;
+			fb_spec.attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F , FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
+			fb_spec.width = 1920;
+			fb_spec.height = 1080;
+			m_main_framebuffer = Framebuffer::Create(fb_spec, "G Buffer ");
+
+			fb_spec.attachments = { FramebufferTextureFormat::RGBA16F };
+			m_final2_framebuffer = Framebuffer::Create(fb_spec, "Deferred Lighitng Calculation ");
+
+			fb_spec.attachments = { FramebufferTextureFormat::RGBA8 };
+			m_final_framebuffer = Framebuffer::Create(fb_spec, "LDR Post Lighting Calculation");
+
+			fb_spec.attachments = { FramebufferTextureFormat::RGBA8 };
+			m_ssao_framebuffer = Framebuffer::Create(fb_spec, "SSAO ");
+		}
+	}
+
+	const uint32_t Scene::getFinalRenderedTexture() {
+		if (rendering_type == RenderingType::MSAA) {
+			return m_main_framebuffer->getColorAtt(0);
+		}
+		else if (rendering_type == RenderingType::HDR) {
+			return m_final_framebuffer->getColorAtt(0);
+		}
+		else if (rendering_type == RenderingType::DEFERRED) {
+			return m_final_framebuffer->getColorAtt(0);
+		}
 	}
 
 	template<typename T>
@@ -356,7 +503,7 @@ namespace iara {
 	}
 
 	template<>
-	void Scene::onComponentAdded<cube3DComponent>(Entity entity, cube3DComponent	& component) {
+	void Scene::onComponentAdded<cube3DComponent>(Entity entity, cube3DComponent& component) {
 
 	}
 

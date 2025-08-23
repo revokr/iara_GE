@@ -24,7 +24,17 @@ namespace iara {
 
         IARA_CORE_ASSERT(false, "Unknown renderer API");
         return nullptr;
-	}
+    }
+
+    Ref<Texture2D> Texture2D::Create(uint32_t width, uint32_t height, uint32_t internal_format, uint32_t format, uint32_t type, void* data) {
+        switch (Renderer::getRendererAPI()) {
+        case RendererAPI::API::None:     IARA_CORE_ASSERT(false, "RendererAPI::None is not supported!!");
+        case RendererAPI::API::OpenGL:   return CreateRef<OpenGLTexture2D>(width, height, internal_format, format, type, data);
+        }
+
+        IARA_CORE_ASSERT(false, "Unknown renderer API");
+        return nullptr;
+    }
 
     Ref<Texture2D> Texture2D::CreateCubemap(const std::string& faces) {
         switch (Renderer::getRendererAPI()) {

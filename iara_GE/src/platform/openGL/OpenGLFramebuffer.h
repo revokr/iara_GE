@@ -22,7 +22,7 @@ namespace iara {
 
 		virtual uint32_t getColorAtt(uint32_t index = 0) const override { return m_specs.samples > 1 ? m_color_att_resolve : m_color_attachments[0]; }
 		virtual uint32_t getDepthAtt() const override { return m_depth_attachment; }
-		virtual uint32_t getRendererID() const  override{ return m_RendererID; }
+		virtual uint32_t getRendererID() const  override { return m_RendererID; }
 
 		void invalidate();
 	private:
@@ -55,10 +55,12 @@ namespace iara {
 
 		virtual int readPixel(uint32_t att_index, int x, int y) override;
 		virtual void clearAttachment(uint32_t att_indx, int value) override;
+		bool saveFramebufferImageToDisk(uint32_t textureID, const std::string& path, uint32_t width, uint32_t height);
 
-		virtual uint32_t getColorAtt(uint32_t index = 0) const override { return  m_color_attachments[0]; }
+		virtual uint32_t getColorAtt(uint32_t index = 0) const override { return  m_color_attachments[index]; }
 		virtual uint32_t getDepthAtt() const override { return m_depth_attachment; }
 		virtual uint32_t getRendererID() const  override { return m_RendererID; }
+		const FramebufferSpecification getSpecs() { return m_specs; }
 
 		void invalidate();
 	private:

@@ -30,6 +30,8 @@ namespace iara {
 		const glm::vec3& getPosition() const { return m_position; }
 		glm::quat getOrientation() const;
 
+		float* getPExposure() { return &m_exposure; }
+		float getExposure() const { return m_exposure; }
 		float getPitch() const { return m_pitch; }
 		float getYaw() const { return m_yaw; }
 	private:
@@ -60,6 +62,8 @@ namespace iara {
 		float m_pitch = 0.0f, m_yaw = 0.0f;
 
 		float m_viewport_w = 1280, m_viewport_h = 720;
+
+		float m_exposure = 1.0f;
 
 	};
 
