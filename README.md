@@ -1,35 +1,75 @@
-VULKAN SDK required  
-  
-ALT + MBL             -- to rotate the camera inside the editor  
-ALT + MouseWheelHold  -- to move the camera inside the editor  
-  
-SHIFT + MBL           -- to select entities  
-CTRL + W              -- activate translation gizmo of the currently selected entity  
-CTRL + E              -- activate rotation gizmo of the currently selected entity  
-CTRL + R              -- activate scale gizmo of the currently selected entity  
-CTRL + Q              -- no gizmo  
+# Graphics & Game Engine
 
-![Editor Screenshot](screenshots/ss_engine.png)
-
-## ✨ Features
-
-- 🧱 **Entity-Component-System (ECS)** architecture using `entt`
-- 🎮 **Scene Editor** with ImGui-based interface
-- 🖱️ **Mouse Picking** support
-- 🗂️ **Drag-and-Drop Scene Loading**
-- 💾 **YAML Serialization** for scene saving/loading
-- 🌐 **OpenGL Renderer** with support for SPIR-V shader compilation (Blinn-Phong, shadows)
-- 🧭 **Editor Camera** for scene navigation
+A modern, high-performance graphics and game engine written in **C++**, designed with a modular architecture and a strong focus on real-time rendering techniques.  
+The engine includes an integrated editor for interactive scene creation and inspection, as well as a flexible Entity-Component-System (ECS) core.
 
 ---
 
-## 🧰 Technologies Used
+## Acknowledgements
 
-- C++17
-- OpenGL 4.x
-- GLAD – OpenGL function loader
-- GLFW – Window and input handling
-- ImGui – Immediate Mode GUI
-- EnTT – Entity Component System
-- Assimp – Asset importing (e.g., 3D models)
-- YAML-CPP – YAML parser for scene serialization
+- Eric Bruneton, *Precomputed Atmospheric Scattering*,  
+  originally published at Google Research.  
+  This engine contains an independent implementation inspired by the reference algorithm.
+
+## Requirements
+
+- **Vulkan SDK** (required for shader compilation and tooling)
+- C++17 compatible compiler
+- Windows (primary development platform)
+
+## Screenshots
+
+![Editor Screenshot](screenshots/ss_engine.png)
+![Editor Screenshot](screenshots/ss_engine2.png)
+![Editor Screenshot](screenshots/ss_engine3.png)
+![Editor Screenshot](screenshots/ss_engine4.png)
+![Editor Screenshot](screenshots/ss_engine5.png)
+
+---
+
+## Engine Features
+
+### Rendering
+- Real-time **3D mesh rendering**
+- Physically-motivated lighting system (multiple light types)
+- **Screen Space Ambient Occlusion (SSAO)**
+- **Skybox rendering**
+- Shadow mapping
+- Blinn-Phong shading model
+- SPIR-V shader compilation pipeline
+
+### Atmospheric Rendering
+- **Precomputed Atmospheric Scattering** based on  
+  *Eric Bruneton’s reference implementation*
+- Physically-based sky and aerial perspective
+- Multi-order scattering support
+
+### Editor & Tooling
+- ImGui-based scene editor
+- Editor camera for intuitive navigation
+- Mouse picking for entity selection
+- Transform gizmos (translate, rotate, scale)
+- Drag-and-drop scene loading
+
+### Serialization
+- Scene save/load using **YAML**
+- Stable entity identifiers across sessions
+
+---
+
+## Technologies Used
+
+- **C++17**
+- **OpenGL 4.x**
+- **Vulkan SDK** (shader compilation and tooling)
+- GLAD — OpenGL function loader
+- GLFW — Windowing and input
+- ImGui — Editor user interface
+- EnTT — Entity-Component-System framework
+- Assimp — Asset import (3D models)
+- YAML-CPP — Scene serialization
+
+---
+
+## Project Structure (High Level)
+
