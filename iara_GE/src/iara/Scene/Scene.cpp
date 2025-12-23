@@ -205,20 +205,12 @@ namespace iara {
 			}
 			*/
 
-			MeshRenderer::ResetSceneMeshes();
+			//MeshRenderer::ResetSceneMeshes();
 
 		}
 	}
 
 	void Scene::onUpdateEditor(float deltaTime, EditorCamera& camera, glm::vec2 mouse_pos) {
-		
-		 //Upload Meshes
-		auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
-		for (auto entity : view_mesh) {
-			auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
-			MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
-		}
-		
 		Timer timer;
 		renderToShadowMapPass(cascade1);
 		renderShadowMapToColorFBO();

@@ -57,10 +57,13 @@ namespace iara {
         //IARA_CORE_INFO("FRAME INTERVAL ACCUMULATOR : {0}", delta_time);
 
         /// Resize
-        if (FramebufferSpecification spec = m_active_scene->getMSAAFramebuffer()->getSpecification();
-            m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
-            (spec.width != m_viewportSize.x || spec.height != m_viewportSize.y)) {
+        FramebufferSpecification spec = m_active_scene->getDeferredHDRFramebuffer()->getSpecification();
+        if (m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
+            (spec.width != (uint32_t)m_viewportSize.x || spec.height != (uint32_t)m_viewportSize.y)) {
 
+            IARA_CORE_TRACE("Se intampla aici!");
+            IARA_CORE_TRACE("{0} si {1}", m_viewportSize.x, m_viewportSize.y);
+            IARA_CORE_TRACE("{0} si {1}", spec.width, spec.height);
             m_active_scene->resizeFramebuffers((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
             m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
           

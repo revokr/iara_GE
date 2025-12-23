@@ -6,40 +6,7 @@ namespace iara {
 		
 	}
 
-	void Mesh::createMaterials() {
-		m_white_tex = Texture2D::Create(1, 1);
-		uint32_t whiteTextureData = 0xffffffff;
-		m_white_tex->setData(&whiteTextureData, sizeof(uint32_t));
-
-		for (const auto& mat_path : material_paths) {
-			Material mat;
-			if (mat_path.diff_path == "") {
-				mat.diffuse_map = m_white_tex;
-			}
-			else {
-				mat.diffuse_map = Texture2D::Create(mat_path.diff_path);
-				IARA_CORE_TRACE("Loaded Diffuse texture {0}", mat_path.diff_path);
-			}
-			
-			if (mat_path.spec_path == "") {
-				mat.specular_map = m_white_tex;
-			}
-			else {
-				mat.specular_map = Texture2D::Create(mat_path.spec_path);
-				IARA_CORE_TRACE("Loaded Specular texture {0}", mat_path.spec_path);
-			}
-
-			if (mat_path.norm_path == "") {
-				mat.normal_map = m_white_tex;
-			}
-			else {
-				mat.normal_map = Texture2D::Create(mat_path.norm_path);
-				IARA_CORE_TRACE("Loaded Normal texture {0}", mat_path.norm_path);
-			}
-
-			materials.push_back(mat);
-		}
-	}
+	
 
 	bool Mesh::loadModel(const std::string& path, int entityID) {
 		bool ret = false;
@@ -147,7 +114,10 @@ namespace iara {
 		for (size_t i = 0; i < scene->mNumMaterials; i++) {
 			const aiMaterial* material = scene->mMaterials[i];
 			
-			MaterialPaths mat;
+			Material mat;
+			mat.diffuse_map = m_white_tex;
+			mat.specular_map = m_white_tex;
+			mat.normal_map = m_white_tex;
 
 			if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
 				aiString path;
@@ -160,16 +130,13 @@ namespace iara {
 
 					std::string fullpath = directory + "\\" + p;
 
-					mat.diff_path = fullpath;
-					//mat.diffuse_map = Texture2D::Create(fullpath);
+					//mat.diff_path = fullpath;
+					mat.diffuse_map = Texture2D::Create(fullpath);
 
 					//IARA_CORE_TRACE("Loaded Diffuse texture {0}", fullpath);
 				}
 			}
-			else {
-				mat.diff_path = "";
-			}
-
+			
 			if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
 				aiString path2;
 				if (material->GetTexture(aiTextureType_SPECULAR, 0, &path2, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
@@ -181,8 +148,8 @@ namespace iara {
 
 					std::string fullpath = directory + "\\" + p;
 
-					mat.spec_path = fullpath;
-					//mat.specular_map = Texture2D::Create(fullpath);
+					//mat.spec_path = fullpath;
+					mat.specular_map = Texture2D::Create(fullpath);
 
 					//IARA_CORE_TRACE("Loaded Specular texture {0}", fullpath);
 				}
@@ -199,8 +166,8 @@ namespace iara {
 
 					std::string fullpath = directory + "\\" + p;
 
-					mat.norm_path = fullpath;
-					//mat.normal_map = Texture2D::Create(fullpath);
+					//mat.norm_path = fullpath;
+					mat.normal_map = Texture2D::Create(fullpath);
 
 					//IARA_CORE_TRACE("Loaded Normal texture {0}", fullpath);
 				}

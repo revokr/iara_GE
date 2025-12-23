@@ -114,8 +114,6 @@ namespace iara {
 
 		static Ref<ShaderLibrary> getShaderLibrary();
 
-		static void ResetSceneMeshes();
-
 		static void ShadowMapPass(const glm::mat4& transform);
 		static void ForwardPass(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp, uint32_t shadowmap);
 		static void ForwardPass(EditorCamera& camera, const glm::mat4& light_vp, uint32_t shadowmap);
