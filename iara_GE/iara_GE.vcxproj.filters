@@ -13,6 +13,9 @@
     <Filter Include="src\iara">
       <UniqueIdentifier>{796E31CF-653B-8CDA-8E54-7A827A80C168}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\iara\Atmosphere">
+      <UniqueIdentifier>{00DEBD5B-6C3F-9B69-F5AC-E11B610DD228}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\iara\Core">
       <UniqueIdentifier>{7186FFAA-DD46-7BE1-A681-C45E1201C0BD}</UniqueIdentifier>
     </Filter>
@@ -83,6 +86,9 @@
     </ClInclude>
     <ClInclude Include="src\iara.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Atmosphere\Atmosphere.h">
+      <Filter>src\iara\Atmosphere</Filter>
     </ClInclude>
     <ClInclude Include="src\iara\Core\Application.h">
       <Filter>src\iara\Core</Filter>
@@ -1491,6 +1497,11 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\stb_image\stb_image_write.h">
+      <Filter>vendor\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iara\Atmosphere\atmosphere2.h" />
+    <ClInclude Include="src\iara\Atmosphere\constants.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Windows\Window_Win.cpp">
@@ -1501,6 +1512,9 @@
     </ClCompile>
     <ClCompile Include="src\Windows\WindowsPlatform.cpp">
       <Filter>src\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Atmosphere\Atmosphere.cpp">
+      <Filter>src\iara\Atmosphere</Filter>
     </ClCompile>
     <ClCompile Include="src\iara\Core\Application.cpp">
       <Filter>src\iara\Core</Filter>
@@ -1619,5 +1633,19 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="vendor\stb_image\stb_image_write.cpp">
+      <Filter>vendor\stb_image</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iara\Atmosphere\atmosphere2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\iara\Atmosphere\definitions.glsl">
+      <Filter>src\iara\Atmosphere</Filter>
+    </None>
+    <None Include="src\iara\Atmosphere\functions.glsl">
+      <Filter>src\iara\Atmosphere</Filter>
+    </None>
+    <None Include="src\iara\Atmosphere\definitions.glsl.inc" />
+    <None Include="src\iara\Atmosphere\functions.glsl.inc" />
   </ItemGroup>
 </Project>

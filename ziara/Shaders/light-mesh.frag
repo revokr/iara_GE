@@ -80,6 +80,7 @@ layout (std140, binding = 10) uniform DirLightUBO {
 	DirLight skyLight;
 };
 
+
 vec3 getNormalFromMap();
 vec3 calc_point_light(Material material,PointLight light, vec3 normal, vec3 crntPos, vec3 viewDir);
 vec3 calc_dir_light(Material material,DirLight light, vec3 normal);
@@ -96,13 +97,12 @@ void main() {
 	normal = normalize(TBN * normal);
 
 	vec3 viewDir = normalize(vec3(camPos) - Pos);
-	vec3 result;
+	vec3 result = texture(diffuse_map, TexCoord).xyz * 0.11;
 
 	if (skyLight.activeSkyLight == true) {
-		result = calc_dir_light(material, skyLight, normal);
-	} else {
-		result = vec3(0.0);
+		result += calc_dir_light(material, skyLight, normal);
 	}
+
 	for (int i = 0; i < nrLights; i++) {
 		result += calc_point_light(material, lights[i], normal, Pos, viewDir);
 	}

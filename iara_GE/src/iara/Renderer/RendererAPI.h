@@ -15,14 +15,20 @@ namespace iara {
 		virtual void Init() = 0;
 		virtual void setViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
 		virtual void SetClearColor(const glm::vec4& color) = 0;
+		virtual void ClearColorBuffer() = 0;
 		virtual void Clear() = 0;
 
+		virtual void BlendEnablei(uint32_t i) = 0;
+		virtual void BlendDisablei(uint32_t i) = 0;
 		virtual void setDepthMask(bool set) = 0;
 		virtual void polygonMode(bool enable) = 0;
 		virtual void BindTextureUnit(uint32_t slot, uint32_t tex) = 0;
+		virtual void ActiveBindTexture2D(uint32_t slot, uint32_t tex) = 0;
+		virtual void ActiveBindTexture3D(uint32_t slot, uint32_t tex) = 0;
 
 		virtual void DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount = 0) = 0;
 		virtual void drawArray(const Ref<VertexArray>& va, uint32_t start, uint32_t end) = 0;
+		virtual void drawArrayStrip(uint32_t start, uint32_t end) = 0;
 		virtual void DrawIndexedBaseVertex(const Ref<VertexArray>& va, uint32_t indexCount, uint32_t indexStart, uint32_t vertexStart) = 0;
 
 		inline static API getAPI() { return s_API; }

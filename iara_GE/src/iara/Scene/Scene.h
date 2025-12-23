@@ -6,6 +6,8 @@
 #include "iara\Renderer\EditorCamera.h"
 #include "iara\Renderer\Texture.h"
 #include "iara/Renderer/Framebuffer.h"
+#include "iara/Atmosphere/Atmosphere.h"
+#include "iara/Atmosphere/atmosphere2.h"
 
 namespace iara {
 
@@ -14,7 +16,6 @@ namespace iara {
 	enum class RenderingType : uint8_t {
 		None = 0,
 		MSAA,
-		HDR,
 		DEFERRED
 	};
 
@@ -36,8 +37,12 @@ namespace iara {
 		const bool validEntity(Entity ent);
 
 		void onUpdateRuntime(Timestep ts);
-		void onUpdateEditor(Timestep ts, EditorCamera& camera);
+		void onUpdateEditor(float deltaTime, EditorCamera& camera, glm::vec2 mouse_pos);
 		void onViewportResize(uint32_t width, uint32_t height);
+
+		void onSunMovedUpdate();
+
+		void resizeFramebuffers(uint32_t width, uint32_t height);
 
 		Entity getPrimaryCameraEntity();
 		uint32_t getPointLights() const { return m_plights; }
@@ -46,17 +51,21 @@ namespace iara {
 
 		void setSkyBox(const std::string& path) { m_skybox = Texture2D::CreateCubemap(path); m_skybox_path = path; }
 
-
 		bool getDirLight() { return m_dlight; }
 		void setDirLight() { m_dlight = true; }
 		void clearDirLight() { m_dlight = false; }
 
 		inline const Ref<Framebuffer> getShadowMap() const { return m_shadow_map; }
 		inline const Ref<Framebuffer> getShadowMapQuad() const { return m_shadowmap_quad; }
-		inline const Ref<Framebuffer> getMainFramebuffer() const { return m_main_framebuffer; }
-		inline const Ref<Framebuffer> getFinalFramebuffer() const { return m_final_framebuffer; }
-		inline const Ref<Framebuffer> getFinal2Framebuffer() const { return m_final2_framebuffer; }
+		inline const Ref<Framebuffer> getMSAAFramebuffer() const { return m_msaa_framebuffer; }
+		inline const Ref<Framebuffer> getGBufferFramebuffer() const { return m_gbuffer_framebuffer; }
+		inline const Ref<Framebuffer> getDeferredLightingFramebuffer() const { return m_deferred_final_ldr_framebuffer; }
+		inline const Ref<Framebuffer> getDeferredHDRFramebuffer() const { return m_deferred_hdr_framebuffer; }
 		inline const Ref<Framebuffer> getSSAOFramebuffer() const { return m_ssao_framebuffer; }
+		inline const Ref<Framebuffer> getSSAOBlurFramebuffer() const { return m_ssao_blur_framebuffer; }
+		inline const Ref<Framebuffer> getAtmFramebuffer() const { return m_atm_fbo; }
+
+		inline const Ref<Atmosphere>  getAtmosphere() { return m_atmosphere; }
 
 		void initializeFramebuffers();
 		const uint32_t getFinalRenderedTexture();
@@ -67,15 +76,27 @@ namespace iara {
 		RenderingType rendering_type = RenderingType::DEFERRED;
 
 		float render_shadowmap_timer = 0.0f;
+		bool use_ssao = true;
+		glm::vec4 sun_direction = glm::vec4(-0.5f, -1.0f, -0.3f, 0.0f);
+		glm::vec2 atm_sun_direction = glm::vec2(1.3f, 3.0f);
+		float m_sun_zenith_angle = 1.3;
+		float m_sun_azimuth_angle = 3.0;
+		float m_sun_angular_radius = 0.00935 / 2.0;
+		float m_view_distance = 9000.0;
+		float m_view_zenith_angle_radians_ = 1.47;
+		float m_view_azimuth_angle_radians_ = 0.0;
 	private:
 		template<typename T>
 		void onComponentAdded(Entity entity, T& component);
 
-		void applyToneMapping(EditorCamera& camera, uint32_t hdr_texture);
+		void applyToneMapping(float exposure, uint32_t hdr_texture);
 
 		void initializeShadowMap();
+		void initializeAtmosphere();
 
 		/// RENDER PASSES
+		void renderAtmosphere(EditorCamera& camera);
+
 		void render2DPassEdit(EditorCamera& camera);
 		void renderToShadowMapPass(const glm::mat4& light_vp);
 		void render3DPassEdit(EditorCamera& camera, const glm::mat4& light_vp);
@@ -90,15 +111,20 @@ namespace iara {
 
 		std::string m_skybox_path;
 		Ref<Texture2D> m_skybox = nullptr;
+		Ref<Atmosphere> m_atmosphere = nullptr;
 
 		Ref<Framebuffer> m_shadow_map = nullptr;
 		Ref<Framebuffer> m_shadowmap_quad = nullptr;
 
-		Ref<Framebuffer> m_main_framebuffer = nullptr;   // used for MSAA or HDR or the G-Buffer
-		Ref<Framebuffer> m_final_framebuffer = nullptr;  // used for tonemapping in case of HDR or the final fbo for deferred rendering 
-		Ref<Framebuffer> m_final2_framebuffer = nullptr; // TODO: CHANGE THESE NAMES
+		Ref<Framebuffer> m_msaa_framebuffer = nullptr;   // used for MSAA 
+		Ref<Framebuffer> m_gbuffer_framebuffer = nullptr; // used for deferred rendering
+		Ref<Framebuffer> m_deferred_final_ldr_framebuffer = nullptr;  // used for tonemapping in case of HDR or the final fbo for deferred rendering 
+		Ref<Framebuffer> m_deferred_hdr_framebuffer = nullptr; // TODO: CHANGE THESE NAMES
+		Ref<Framebuffer> m_deferred_atmosphere_framebuffer = nullptr; // this will contain the geometry from lighting pass and the background sky
 		Ref<Framebuffer> m_ssao_framebuffer = nullptr;
+		Ref<Framebuffer> m_ssao_blur_framebuffer = nullptr;
 
+		Ref<Framebuffer> m_atm_fbo = nullptr;
 
 		glm::mat4 cascade1;
 		uint32_t m_vp_width = 1;

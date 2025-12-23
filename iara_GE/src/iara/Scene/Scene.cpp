@@ -8,6 +8,8 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glad\glad.h>
 
+#include <stb_image_write.h>
+
 
 #include "iara\Math\Math.h"
 
@@ -18,9 +20,10 @@ namespace iara {
 	{
 		m_registry = {};
 
-		createDirLight("Sky Light");
 		initializeFramebuffers();
 		initializeShadowMap();
+
+		initializeAtmosphere();
 	}
 
 	Scene::~Scene()
@@ -110,92 +113,159 @@ namespace iara {
 		}
 
 		if (main_camera) {
-			/*Timer timer;
-			renderToShadowMapPass(cascade1);
-			render_shadowmap_timer = timer.elapsedMilliseconds();
-
-			m_main_framebuffer->bind();
-			iara::Renderer2D::ResetStats();
-			iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
-			iara::RenderCommand::Clear();
-			m_main_framebuffer->clearAttachment(1, -1);
-			if (m_skybox) {
-				glm::mat4 view3 = glm::mat4(glm::mat3(glm::inverse(camera_transform)));
-				Renderer3D::drawSkyBox(main_camera->getProjection() * view3, m_skybox);
+			/*
+			/// Upload Meshes
+			auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
+			for (auto entity : view_mesh) {
+				auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
+				MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
 			}
 
-			render3DPassRuntime(*main_camera, camera_transform, cascade1);
+			//Timer timer;
+			renderToShadowMapPass(cascade1);
+			renderShadowMapToColorFBO();
 
-			render2DPassRuntime(*main_camera, camera_transform);
-			m_main_framebuffer->unbind();*/
+			if (rendering_type == RenderingType::MSAA) {
+				// MSAA Forward Pass
+				//render_shadowmap_timer = timer.elapsedMilliseconds();
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				m_msaa_framebuffer->bind();
+				iara::Renderer2D::ResetStats();
+				iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
+				iara::RenderCommand::Clear();
+				m_msaa_framebuffer->clearAttachment(1, -1);
+
+				if (m_skybox) {
+					glm::mat4 view3 = glm::mat4(glm::mat3(glm::inverse(camera_transform)));
+					Renderer3D::drawSkyBox(main_camera->getProjection() * view3, m_skybox, sun_direction);
+				}
+
+				render2DPassRuntime(*main_camera, camera_transform);
+				render3DPassRuntime(*main_camera, camera_transform, cascade1);
+				m_msaa_framebuffer->unbind();
+			}
+			else if (rendering_type == RenderingType::DEFERRED) {
+				///GEOMETRY PASS
+				/// SKYBOX RENDERS ON TOP OF EVERYTHING --- FIXED USING ENTITY ID AND PASSING THAT TO THE
+				///									   LIGHTINGSHADER WHERE IT TESTS IF THE PIXEL HAS ENTITYID > 10000 (arbitrary)
+				glDisable(GL_BLEND);
+
+				m_gbuffer_framebuffer->bind();
+				iara::RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+				iara::RenderCommand::Clear();
+				m_main_framebuffer->clearAttachment(0, -1);
+				m_main_framebuffer->clearAttachment(1, -1);
+				m_main_framebuffer->clearAttachment(2, -1);
+				m_gbuffer_framebuffer->clearAttachment(3, -1);
+
+				if (m_skybox) {
+					glm::mat4 view3 = glm::mat4(glm::mat3(glm::inverse(camera_transform)));
+					Renderer3D::drawSkyBox(main_camera->getProjection() * view3, m_skybox, sun_direction);
+				}
+
+				Renderer2D::BeginScene(*main_camera, camera_transform, m_plights, m_dlight);
+				auto view4 = m_registry.view<TransformComponent, PointLightComponent>();
+				for (auto entity : view4) {
+					auto [transf, plight] = view4.get<TransformComponent, PointLightComponent>(entity);
+					Renderer2D::drawLight(transf.getTransform(), plight, *main_camera, (int)entity);
+				}
+
+				auto view5 = m_registry.view<DirLightComponent>();
+				auto entity = view5.front();
+				for (auto entity : view5) {
+					auto dlight = view5.get<DirLightComponent>(entity);
+					Renderer2D::drawDirLight(dlight);
+				}
+				Renderer2D::EndScene();
+
+
+				MeshRenderer::GeometryPassGBuffer(*main_camera, camera_transform);
+				m_gbuffer_framebuffer->unbind();
+
+				/// SSAO PASS
+				m_ssao_framebuffer->bind();
+				RenderCommand::ClearColorBuffer();
+				MeshRenderer::SSAOPass(*main_camera, camera_transform, m_vp_width, m_vp_height, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(3));
+				m_ssao_framebuffer->unbind();
+
+				m_ssao_blur_framebuffer->bind();
+				RenderCommand::ClearColorBuffer();
+				MeshRenderer::SSAOBlurPass(m_ssao_framebuffer->getColorAtt(0));
+				m_ssao_blur_framebuffer->unbind();
+
+				/// LIGHTING PASS
+				m_deferred_hdr_framebuffer->bind();
+				RenderCommand::Clear();
+				MeshRenderer::LighintgPass(*main_camera, camera_transform, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(2), m_gbuffer_framebuffer->getColorAtt(3), m_shadow_map->getDepthAtt(), m_ssao_blur_framebuffer->getColorAtt(0), cascade1, use_ssao);
+				m_deferred_hdr_framebuffer->unbind();
+
+				applyToneMapping(main_camera->getExposure(), m_deferred_hdr_framebuffer->getColorAtt(0));
+			}
+			*/
+
+			MeshRenderer::ResetSceneMeshes();
+
 		}
 	}
 
-	void Scene::onUpdateEditor(Timestep ts, EditorCamera& camera) {
-		//Timer timer;
+	void Scene::onUpdateEditor(float deltaTime, EditorCamera& camera, glm::vec2 mouse_pos) {
+		
+		 //Upload Meshes
+		auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
+		for (auto entity : view_mesh) {
+			auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
+			MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
+		}
+		
+		Timer timer;
 		renderToShadowMapPass(cascade1);
 		renderShadowMapToColorFBO();
-		//render_shadowmap_timer = timer.elapsedMilliseconds();
+
 
 		if (rendering_type == RenderingType::MSAA) {
+			// MSAA Forward Pass
+			render_shadowmap_timer = timer.elapsedMilliseconds();
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			m_main_framebuffer->bind();
+			m_msaa_framebuffer->bind();
 			iara::Renderer2D::ResetStats();
-			iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
+			iara::RenderCommand::SetClearColor({ 0.8f, 0.2f, 0.5f, 1.0f });
 			iara::RenderCommand::Clear();
-			m_main_framebuffer->clearAttachment(1, -1);
+			m_msaa_framebuffer->clearAttachment(1, -1);
 
 			if (m_skybox) {
 				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
-				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox);
+				//Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox, sun_direction);
+				//Renderer3D::drawDynamicSky(camera.getViewProjection(), glm::vec2(m_vp_width, m_vp_height), mouse_pos, deltaTime, 1.0f);
 			}
-
+			glDisable(GL_DEPTH_TEST);
+			renderAtmosphere(camera);
+			glEnable(GL_DEPTH_TEST);
 			render2DPassEdit(camera);
 			render3DPassEdit(camera, cascade1);
-			m_main_framebuffer->unbind();
-		}
-		else if (rendering_type == RenderingType::HDR) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			m_main_framebuffer->bind();
-			iara::Renderer2D::ResetStats();
-			iara::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.5f, 1.0f });
-			iara::RenderCommand::Clear();
-			m_main_framebuffer->clearAttachment(1, -1);
-
-			if (m_skybox) {
-				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
-				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox);
-			}
-
-			render2DPassEdit(camera);
-			render3DPassEdit(camera, cascade1);
-			m_main_framebuffer->unbind();
-
-			applyToneMapping(camera, m_main_framebuffer->getColorAtt(0));
+			m_msaa_framebuffer->unbind();
 		}
 		else if (rendering_type == RenderingType::DEFERRED) {
-			///GEOMETRY PASS
-			/// SKYBOX RENDERS ON TOP OF EVERYTHING --- FIXED USING ENTITY ID AND PASSING THAT TO THE
-			///									   LIGHTINGSHADER WHERE IT TESTS IF THE PIXEL HAS ENTITYID > 10000 (arbitrary)
-
-
+			//GEOMETRY PASS
+			// SKYBOX RENDERS ON TOP OF EVERYTHING --- FIXED USING ENTITY ID AND PASSING THAT TO THE
+			//									   LIGHTINGSHADER WHERE IT TESTS IF THE PIXEL HAS ENTITYID > 10000 (arbitrary)
 			glDisable(GL_BLEND);
 
-			m_main_framebuffer->bind();
+			m_gbuffer_framebuffer->bind();
 			iara::RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 			iara::RenderCommand::Clear();
-			/*m_main_framebuffer->clearAttachment(0, -1);
-			m_main_framebuffer->clearAttachment(1, -1);
-			m_main_framebuffer->clearAttachment(2, -1);*/
-			m_main_framebuffer->clearAttachment(3, -1);
+			//m_main_framebuffer->clearAttachment(0, -1);
+			//m_main_framebuffer->clearAttachment(1, -1);
+			//m_main_framebuffer->clearAttachment(2, -1);
+			//m_gbuffer_framebuffer->clearAttachment(3, -1);
 
 			if (m_skybox) {
 				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
-				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox);
+				//Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox, sun_direction);
+				//Renderer3D::drawDynamicSky(glm::vec2(m_vp_width, m_vp_height), mouse_pos, deltaTime);
 			}
 
 			Renderer2D::BeginScene(camera, m_plights, m_dlight);
@@ -213,48 +283,112 @@ namespace iara {
 			}
 			Renderer2D::EndScene();
 
+			
+			MeshRenderer::GeometryPassGBuffer(camera);
+			m_gbuffer_framebuffer->unbind();
 
-			MeshRenderer::BeginGeometryPassGBuffer(camera);
-			auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
-			for (auto entity : view_mesh) {
-				auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
-				MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
-			}
-			MeshRenderer::EndGeometryPass();
-			m_main_framebuffer->unbind();
+			// SSAO PASS
+			m_ssao_framebuffer->bind();
+			RenderCommand::ClearColorBuffer();
+			MeshRenderer::SSAOPass(camera, m_vp_width, m_vp_height, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(3));
+			m_ssao_framebuffer->unbind();
 
-			/// BLACK TEXTURE --- ADD RENDERCOMMAND::CLEAR for color_buffer_bit
-			/// MADE IT WORK  --- RUNS IN 2FPS
-			/// MADE IT WORK 2 ---- RUNS BETTER - fixed the texture output, now it moves with the camera, but is not aligned with the normals
-			/*m_ssao_framebuffer->bind();
+			m_ssao_blur_framebuffer->bind();
+			RenderCommand::ClearColorBuffer();
+			MeshRenderer::SSAOBlurPass(m_ssao_framebuffer->getColorAtt(0));
+			m_ssao_blur_framebuffer->unbind();
+
+			// LIGHTING PASS
+			m_deferred_hdr_framebuffer->bind();
 			RenderCommand::Clear();
-			MeshRenderer::BeginGeometryPassSSAO(camera, m_vp_width, m_vp_height, m_main_framebuffer->getColorAtt(0), m_main_framebuffer->getColorAtt(1), m_main_framebuffer->getColorAtt(3));
+			MeshRenderer::LighintgPass(camera, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(2), m_gbuffer_framebuffer->getColorAtt(3), m_shadow_map->getDepthAtt(), m_ssao_blur_framebuffer->getColorAtt(0), cascade1, use_ssao);
+			m_deferred_hdr_framebuffer->unbind();
 
-			for (auto entity : view_mesh) {
-				auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
-				MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
-			}
+			m_deferred_atmosphere_framebuffer->bind();
+			renderAtmosphere(camera);
+			m_deferred_atmosphere_framebuffer->unbind();
 
-			MeshRenderer::EndGeometrySSAOPass();
-			m_ssao_framebuffer->unbind();*/
-
-
-			m_final2_framebuffer->bind();
-			RenderCommand::Clear();
-			MeshRenderer::LighintgPass(camera, m_main_framebuffer->getColorAtt(0), m_main_framebuffer->getColorAtt(1), m_main_framebuffer->getColorAtt(2), m_main_framebuffer->getColorAtt(3), m_shadow_map->getDepthAtt(), m_ssao_framebuffer->getColorAtt(0), cascade1);
-			m_final2_framebuffer->unbind();
-
-
-			applyToneMapping(camera, m_final2_framebuffer->getColorAtt(0));
+			applyToneMapping(camera.getExposure(), m_deferred_atmosphere_framebuffer->getColorAtt(0));
 		}
+		
+		
+
+		
 	}
 
-	void Scene::applyToneMapping(EditorCamera& camera, uint32_t hdr_texture) {
-		m_final_framebuffer->bind();
+	void Scene::renderAtmosphere(EditorCamera& camera) {
+		
+		// 1. Get the camera's position in your engine (Y-up)
+		glm::vec3 enginePos = camera.getPosition();
 
-		Renderer2D::applyToneMapping(hdr_texture, camera.getExposure());
+		// 2. Convert position to Atmosphere Space (Y-up -> Z-up)
+		// If Engine Y+ is Up, then Atmosphere Z+ = Engine Y+, and Atmosphere Y+ = Engine -Z
+		glm::vec3 atmospherePos = glm::vec3(enginePos.x, -enginePos.z, enginePos.y);
 
-		m_final_framebuffer->unbind();
+		// 3. Construct the View Matrix correction
+		// This matrix maps Engine coords to Atmosphere coords
+		// Engine (X, Y, Z) -> Atmosphere (X, -Z, Y)
+		glm::mat4 engineToAtmosphere = glm::mat4(
+			1.0f, 0.0f, 0.0f, 0.0f, // Atmosphere X = Engine X
+			0.0f, 0.0f, 1.0f, 0.0f, // Atmosphere Z = Engine Y
+			0.0f, -1.0f, 0.0f, 0.0f, // Atmosphere Y = Engine -Z
+			0.0f, 0.0f, 0.0f, 1.0f
+		);
+
+		// 4. Combine with your existing camera view
+		// We take the inverse view (World from View) and move it into Atmosphere space
+		glm::mat4 atmosphereModelFromView = engineToAtmosphere * glm::inverse(camera.getViewMatrix());
+		
+		glm::vec3 raw_sun_dir = glm::vec3(
+			cos(atm_sun_direction.y) * sin(atm_sun_direction.x),
+			sin(atm_sun_direction.y) * sin(atm_sun_direction.x),
+			cos(atm_sun_direction.x)
+		);
+
+		glm::vec3 atmosphere_sun_dir = glm::vec3(raw_sun_dir.x, raw_sun_dir.z, raw_sun_dir.y);
+		glm::mat4 view_from_clip_camera = glm::inverse(camera.getProjection());
+		glm::vec3 earth_center = glm::vec3(0.0f, 0.0f, -6360.0f);
+		glm::vec3 white_point = glm::vec3(1.08236f, 0.96829f, 0.94934f);
+		glm::vec2 sun_size = glm::vec2(tan(m_sun_angular_radius), cos(m_sun_angular_radius));
+
+
+		uint32_t transmittance = m_atmosphere->getTransmittanceTex()->getRendererID();
+		uint32_t scattering = m_atmosphere->getScatteringTex()->getRendererID();
+		uint32_t mie_scattering = m_atmosphere->getMieScatteringTex()->getRendererID();
+		uint32_t irradiance = m_atmosphere->getIrradianceTex()->getRendererID();
+
+		Renderer2D::drawAtmosphere(
+			m_deferred_atmosphere_framebuffer->getSpecification().width,
+			m_deferred_atmosphere_framebuffer->getSpecification().height,
+			atmosphereModelFromView,
+			view_from_clip_camera,
+			atmospherePos,
+			white_point,
+			earth_center,
+			atmosphere_sun_dir, // Use the swizzled sun
+			sun_size,
+			camera.getExposure(),
+			transmittance,
+			scattering,
+			mie_scattering,
+			irradiance,
+			m_deferred_hdr_framebuffer->getColorAtt(0),
+			m_gbuffer_framebuffer->getDepthAtt(),
+			m_gbuffer_framebuffer->getColorAtt(0)
+		);
+	}
+
+	void Scene::onSunMovedUpdate() {
+		/*const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
+		glm::vec2 delta = (mouse - m_initial_mouse_pos) * 0.003f;*/
+	}
+
+	void Scene::applyToneMapping(float exposure, uint32_t hdr_texture) {
+		m_deferred_final_ldr_framebuffer->bind();
+
+		Renderer2D::applyToneMapping(hdr_texture, exposure);
+
+		m_deferred_final_ldr_framebuffer->unbind();
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
@@ -268,6 +402,15 @@ namespace iara {
 				camera.camera.setViewportSize(width, height);
 			}
 		}
+	}
+
+	void Scene::resizeFramebuffers(uint32_t width, uint32_t height) {
+		m_msaa_framebuffer->resize(width, height);
+		m_ssao_framebuffer->resize(width, height);
+		m_ssao_blur_framebuffer->resize(width, height);
+		m_deferred_final_ldr_framebuffer->resize(width, height);
+		m_deferred_hdr_framebuffer->resize(width, height);
+		m_atm_fbo->resize(width, height);
 	}
 
 	void Scene::render2DPassEdit(EditorCamera& camera) {
@@ -301,32 +444,16 @@ namespace iara {
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 
-		MeshRenderer::BeginShadowMapPass(light_vp);
-
-		auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
-		for (auto entity : view_mesh) {
-			auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
-			MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
-		}
-
-		MeshRenderer::EndShadowMapPass();
+		MeshRenderer::ShadowMapPass(light_vp);
 
 		m_shadow_map->unbind();
 
 		glDisable(GL_CULL_FACE);
 	}
 
-	void Scene::render3DPassEdit(EditorCamera& camera, const glm::mat4& light_vp)
-	{
-		MeshRenderer::BeginSceneMesh(camera, light_vp);
-
-		auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
-		for (auto entity : view_mesh) {
-			auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
-			MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
-		}
+	void Scene::render3DPassEdit(EditorCamera& camera, const glm::mat4& light_vp) {		
 		uint32_t shadowmap = m_shadow_map->getDepthAtt();
-		MeshRenderer::EndSceneMesh(shadowmap);
+		MeshRenderer::ForwardPass(camera, light_vp, shadowmap);
 	}
 
 	void Scene::render2DPassRuntime(Camera& camera, const glm::mat4& camera_transform)
@@ -356,16 +483,8 @@ namespace iara {
 
 	void Scene::render3DPassRuntime(Camera& camera, const glm::mat4& camera_transform, const glm::mat4& light_vp)
 	{
-		MeshRenderer::BeginSceneMesh(camera, camera_transform, light_vp);
-
-		auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
-		for (auto entity : view_mesh) {
-			auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
-			MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
-		}
-
 		uint32_t shadowmap = m_shadow_map->getDepthAtt();
-		MeshRenderer::EndSceneMesh(shadowmap);
+		MeshRenderer::ForwardPass(camera, camera_transform, light_vp, shadowmap);
 	}
 
 	void Scene::renderShadowMapToColorFBO() {
@@ -414,57 +533,159 @@ namespace iara {
 		cascade1 = lightProjection * lightView;
 	}
 
+	void Scene::initializeAtmosphere() {
+		constexpr double kPi = 3.1415926;
+		constexpr double kSunAngularRadius = 0.00935 / 2.0;
+		constexpr double kSunSolidAngle = kPi * kSunAngularRadius * kSunAngularRadius;
+		constexpr double kLengthUnitInMeters = 1000.0;
+
+		// Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column
+  // (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
+  // summed and averaged in each bin (e.g. the value for 360nm is the average
+  // of the ASTM G-173 values for all wavelengths between 360 and 370nm).
+  // Values in W.m^-2.
+		constexpr int kLambdaMin = 360;
+		constexpr int kLambdaMax = 830;
+		constexpr double kSolarIrradiance[48] = {
+		  1.11776, 1.14259, 1.01249, 1.14716, 1.72765, 1.73054, 1.6887, 1.61253,
+		  1.91198, 2.03474, 2.02042, 2.02212, 1.93377, 1.95809, 1.91686, 1.8298,
+		  1.8685, 1.8931, 1.85149, 1.8504, 1.8341, 1.8345, 1.8147, 1.78158, 1.7533,
+		  1.6965, 1.68194, 1.64654, 1.6048, 1.52143, 1.55622, 1.5113, 1.474, 1.4482,
+		  1.41018, 1.36775, 1.34188, 1.31429, 1.28303, 1.26758, 1.2367, 1.2082,
+		  1.18737, 1.14683, 1.12362, 1.1058, 1.07124, 1.04992
+		};
+		// Values from http://www.iup.uni-bremen.de/gruppen/molspec/databases/
+		// referencespectra/o3spectra2011/index.html for 233K, summed and averaged in
+		// each bin (e.g. the value for 360nm is the average of the original values
+		// for all wavelengths between 360 and 370nm). Values in m^2.
+		constexpr double kOzoneCrossSection[48] = {
+		  1.18e-27, 2.182e-28, 2.818e-28, 6.636e-28, 1.527e-27, 2.763e-27, 5.52e-27,
+		  8.451e-27, 1.582e-26, 2.316e-26, 3.669e-26, 4.924e-26, 7.752e-26, 9.016e-26,
+		  1.48e-25, 1.602e-25, 2.139e-25, 2.755e-25, 3.091e-25, 3.5e-25, 4.266e-25,
+		  4.672e-25, 4.398e-25, 4.701e-25, 5.019e-25, 4.305e-25, 3.74e-25, 3.215e-25,
+		  2.662e-25, 2.238e-25, 1.852e-25, 1.473e-25, 1.209e-25, 9.423e-26, 7.455e-26,
+		  6.566e-26, 5.105e-26, 4.15e-26, 4.228e-26, 3.237e-26, 2.451e-26, 2.801e-26,
+		  2.534e-26, 1.624e-26, 1.465e-26, 2.078e-26, 1.383e-26, 7.105e-27
+		};
+		// From https://en.wikipedia.org/wiki/Dobson_unit, in molecules.m^-2.
+		constexpr double kDobsonUnit = 2.687e20;
+		// Maximum number density of ozone molecules, in m^-3 (computed so at to get
+		// 300 Dobson units of ozone - for this we divide 300 DU by the integral of
+		// the ozone density profile defined below, which is equal to 15km).
+		constexpr double kMaxOzoneNumberDensity = 300.0 * kDobsonUnit / 15000.0;
+		// Wavelength independent solar irradiance "spectrum" (not physically
+		// realistic, but was used in the original implementation).
+		constexpr double kConstantSolarIrradiance = 1.5;
+		constexpr double kBottomRadius = 6360000.0;
+		constexpr double kTopRadius = 6400000.0;
+		constexpr double kRayleigh = 1.24062e-6;
+		constexpr double kRayleighScaleHeight = 8000.0;
+		constexpr double kMieScaleHeight = 1200.0;
+		constexpr double kMieAngstromAlpha = 0.0;
+		constexpr double kMieAngstromBeta = 5.328e-3;
+		constexpr double kMieSingleScatteringAlbedo = 0.9;
+		constexpr double kMiePhaseFunctionG = 0.8;
+		constexpr double kGroundAlbedo = 0.1;
+		const double max_sun_zenith_angle = 102.0 / 180.0 * kPi;
+
+		DensityProfileLayer
+			rayleigh_layer(0.0, 1.0, -1.0 / kRayleighScaleHeight, 0.0, 0.0);
+		DensityProfileLayer mie_layer(0.0, 1.0, -1.0 / kMieScaleHeight, 0.0, 0.0);
+		// Density profile increasing linearly from 0 to 1 between 10 and 25km, and
+		// decreasing linearly from 1 to 0 between 25 and 40km. This is an approximate
+		// profile from http://www.kln.ac.lk/science/Chemistry/Teaching_Resources/
+		// Documents/Introduction%20to%20atmospheric%20chemistry.pdf (page 10).
+		std::vector<DensityProfileLayer> ozone_density;
+		ozone_density.push_back(
+			DensityProfileLayer(25000.0, 0.0, 0.0, 1.0 / 15000.0, -2.0 / 3.0));
+		ozone_density.push_back(
+			DensityProfileLayer(0.0, 0.0, 0.0, -1.0 / 15000.0, 8.0 / 3.0));
+
+		atmosphere::DensityProfileLayer rayleigh_layer_atm(0.0, 1.0, -1.0 / kRayleighScaleHeight, 0.0, 0.0);
+		atmosphere::DensityProfileLayer mie_layer_atm(0.0, 1.0, -1.0 / kMieScaleHeight, 0.0, 0.0);
+		std::vector<atmosphere::DensityProfileLayer> ozone_density_atm;
+		ozone_density_atm.push_back(
+			atmosphere::DensityProfileLayer(25000.0, 0.0, 0.0, 1.0 / 15000.0, -2.0 / 3.0));
+		ozone_density_atm.push_back(
+			atmosphere::DensityProfileLayer(0.0, 0.0, 0.0, -1.0 / 15000.0, 8.0 / 3.0));
+
+		std::vector<double> wavelengths;
+		std::vector<double> solar_irradiance;
+		std::vector<double> rayleigh_scattering;
+		std::vector<double> mie_scattering;
+		std::vector<double> mie_extinction;
+		std::vector<double> absorption_extinction;
+		std::vector<double> ground_albedo;
+		for (int l = kLambdaMin; l <= kLambdaMax; l += 10) {
+			double lambda = static_cast<double>(l) * 1e-3;  // micro-meters
+			double mie = kMieAngstromBeta / kMieScaleHeight * pow(lambda, -kMieAngstromAlpha);
+			wavelengths.push_back(l);
+			//solar_irradiance.push_back(kSolarIrradiance[(l - kLambdaMin) / 10]);
+			solar_irradiance.push_back(kConstantSolarIrradiance);
+
+			rayleigh_scattering.push_back(kRayleigh * pow(lambda, -4));
+			mie_scattering.push_back(mie * kMieSingleScatteringAlbedo);
+			mie_extinction.push_back(mie);
+			//absorption_extinction.push_back(kMaxOzoneNumberDensity * kOzoneCrossSection[(l - kLambdaMin) / 10]);
+			absorption_extinction.push_back(0);
+			ground_albedo.push_back(kGroundAlbedo);
+		}
+
+		m_atmosphere.reset(new Atmosphere(wavelengths, solar_irradiance, kSunAngularRadius,
+			kBottomRadius, kTopRadius, { rayleigh_layer }, rayleigh_scattering,
+			{ mie_layer }, mie_scattering, mie_extinction, kMiePhaseFunctionG,
+			ozone_density, absorption_extinction, ground_albedo, max_sun_zenith_angle,
+			kLengthUnitInMeters, 3));
+		m_atmosphere->init(3);
+	}
+
 	void Scene::initializeFramebuffers() {
-		if (rendering_type == RenderingType::MSAA) {
 
-			FramebufferSpecification fb_spec;
-			fb_spec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
-			fb_spec.width = 1920;
-			fb_spec.height = 1080;
-			m_main_framebuffer = Framebuffer::CreateMSAA(fb_spec);
-		}
-		else if (rendering_type == RenderingType::HDR) {
-			FramebufferSpecification fb_spec;
-			fb_spec.attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
-			fb_spec.width = 1920;
-			fb_spec.height = 1080;
-			m_main_framebuffer = Framebuffer::Create(fb_spec, "HDR Framebuffer ");
+		FramebufferSpecification fb_spec;
+		fb_spec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
+		fb_spec.width = 1920;
+		fb_spec.height = 1080;
+		m_msaa_framebuffer = Framebuffer::CreateMSAA(fb_spec);
+	
+		/// TERMINA DEFERRED RENDERING
+		/// SALVARE FRAMEBUFFER CA .EXR --- HDR RENDER TARGET
+		/// PENTRU ATMOSPHERIC LIGHT SCATTERING -- SHADERTOY TONE MAPPING
 
-			fb_spec.attachments = { FramebufferTextureFormat::RGBA8 };
-			m_final_framebuffer = Framebuffer::Create(fb_spec, "LDR Framebuffer ");
-		}
-		else if (rendering_type == RenderingType::DEFERRED) {
-			/// TERMINA DEFERRED RENDERING
-			/// SALVARE FRAMEBUFFER CA .EXR --- HDR RENDER TARGET
-			/// PENTRU ATMOSPHERIC LIGHT SCATTERING -- SHADERTOY TONE MAPPING
+		fb_spec.attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F , FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
+		fb_spec.width = 1920;
+		fb_spec.height = 1080;
+		m_gbuffer_framebuffer = Framebuffer::Create(fb_spec, "G Buffer ");
 
-			FramebufferSpecification fb_spec;
-			fb_spec.attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F , FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
-			fb_spec.width = 1920;
-			fb_spec.height = 1080;
-			m_main_framebuffer = Framebuffer::Create(fb_spec, "G Buffer ");
+		fb_spec.attachments = { FramebufferTextureFormat::RGBA16F };
+		m_deferred_hdr_framebuffer = Framebuffer::Create(fb_spec, "Deferred HDR Lighitng Calculation ");
 
-			fb_spec.attachments = { FramebufferTextureFormat::RGBA16F };
-			m_final2_framebuffer = Framebuffer::Create(fb_spec, "Deferred Lighitng Calculation ");
+		m_deferred_atmosphere_framebuffer = Framebuffer::Create(fb_spec, "Deffered HDR Atmosphere + Geometry Shading ");
 
-			fb_spec.attachments = { FramebufferTextureFormat::RGBA8 };
-			m_final_framebuffer = Framebuffer::Create(fb_spec, "LDR Post Lighting Calculation");
+		fb_spec.attachments = { FramebufferTextureFormat::RGBA8 };
+		m_deferred_final_ldr_framebuffer = Framebuffer::Create(fb_spec, "LDR Post Lighting Calculation");
+		
 
-			fb_spec.attachments = { FramebufferTextureFormat::RGBA8 };
-			m_ssao_framebuffer = Framebuffer::Create(fb_spec, "SSAO ");
-		}
+		fb_spec.attachments = { FramebufferTextureFormat::RED };
+		m_ssao_framebuffer = Framebuffer::Create(fb_spec, "SSAO ");
+
+		fb_spec.attachments = { FramebufferTextureFormat::RED };
+		m_ssao_blur_framebuffer = Framebuffer::Create(fb_spec, "SSAO_BLUR ");
+
+		fb_spec.attachments = { FramebufferTextureFormat::RGBA16F };
+		fb_spec.width = 848;
+		fb_spec.height = 480;
+		m_atm_fbo = Framebuffer::Create(fb_spec, " Atmosphere ");
 	}
 
 	const uint32_t Scene::getFinalRenderedTexture() {
+		//return m_deferred_final_ldr_framebuffer->getColorAtt(0);
 		if (rendering_type == RenderingType::MSAA) {
-			return m_main_framebuffer->getColorAtt(0);
-		}
-		else if (rendering_type == RenderingType::HDR) {
-			return m_final_framebuffer->getColorAtt(0);
+			return m_msaa_framebuffer->getColorAtt(0);
 		}
 		else if (rendering_type == RenderingType::DEFERRED) {
-			return m_final_framebuffer->getColorAtt(0);
+			return m_deferred_final_ldr_framebuffer->getColorAtt(0);
 		}
+
 	}
 
 	template<typename T>

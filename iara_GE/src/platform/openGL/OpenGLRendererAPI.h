@@ -9,15 +9,24 @@ namespace iara {
 		virtual void Init() override;
 		virtual void setViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 		virtual void SetClearColor(const glm::vec4& color) override;
+		virtual void ClearColorBuffer() override;
 		virtual void Clear() override;
 
 		virtual void polygonMode(bool enable) override;
 		virtual void setDepthMask(bool set) override;
 		virtual void BindTextureUnit(uint32_t slot, uint32_t tex) override;
+		virtual void BlendEnablei(uint32_t i) override;
+		virtual void BlendDisablei(uint32_t i) override;
+
+		
+		virtual void ActiveBindTexture2D(uint32_t slot, uint32_t tex) override;
+		virtual void ActiveBindTexture3D(uint32_t slot, uint32_t tex) override;
 
 		virtual void DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount = 0) override;
 		virtual void DrawIndexedBaseVertex(const Ref<VertexArray>& va, uint32_t indexCount, uint32_t indexStart, uint32_t vertexStart) override;
 		virtual void drawArray(const Ref<VertexArray>& va, uint32_t start, uint32_t end) override;
+		virtual void drawArrayStrip(uint32_t start, uint32_t end) override;
+
 	};
 
 } 

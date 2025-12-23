@@ -62,6 +62,9 @@ namespace iara {
 		virtual int readPixel(uint32_t att_index, int x, int y) = 0;
 		virtual void clearAttachment(uint32_t att_indx, int value) = 0;
 
+		virtual void setFramebufferTexture(uint32_t texture, uint32_t index) = 0;
+		virtual void setDrawBuffers(uint32_t size) = 0;
+
 		virtual uint32_t getColorAtt(uint32_t index = 0) const = 0;
 		virtual uint32_t getDepthAtt() const = 0;
 		virtual uint32_t getRendererID() const = 0;

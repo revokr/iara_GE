@@ -27,7 +27,15 @@ namespace iara {
 		static Ref<Texture2D> Create(uint32_t width, uint32_t height);
 		static Ref<Texture2D> Create(const std::string& path);
 		static Ref<Texture2D> Create(uint32_t width, uint32_t height, uint32_t internal_format, uint32_t format, uint32_t type, void* data);
+		static Ref<Texture2D> Create(uint32_t width, uint32_t height, uint32_t internal_format, uint32_t format);
 		static Ref<Texture2D> CreateCubemap(const std::string& faces);
+	};
+
+	class Texture3D : public Texture {
+		public:
+		static Ref<Texture3D> Create(uint32_t width, uint32_t height, uint32_t depth);
+		static Ref<Texture3D> Create(const std::string& path);
+		static Ref<Texture3D> Create(uint32_t width, uint32_t height, uint32_t depth, uint32_t internal_format, uint32_t format);
 	};
 
 }

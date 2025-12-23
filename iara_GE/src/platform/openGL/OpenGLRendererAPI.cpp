@@ -24,6 +24,10 @@ namespace iara {
 		glClearColor(color.r, color.g, color.b, color.a);
 	}
 
+	void OpenGLRendererAPI::ClearColorBuffer() {
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+
 	void OpenGLRendererAPI::Clear() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearDepth(GL_LESS);
@@ -49,6 +53,26 @@ namespace iara {
 		glBindTextureUnit(slot, tex);
 	}
 
+
+
+	void OpenGLRendererAPI::BlendEnablei(uint32_t i) {
+		glEnablei(GL_BLEND, i);
+	}
+
+	void OpenGLRendererAPI::BlendDisablei(uint32_t i) {
+		glDisablei(GL_BLEND, i);
+	}
+
+	void OpenGLRendererAPI::ActiveBindTexture2D(uint32_t slot, uint32_t tex) {
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, tex);
+	}
+
+	void OpenGLRendererAPI::ActiveBindTexture3D(uint32_t slot, uint32_t tex) {
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_3D, tex);
+	}
+
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& va, uint32_t indexCount) {
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 	}
@@ -59,5 +83,8 @@ namespace iara {
 
 	void OpenGLRendererAPI::drawArray(const Ref<VertexArray>& va, uint32_t start, uint32_t end) {
 		glDrawArrays(GL_TRIANGLES, start, end);
+	}
+	void OpenGLRendererAPI::drawArrayStrip(uint32_t start, uint32_t end) {
+		glDrawArrays(GL_TRIANGLE_STRIP, start, end);
 	}
 }

@@ -443,6 +443,20 @@ namespace iara {
 		invalidate();
 	}
 
+	void OpenGLFrameBuffer::setFramebufferTexture(uint32_t texture, uint32_t index) {
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture, index);
+	}
+
+	void OpenGLFrameBuffer::setDrawBuffers(uint32_t size) {
+		GLuint buffer[4] = {
+			GL_COLOR_ATTACHMENT0,
+			GL_COLOR_ATTACHMENT1,
+			GL_COLOR_ATTACHMENT2,
+			GL_COLOR_ATTACHMENT3
+		};
+		glDrawBuffers(size, buffer);
+	}
+
 	int OpenGLFrameBuffer::readPixel(uint32_t att_index, int x, int y) {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + att_index);

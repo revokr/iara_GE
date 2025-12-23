@@ -12,6 +12,7 @@ namespace iara {
 
 		virtual void bind() const   = 0;
 		virtual void unbind() const = 0;
+		virtual void reload() = 0;
 		virtual const std::string getName() = 0;
 		
 		virtual void setUniformMat4f(const std::string& name, const glm::mat4& mat) = 0;
@@ -22,16 +23,17 @@ namespace iara {
 		virtual void setUniformFloat3(const std::string& name, float val0, float val1, float val2) = 0;
 	
 		static Ref<Shader> Create(const std::string& name, const std::string& vertSrc, const std::string& fragSrc);
+		static Ref<Shader> Create(const std::string& name, const std::string& vertSrc, const std::string& geomSrc, const std::string& fragSrc);
 	private:
 		uint32_t m_RendererID;
 	};
 
 	class ShaderLibrary {
 	public:
-		void addShader(const Ref<Shader>& s);
+		void addShader(const Ref<Shader> s);
 		Ref<Shader> load(const std::string& name, const std::string& vert_src, const std::string& frag_src);
 		Ref<Shader> get(const std::string& name);
-	private:
+
 		std::unordered_map<std::string, Ref<Shader>> m_shaders;
 	};
 

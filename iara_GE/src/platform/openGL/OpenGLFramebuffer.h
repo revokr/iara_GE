@@ -17,6 +17,9 @@ namespace iara {
 			return m_specs;
 		}
 
+		virtual void setFramebufferTexture(uint32_t texture, uint32_t index) override {};
+		virtual void setDrawBuffers(uint32_t size) override {};
+
 		virtual int readPixel(uint32_t att_index, int x, int y) override;
 		virtual void clearAttachment(uint32_t att_indx, int value) override;
 
@@ -52,6 +55,9 @@ namespace iara {
 		virtual const FramebufferSpecification& getSpecification() const override {
 			return m_specs;
 		}
+
+		virtual void setFramebufferTexture(uint32_t texture, uint32_t index) override;
+		virtual void setDrawBuffers(uint32_t size) override;
 
 		virtual int readPixel(uint32_t att_index, int x, int y) override;
 		virtual void clearAttachment(uint32_t att_indx, int value) override;

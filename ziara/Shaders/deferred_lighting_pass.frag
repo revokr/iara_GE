@@ -50,11 +50,16 @@ layout (std140, binding = 10) uniform DirLightUBO {
 layout(std140, binding = 6) uniform Camera
 {
 	mat4 u_ViewProjection;
+	mat4 u_view;
 	vec4 u_camPos;
 };
 
 layout(std140, binding = 11) uniform lightSpaceMatrix {
 	mat4 u_LightViewProjection;
+};
+
+layout(std140, binding = 16) uniform Ambient {
+	bool use_ssao;
 };
 
 
@@ -72,14 +77,17 @@ void main() {
     float Specular = texture(gDiffuseSpec, TexCoord).a;
 	float ambient_occlusion = texture(ssao_map, TexCoord).r;
 
-	vec4 pos_light_space = u_LightViewProjection * vec4(Pos, 1.0);
-	vec3 lighting  = Diffuse * 0.1 * ambient_occlusion;
-    vec3 viewDir = normalize(vec3(u_camPos) - Pos);
+	vec4 worldPos = inverse(u_view) * vec4(Pos, 1.0);
+	vec4 pos_light_space = u_LightViewProjection * vec4(worldPos);
+	vec3 lighting  = Diffuse * 0.3;
+
+	if (use_ssao) lighting *= ambient_occlusion;
+    vec3 viewDir = normalize(-Pos);
 
 	/// Directional Light
 	vec3 result = lighting;
 	if (skyLight.activeSkyLight == true) {
-		result = calc_dir_light(skyLight, viewDir, Normal, Diffuse, Specular, pos_light_space, Pos);
+		//result += calc_dir_light(skyLight, viewDir, Normal, Diffuse, Specular, pos_light_space, Pos) * 0.8;
 	} else {
 		result = lighting;
 	}
@@ -90,28 +98,27 @@ void main() {
 
 	color = vec4(result, 1.0);
 
-	/// Quick overstep for correct rendering of SKYBOX
+	/// Quick solution for correct rendering of SKYBOX
 	if (entity > 10000) {
 		color = vec4(Diffuse, 1.0);
 	}
 }
 
 vec3 calc_dir_light(DirLight dlight, vec3 viewDir, vec3 normal, vec3 Diffuse, float Specular, vec4 light_pos, vec3 Pos) {
-	vec3 dir = vec3(dlight.direction);
-	vec3 lightDir = normalize(-dir);
+	vec3 dir = vec3(-dlight.direction);
+	vec3 lightDir = normalize(mat3(u_view) * dir);
 
 	float diff = max(dot(lightDir, normal), 0.0); 
 	vec3 reflectionDir = reflect(-lightDir, normal);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 	float spec = pow(max(dot(viewDir, reflectionDir), 0.0), 10.0);
 
- 	vec3 ambient = Diffuse * 0.1;
 	vec3 diffuse = vec3(dlight.diffuse) * diff * Diffuse;
 	vec3 specular = vec3(dlight.specular) * spec * Specular;
 
 	float shadow = shadowCalculation(light_pos);
 
-	return (ambient + (1.0 - shadow + 0.2) * (diffuse + specular));
+	return /*(1.0 - shadow + 0.2) */ (diffuse + specular);
 }
 
 vec3 calc_point_light(PointLight light, vec3 normal, vec3 crntPos, vec3 viewDir, vec3 Diffuse, float Specular) {
@@ -146,10 +153,8 @@ float shadowCalculation(vec4 light_pos) {
 
 	float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(shadow_map, 0);
-    for(int x = -2; x <= 2; ++x)
-    {
-        for(int y = -2; y <= 2; ++y)
-        {
+    for(int x = -2; x <= 2; ++x) {
+        for(int y = -2; y <= 2; ++y) {
             float pcfDepth = texture(shadow_map, projCoords.xy + vec2(x, y) * texelSize).r; 
             shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
         }    

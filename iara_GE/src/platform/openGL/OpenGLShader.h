@@ -4,6 +4,7 @@
 #include "glm/glm.hpp"
 #include "iara/Renderer/shader.h"
 
+
 typedef unsigned int GLenum;
 
 namespace iara {
@@ -39,13 +40,15 @@ namespace iara {
 		mutable std::unordered_map<std::string, int> m_UniformLocationCache;
 	};*/
 
-	class OpenGLShader : public Shader{
+	class OpenGLShader : public Shader {
 	public:
 		OpenGLShader(const std::string& name, const std::string& filepath_vert, const std::string& filepath_frag);
+		OpenGLShader(const std::string& name, const std::string& filepath_vert, const std::string& filepath_geom, const std::string& filepath_frag);
 		~OpenGLShader();
 
 		virtual void bind() const override;
 		virtual void unbind() const override;
+		virtual void reload() override;
 		virtual const std::string getName() override { return m_name; };
 
 		void setUniformMat4f(const std::string& name, const glm::mat4& matrix) override;
@@ -61,6 +64,9 @@ namespace iara {
 		void Compile_or_GetOpenGLBinaries();
 		void CreateProgram();
 
+		void CompileToSPIRV(const std::unordered_map<GLenum, std::string>& shader_sources);
+		void CompileSPIRVtoOpenGL();
+
 		void reflect(uint32_t stage, const std::vector<uint32_t>& shader_data);
 
 		std::string readFile(const std::string& path);
@@ -69,6 +75,7 @@ namespace iara {
 		uint32_t m_RendererID;
 		std::string m_filepath_vert;
 		std::string m_filepath_frag;
+		std::string m_filepath_geom;
 		std::string m_name;
 		
 		std::unordered_map<GLenum, std::vector<uint32_t>> m_VulkanSPIRV;
@@ -77,4 +84,10 @@ namespace iara {
 		std::unordered_map<GLenum, std::string> m_OpenGL_src_code;
 	};
 
+}
+
+namespace this_will_dissappear {
+	void bindShader(uint32_t id);
+
+	void bindShaderTex(uint32_t id, std::string name, uint32_t v0);
 }

@@ -1,6 +1,7 @@
 #include "ir_pch.h"
 #include "SceneHierarchyPanel.h"
 #include "iara\Core\Input.h"
+#include "iara/Renderer/Renderer2D.h"
 
 #include <glm\gtc\type_ptr.hpp>
 #include <imgui\imgui.h>
@@ -105,6 +106,7 @@ namespace iara {
 		if (entity_deleted && m_selection_context == entity) {
 			if (m_selection_context.hasComponent<PointLightComponent>()) m_context->decreasePointLights();
 			if (m_selection_context.hasComponent<DirLightComponent>()) m_context->clearDirLight();
+			//if (m_selection_context.hasComponent<MeshComponent>()) MeshRenderer::removeMesh(m_selection_context.getComponent<MeshComponent>().path);
 			m_context->destroyEntity(entity);
 			m_selection_context = {};
 		}
@@ -317,6 +319,8 @@ namespace iara {
 
 				float perspective_far = camera.getPerspectiveFarClip();
 				if (ImGui::DragFloat("FarClip", &perspective_far, 0.2f)) camera.setPerspectiveFarClip(perspective_far);
+
+				ImGui::DragFloat("Exposure", camera.getPExposure(), 0.1f);
 			}
 		});
 

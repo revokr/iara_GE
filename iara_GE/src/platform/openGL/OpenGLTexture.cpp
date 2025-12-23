@@ -3,7 +3,6 @@
 
 #include <stb_image.h>
 
-
 namespace iara {
 
 	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height)
@@ -47,14 +46,18 @@ namespace iara {
 			dataFormat = GL_RGB;
 		}
 
+		uint8_t levels = 1 + (int)floor(log2(std::max(width, height)));
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
-		glTextureStorage2D(m_RendererID, 1, internalFormat, m_width, m_height);
+		glTextureStorage2D(m_RendererID, levels, internalFormat, m_width, m_height);
 
-		glTexParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_width, m_height, dataFormat, GL_UNSIGNED_BYTE, data);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+		glGenerateTextureMipmap(m_RendererID);
 
 		stbi_image_free(data);
 	}
@@ -67,6 +70,20 @@ namespace iara {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, uint32_t internal_format, uint32_t format) {
+		m_width = width;
+		m_height = height;
+		m_internal_format = internal_format;
+		glGenTextures(1, &m_RendererID);
+		glBindTexture(GL_TEXTURE_2D, m_RendererID);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_FLOAT, nullptr);
 	}
 
 	OpenGLTexture2D::~OpenGLTexture2D() {
@@ -159,6 +176,57 @@ namespace iara {
 
 	void OpenGLCubeMapTexture::setData(void* data, uint32_t size)
 	{
+	}
+
+
+
+	OpenGLTexture3D::OpenGLTexture3D(uint32_t width, uint32_t height, uint32_t depth) {
+		m_width = width;
+		m_height = height;
+		m_internal_format = GL_RGBA8;
+		m_data_format = GL_RGBA;
+		glCreateTextures(GL_TEXTURE_3D, 1, &m_RendererID);
+		glTextureStorage3D(m_RendererID, 1, m_internal_format, m_width, m_height, depth);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	}
+
+	OpenGLTexture3D::OpenGLTexture3D(uint32_t width, uint32_t height, uint32_t depth, uint32_t internal_format, uint32_t format) {
+		m_width = width;
+		m_height = height;
+		m_internal_format = internal_format;
+		m_data_format = format;
+		
+		glGenTextures(1, &m_RendererID);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_3D, m_RendererID);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		glTexImage3D(GL_TEXTURE_3D, 0, internal_format, width, height, depth, 0, format, GL_FLOAT, NULL);
+		
+	}
+
+	OpenGLTexture3D::~OpenGLTexture3D()  {
+		glDeleteTextures(1, &m_RendererID);
+	}
+
+	void OpenGLTexture3D::bind(uint32_t slot) const {
+		glBindTextureUnit(slot, m_RendererID);
+	}
+
+	void OpenGLTexture3D::unbind() const {
+		glBindTextureUnit(0, 0);
+	}
+
+	void OpenGLTexture3D::setData(void* data, uint32_t size) {
+
 	}
 
 }

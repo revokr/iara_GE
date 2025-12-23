@@ -12,8 +12,13 @@ namespace iara {
 			: m_projection{ prj } {}
 
 		const glm::mat4& getProjection() const { return m_projection; }
+
+		float* getPExposure() { return &m_exposure; }
+		float getExposure() const { return m_exposure; }
 	protected:
 		glm::mat4 m_projection;
+
+		float m_exposure = 1.0f;
 	};
 
 	class OrthographicCamera {
@@ -58,6 +63,8 @@ namespace iara {
 		const glm::mat4& getProj() const { return m_proj; }
 		const glm::mat4& getView() const { return m_view; }
 		const glm::mat4& getVP()   const { return m_VP; }
+
+
 	private:
 		void recalculateView();
 	private:

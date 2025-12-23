@@ -12,6 +12,7 @@
 #include "iara\Core\Timer.h"
 
 #include "iara\Scene\SceneRenderer.h"
+#include "iara\Renderer\Renderer2D.h"
 
 static float g_on_update_time = 0.0f;
 static float g_on_imgui_render_time = 0.0f;
@@ -32,7 +33,7 @@ namespace iara {
 
     void EditorLayer::onAttach() {
         m_active_scene = CreateRef<Scene>();
-        FramebufferSpecification specs = m_active_scene->getMainFramebuffer()->getSpecification();
+        FramebufferSpecification specs = m_active_scene->getMSAAFramebuffer()->getSpecification();
         m_viewportSize.x = (uint32_t)specs.width;
         m_viewportSize.y = (uint32_t)specs.height;
 
@@ -52,33 +53,18 @@ namespace iara {
     void EditorLayer::onUpdate(iara::Timestep ts) {
         Timer timer;
         m_frame_interval_acc = ts;
-        //IARA_CORE_INFO("FRAME INTERVAL ACCUMULATOR : {0}", m_frame_interval_acc);
+        delta_time += ts;
+        //IARA_CORE_INFO("FRAME INTERVAL ACCUMULATOR : {0}", delta_time);
 
         /// Resize
-        if (FramebufferSpecification spec = m_active_scene->getMainFramebuffer()->getSpecification();
+        if (FramebufferSpecification spec = m_active_scene->getMSAAFramebuffer()->getSpecification();
             m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
             (spec.width != m_viewportSize.x || spec.height != m_viewportSize.y)) {
 
-            m_active_scene->getMainFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-            if (m_active_scene->rendering_type == RenderingType::HDR) {
-                m_active_scene->getFinalFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-            }
-            else if (m_active_scene->rendering_type == RenderingType::DEFERRED) {
-                m_active_scene->getFinalFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-                m_active_scene->getFinal2Framebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-                m_active_scene->getSSAOFramebuffer()->resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-            }
-            m_editor_camera.setViewportSize(m_viewportSize.x, m_viewportSize.y);
+            m_active_scene->resizeFramebuffers((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
             m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-        }
-
-        /// Render
-        if (m_active_scene->getSceneState() == SceneState::EDIT) {
-            m_editor_camera.onUpdate(ts);
-            m_active_scene->onUpdateEditor(ts, m_editor_camera);
-        }
-        else {
-            m_active_scene->onUpdateRuntime(ts);
+          
+            m_editor_camera.setViewportSize(m_viewportSize.x, m_viewportSize.y);
         }
 
 
@@ -88,19 +74,37 @@ namespace iara {
         glm::vec2 viewport_size = m_viewport_bounds[1] - m_viewport_bounds[0];
         my = viewport_size.y - my;
 
+        glm::vec2 mouse_pos;
+		if (mx < 0) mx = 0;
+		if (my < 0) my = 0;
+		if (mx > viewport_size.x) mx = viewport_size.x;
+		if (my > viewport_size.y) my = viewport_size.y;
+		mouse_pos.x = mx;
+		mouse_pos.y = my;
+
+		//IARA_CORE_TRACE("Mouse Pos: {0}, {1}", mx, my);
+        /// Render
+        if (m_active_scene->getSceneState() == SceneState::EDIT) {
+            m_editor_camera.onUpdate(ts);
+            m_active_scene->onUpdateEditor(ts, m_editor_camera, mouse_pos);
+        }
+        else {
+            m_active_scene->onUpdateRuntime(ts);
+        }
+
         int mousex = (int)mx;
         int mousey = (int)my;
 
         if (mousex >= 0 && mousey >= 0 && mousex <= (int)viewport_size.x && mousey <= (int)viewport_size.y) {
             if (m_active_scene->rendering_type == RenderingType::DEFERRED) {
-                m_hovered_pixel_entity = m_active_scene->getMainFramebuffer()->readPixel(3, mousex, mousey);
+                m_hovered_pixel_entity = m_active_scene->getGBufferFramebuffer()->readPixel(3, mousex, mousey);
             }
             else {
-                m_hovered_pixel_entity = m_active_scene->getMainFramebuffer()->readPixel(1, mousex, mousey);
+                m_hovered_pixel_entity = m_active_scene->getMSAAFramebuffer()->readPixel(1, mousex, mousey);
             }
         }
         //IARA_CORE_TRACE("Hovored pixel: {0}", m_hovered_pixel_entity);
-        g_on_update_time = timer.elapsedMilliseconds();
+        //g_on_update_time = timer.elapsedMilliseconds();
     }
 
     void EditorLayer::onImGuiRender() {
@@ -278,6 +282,7 @@ namespace iara {
 
         // Submit the DockSpace
         ImGuiIO& io = ImGui::GetIO();
+        io.FontGlobalScale = 1.6f;
 
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
@@ -323,31 +328,46 @@ namespace iara {
         ImGui::Text("Total Vertices: %d", stats.GetVertices());
         ImGui::Text("Total Indices: %d", stats.GetIndices());
 
-
-
+		ImGui::Separator();
+        ImGui::Text("Shaders");
+		Ref<ShaderLibrary> shader_lib = MeshRenderer::getShaderLibrary();
+        for (auto& [shader_name, shader] : shader_lib->m_shaders) {
+            if (ImGui::Button(("reload " + shader_name).c_str())) {
+                shader->reload();
+			}
+		}
 
         //IARA_CORE_TRACE("ShadowMapQuad Color Attachment ID: {}", m_active_scene->getShadowMapQuad()->getColorAtt(0));
         uint32_t texID = m_active_scene->getShadowMapQuad()->getColorAtt(0);  /// Get the texture from the framebuffer
         ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-        // SSAO NOISE TEXTURE
-        ImGui::Image((void*)(intptr_t)3, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+        texID = m_active_scene->getAtmFramebuffer()->getColorAtt(0);
+        //ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+        /*texID = m_active_scene->getAtmosphere()->getTransmittanceTex()->getRendererID();  /// Get the texture from the framebuffer
+        ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-        ImGui::Image((void*)(intptr_t)m_active_scene->getSSAOFramebuffer()->getColorAtt(0), ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+        texID = m_active_scene->getAtmosphere()->getIrradianceTex()->getRendererID();  /// Get the texture from the framebuffer
+        ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });*/
+        // SSAO NOISE TEXTURE
+        //ImGui::Image((void*)(intptr_t)3, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+        //ImGui::Image((void*)(intptr_t)m_active_scene->getDeferredLightingFramebuffer()->getColorAtt(0), ImVec2(300, 300), ImVec2{0,1}, ImVec2{1,0});
 
         if (m_active_scene->rendering_type == RenderingType::DEFERRED) {
-            texID = m_active_scene->getMainFramebuffer()->getColorAtt(0);  /// Get the texture from the framebuffer
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(0);  /// Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-            texID = m_active_scene->getMainFramebuffer()->getColorAtt(1);  /// Get the texture from the framebuffer
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(1);  /// Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-            texID = m_active_scene->getMainFramebuffer()->getColorAtt(2);  /// Get the texture from the framebuffer
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(2);  /// Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-            texID = m_active_scene->getMainFramebuffer()->getColorAtt(3);  /// Get the texture from the framebuffer
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(3);  /// Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
         }
+
+
         /*texID = m_active_scene->getFinalFramebuffer()->getColorAtt(0);
         ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });*/
 
@@ -376,6 +396,7 @@ namespace iara {
         }
         //ZIARA_INFO("Viewport size: {0} x {1}", viewportPaneSize.x, viewportPaneSize.y);
         uint32_t texID = m_active_scene->getFinalRenderedTexture();  /// Get the texture from the framebuffer
+        //texID = m_active_scene->getAtmFramebuffer()->getColorAtt(0);
         ImGui::Image((void*)(intptr_t)texID, ImVec2(m_viewportSize.x, m_viewportSize.y), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
         if (ImGui::BeginDragDropTarget()) {
@@ -490,14 +511,18 @@ namespace iara {
         }
 
         ImGui::DragFloat("Exposure", m_editor_camera.getPExposure(), 0.01f, 0.0f, 10.0f);
+        ImGui::DragFloat3("Camera Position1231421", &m_editor_camera.m_position.x, 1.0f, 0.0f, 10000.0f);
 
-        const char* rendering_types_names[] = { "MSAA", "HDR", "DEFERRED" };
-        RenderingType rendering_types[] = { RenderingType::MSAA, RenderingType::HDR, RenderingType::DEFERRED };
+		ImGui::DragFloat2("Sun Direction", glm::value_ptr(m_active_scene->atm_sun_direction), 0.01f, -10.0f, 10.0f);
+        ImGui::DragFloat("View Zenith Angle", &m_active_scene->m_view_zenith_angle_radians_, 0.02, 0.0, 10.0);
+        ImGui::DragFloat("View Azimuth Angle", &m_active_scene->m_view_azimuth_angle_radians_, 0.02, 0.0, 10.0);
+        const char* rendering_types_names[] = { "MSAA", "DEFERRED" };
+        RenderingType rendering_types[] = { RenderingType::MSAA, RenderingType::DEFERRED };
 
         const char* current_rendering_type_name = rendering_types_names[(uint8_t)m_active_scene->rendering_type - 1];
         RenderingType current_rendering_type = m_active_scene->rendering_type;
         if (ImGui::BeginCombo("Rendering Type", current_rendering_type_name)) {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 2; i++) {
                 bool is_selected = rendering_types[i] == current_rendering_type;
                 if (ImGui::Selectable(rendering_types_names[i], is_selected)) {
                     current_rendering_type = rendering_types[i];
@@ -512,6 +537,8 @@ namespace iara {
 
             ImGui::EndCombo();
         }
+
+        ImGui::Checkbox("SSAO", &m_active_scene->use_ssao);
 
         ImGui::End();
     }

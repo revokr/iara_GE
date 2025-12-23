@@ -17,6 +17,15 @@
 #include <assimp\Importer.hpp>
 #include <assimp\postprocess.h>
 #include <assimp\scene.h>
+//#include <glad\glad.h>
+
+#define GL_RGBA32F 0x8814
+#define GL_RGB32F 0x8815
+#define GL_RGBA16F 0x881A
+#define GL_RGB16F 0x881B
+#define GL_RGBA 0x1908
+#define GL_RGB 0x1907
+#define GL_FLOAT 0x1406
 
 namespace iara {
 
@@ -69,10 +78,15 @@ namespace iara {
 		static void drawLight(const glm::mat4& transform, const PointLightComponent& light, Camera& camera, int entityID);
 		static void drawDirLight(const DirLightComponent& dlight);
 
+		static void renderLumen(uint32_t tex2198, uint32_t tex2199, uint32_t tex2200);
+		static void drawAtmosphere(uint32_t vp_width, uint32_t vp_height, const glm::mat4& model_from_view, const glm::mat4& view_from_clip, const glm::vec3& camera_pos, const glm::vec3& white_point, const glm::vec3& earth_center,
+								const glm::vec3& sun_dir, const glm::vec2& sun_size, float exposure, uint32_t transmittance_tex, uint32_t scattering_tex,
+								uint32_t mie_scattering_tex, uint32_t irradiance_tex, uint32_t lighting_pass_tex, uint32_t g_depth, uint32_t g_position);
 
 		/// TEMPORARY
 		static void drawShadowMapToQuad(uint32_t shadowmap);
 		static void applyToneMapping(uint32_t hdr_texture, float exposure);
+		static void drawFullScreenQuad(const std::vector<bool>& enable_blend);
 
 		static void ResetStats();
 		static Statistics getStats();
@@ -85,8 +99,9 @@ namespace iara {
 	public:
 		static void Renderer3D::Init3D();
 		/// SKYBOX
-		static void drawSkyBox(const glm::mat4& view_proj, const Ref<Texture2D>& skybox);
+		static void drawSkyBox(const glm::mat4& view_proj, const Ref<Texture2D>& skybox, const glm::vec4& sun_direction);
 
+		static void drawDynamicSky(const glm::vec2& resolution, const glm::vec2& mouse_pos, float time);
 	};
 }
 
@@ -97,31 +112,33 @@ namespace iara {
 		static void InitMeshRenderer();
 		static void Shutdown();
 
-		static void BeginShadowMapPass(const glm::mat4& transform);
-		static void BeginSceneMesh(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp);
-		static void BeginSceneMesh(EditorCamera& camera, const glm::mat4& light_vp);
+		static Ref<ShaderLibrary> getShaderLibrary();
 
-		static void BeginGeometryPassGBuffer(EditorCamera& camera);
-		static void BeginGeometryPassGBuffer(const Camera& camera, const glm::mat4& transform);
+		static void ResetSceneMeshes();
 
-		static void BeginGeometryPassSSAO(EditorCamera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map);
-		static void BeginGeometryPassSSAO(const Camera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map);
+		static void ShadowMapPass(const glm::mat4& transform);
+		static void ForwardPass(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp, uint32_t shadowmap);
+		static void ForwardPass(EditorCamera& camera, const glm::mat4& light_vp, uint32_t shadowmap);
 
+		static void GeometryPassGBuffer(EditorCamera& camera);
+		static void GeometryPassGBuffer(const Camera& camera, const glm::mat4& transform);
 
-		static void LighintgPass(EditorCamera& camera, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp);
-		static void LighintgPass(const Camera& camera, const glm::mat4& transform, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp);
+		static void SSAOPass(EditorCamera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map);
+		static void SSAOPass(const Camera& camera, const glm::mat4& transform, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map);
+		static void SSAOBlurPass(uint32_t ssao_input);
 
-
-		static void EndGeometryPass();
-		static void EndGeometrySSAOPass();
-		static void EndShadowMapPass();
-		static void EndSceneMesh(uint32_t shadowmap);
+		static void LighintgPass(EditorCamera& camera, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp, bool ssao_state);
+		static void LighintgPass(const Camera& camera, const glm::mat4& transform, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp, bool ssao_state);
 
 		/// This will load the mesh, and store the data inside the VAO, VBO and so on, preparing data for flush at the end of the scene
 		static void drawMesh(const glm::mat4& transform, MeshComponent& mesh /*OR STRING PATH*/, int entityID);
+
+		static void removeMesh(const std::string& path);
 	private:
 		static void FlushMesh(uint32_t shadowmap);
 		static void FlushMeshGeometryPass();
 		static void FlushMeshGeometryPassShadowMap();
 	};
+
+	
 }

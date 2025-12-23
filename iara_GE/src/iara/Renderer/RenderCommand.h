@@ -14,6 +14,10 @@ namespace iara {
 			s_RendererAPI->SetClearColor(color);
 		}
 
+		inline static void ClearColorBuffer() {
+			s_RendererAPI->ClearColorBuffer();
+		}
+
 		inline static void Clear() {
 			s_RendererAPI->Clear();
 		}
@@ -39,6 +43,26 @@ namespace iara {
 
 		inline static void BindTextureUnit(uint32_t slot, uint32_t tex) {
 			s_RendererAPI->BindTextureUnit(slot, tex);
+		}
+
+		inline static void ActiveBindTexture2D(uint32_t slot, uint32_t tex) {
+			s_RendererAPI->ActiveBindTexture2D(slot, tex);
+		}
+
+		inline static void ActiveBindTexture3D(uint32_t slot, uint32_t tex) {
+			s_RendererAPI->ActiveBindTexture3D(slot, tex);
+		}
+
+		inline static void BlendEnablei(uint32_t i) {
+			s_RendererAPI->BlendEnablei(i);
+		}
+
+		inline static void BlendDisablei(uint32_t i) {
+			s_RendererAPI->BlendDisablei(i);
+		}
+
+		inline static void drawArraysStrip(uint32_t start, uint32_t end) {
+			s_RendererAPI->drawArrayStrip(start, end);
 		}
 	private:
 		static RendererAPI* s_RendererAPI;

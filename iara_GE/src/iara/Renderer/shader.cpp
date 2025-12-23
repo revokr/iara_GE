@@ -17,9 +17,19 @@ namespace iara {
         return nullptr;
 	}
 
-    void ShaderLibrary::addShader(const Ref<Shader>& s) {
-        auto& name = s->getName();
-        IARA_CORE_ASSERT((m_shaders.find(s) == m_shaders.end()), "Shader already exists!!");
+    Ref<Shader> Shader::Create(const std::string& name, const std::string& vertSrc, const std::string& geomSrc, const std::string& fragSrc) {
+        switch (Renderer::getRendererAPI()) {
+        case RendererAPI::API::None:     IARA_CORE_ASSERT(false, "RendererAPI::None is not supported!!");
+        case RendererAPI::API::OpenGL: { IARA_CORE_WARN("This should execute"); return CreateRef<OpenGLShader>(name, vertSrc, geomSrc, fragSrc); }
+        }
+
+        IARA_CORE_ASSERT(false, "Unknown renderer API");
+        return nullptr;
+    }
+
+    void ShaderLibrary::addShader(const Ref<Shader> s) {
+        auto name = s->getName();
+        //IARA_CORE_ASSERT((m_shaders.find(name) == m_shaders.end()), "Shader already exists!!");
         m_shaders[name] = s;
     }
 
@@ -29,9 +39,8 @@ namespace iara {
         return shader;
     }
 
-    Ref<Shader> ShaderLibrary::get(const std::string& name)
-    {
-        IARA_CORE_ASSERT((m_shaders.find() != m_shaders.end()), "Shader not found!!");
+    Ref<Shader> ShaderLibrary::get(const std::string& name) {
+        //IARA_CORE_ASSERT((m_shaders.find() != m_shaders.end()), "Shader not found!!");
         return m_shaders[name];
     }
 

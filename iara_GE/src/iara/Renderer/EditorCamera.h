@@ -34,6 +34,9 @@ namespace iara {
 		float getExposure() const { return m_exposure; }
 		float getPitch() const { return m_pitch; }
 		float getYaw() const { return m_yaw; }
+
+		glm::vec3 m_position = { 0.0f, 0.0f, 0.0f };
+
 	private:
 		void updateProj();
 		void updateView();
@@ -53,7 +56,6 @@ namespace iara {
 		float m_fov = 60.0f, m_aspect_ratio = 1.778f, m_near_clip = 0.1f, m_far_clip = 1000.0f;
 
 		glm::mat4 m_view_matrix;
-		glm::vec3 m_position = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 m_focal_point = { 0.0f, 0.0f, 0.0f };
 
 		glm::vec2 m_initial_mouse_pos;

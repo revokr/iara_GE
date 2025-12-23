@@ -58,7 +58,7 @@
       <PrecompiledHeaderFile>ir_pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;IARA_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;src;vendor\glfw\include;vendor\glad\include;vendor\imgui;vendor\ImGuizmo;vendor\glm;vendor\stb_image;vendor\Utils;vendor\entt\include;vendor\yaml\include;vendor\assimp_premake\include;vendor\spirv;C:\VulkanSDK\1.3.296.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\spdlog\include;src;vendor\glfw\include;vendor\glad\include;vendor\imgui;vendor\ImGuizmo;vendor\glm;vendor\stb_image;vendor\Utils;vendor\entt\include;vendor\yaml\include;vendor\assimp_premake\include;vendor\spirv;C:\VulkanSDK\1.4.328.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -70,7 +70,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>C:\VulkanSDK\1.3.296.0\Lib\vulkan-1.lib;C:\VulkanSDK\1.3.296.0\Lib\shaderc_sharedd.lib;C:\VulkanSDK\1.3.296.0\Lib\spirv-cross-cored.lib;C:\VulkanSDK\1.3.296.0\Lib\spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.328.1\Lib\vulkan-1.lib;C:\VulkanSDK\1.4.328.1\Lib\shaderc_sharedd.lib;C:\VulkanSDK\1.4.328.1\Lib\spirv-cross-cored.lib;C:\VulkanSDK\1.4.328.1\Lib\spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -79,7 +79,7 @@
       <PrecompiledHeaderFile>ir_pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>IARA_PLATFORM_WINDOWS;IARA_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;IARA_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;src;vendor\glfw\include;vendor\glad\include;vendor\imgui;vendor\ImGuizmo;vendor\glm;vendor\stb_image;vendor\Utils;vendor\entt\include;vendor\yaml\include;vendor\assimp_premake\include;vendor\spirv;C:\VulkanSDK\1.3.296.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\spdlog\include;src;vendor\glfw\include;vendor\glad\include;vendor\imgui;vendor\ImGuizmo;vendor\glm;vendor\stb_image;vendor\Utils;vendor\entt\include;vendor\yaml\include;vendor\assimp_premake\include;vendor\spirv;C:\VulkanSDK\1.4.328.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -95,15 +95,18 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>C:\VulkanSDK\1.3.296.0\Lib\shaderc_shared.lib;C:\VulkanSDK\1.3.296.0\Lib\spirv-cross-core.lib;C:\VulkanSDK\1.3.296.0\Lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.328.1\Lib\shaderc_shared.lib;C:\VulkanSDK\1.4.328.1\Lib\spirv-cross-core.lib;C:\VulkanSDK\1.4.328.1\Lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Debug\Instrumentor.h" />
+    <ClInclude Include="src\iara\Atmosphere\atmosphere2.h" />
+    <ClInclude Include="src\iara\Atmosphere\constants.h" />
     <ClInclude Include="src\Windows\Platform.h" />
     <ClInclude Include="src\Windows\Window_Win.h" />
     <ClInclude Include="src\Windows\WindowsPlatform.h" />
     <ClInclude Include="src\iara.h" />
+    <ClInclude Include="src\iara\Atmosphere\Atmosphere.h" />
     <ClInclude Include="src\iara\Core\Application.h" />
     <ClInclude Include="src\iara\Core\EntryPoint.h" />
     <ClInclude Include="src\iara\Core\Input.h" />
@@ -573,11 +576,14 @@
     <ClInclude Include="vendor\glm\glm\vec4.hpp" />
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
+    <ClInclude Include="vendor\stb_image\stb_image_write.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\iara\Atmosphere\atmosphere2.cpp" />
     <ClCompile Include="src\Windows\Window_Win.cpp" />
     <ClCompile Include="src\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Windows\WindowsPlatform.cpp" />
+    <ClCompile Include="src\iara\Atmosphere\Atmosphere.cpp" />
     <ClCompile Include="src\iara\Core\Application.cpp" />
     <ClCompile Include="src\iara\Core\Layer.cpp" />
     <ClCompile Include="src\iara\Core\LayerStack.cpp" />
@@ -621,6 +627,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+    <ClCompile Include="vendor\stb_image\stb_image_write.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\glfw\GLFW.vcxproj">
@@ -638,6 +645,12 @@
     <ProjectReference Include="vendor\assimp_premake\ASSIMP.vcxproj">
       <Project>{B20B8BA5-9EAD-B57B-8768-C9CF73A93CCC}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\iara\Atmosphere\definitions.glsl" />
+    <None Include="src\iara\Atmosphere\definitions.glsl.inc" />
+    <None Include="src\iara\Atmosphere\functions.glsl" />
+    <None Include="src\iara\Atmosphere\functions.glsl.inc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

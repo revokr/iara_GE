@@ -14,9 +14,9 @@ layout(location = 3) out vec3 T;
 layout(location = 4) out vec3 B;
 layout(location = 5) out flat int v_EntityID;
 
-layout(std140, binding = 6) uniform Camera {
-	mat4 u_ViewProjection;
-	vec4 u_camPos;
+layout (std140, binding = 14) uniform ProjectionUBO {
+	mat4 u_view;
+	mat4 u_projection;
 };
 
 layout(std140, binding = 7) uniform Model {
@@ -25,10 +25,10 @@ layout(std140, binding = 7) uniform Model {
 
 void main()
 {
-	Pos = vec3(u_Model * vec4(a_Position, 1.0));
+	Pos = vec3(u_view * u_Model * vec4(a_Position, 1.0));
 	TexCoord = a_TexCoord;
 
-	mat3 normal_matrix = mat3(u_Model);
+	mat3 normal_matrix = mat3(u_view * u_Model);
 	normal_matrix = inverse(normal_matrix);
 	normal_matrix = transpose(normal_matrix);
 	Normal = normalize(normal_matrix * a_Normal);
@@ -38,6 +38,6 @@ void main()
 
 	v_EntityID = a_EntityID;
 
-	gl_Position = u_ViewProjection * vec4(Pos, 1.0);
+	gl_Position = u_projection * u_view * u_Model * vec4(a_Position, 1.0);
 }
 

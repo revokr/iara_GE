@@ -1,0 +1,87 @@
+Scene: Untitled
+Entities:
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [1.59261787, 0.0569286086, 1.96266294]
+      Rotation: [-1.5697844, 8.92749813e-05, 0.000281877408]
+      Scale: [0.499981672, 0.499988407, 0.5]
+    MeshComponent:
+      path: Assets\Models\sword\source\Fantasy_gradient_sword.fbx
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sword\source\Textures\Sword_albedo.jpg
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: Assets\Models\sword\source\Textures\Sword_Normal_DirectX.jpg
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [1.25302839, 0.569244921, 1.82455003]
+      Rotation: [-1.56813705, -1.38558722, -0.0026060401]
+      Scale: [0.0225352552, 0.0225351229, 0.0215346497]
+    MeshComponent:
+      path: Assets\Models\pbr\Cerberus_LP.fbx
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\pbr\Textures\Cerberus_A.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [0.100000001, -0.374337345, 1.37836814]
+      Rotation: [0, 0, 0]
+      Scale: [3.30659938, 0.0877571926, 3.30659938]
+    MeshComponent:
+      path: Assets\Models\Cube\untitled.obj
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material1:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, 0.100000001]
+      Rotation: [0, 0, 0]
+      Scale: [3.88242435, 2.42076755, 0.664471507]
+    MeshComponent:
+      path: Assets\Models\Cube\untitled.obj
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material1:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+  - Entity: 12345
+    TagComponent:
+      Tag: Sky Light
+    DirLightComponent:
+      direction: [0, -1, 0, 0]
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [1, 1, 1, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+CubemapPath: Assets\Textures\skybox2\sky1.png

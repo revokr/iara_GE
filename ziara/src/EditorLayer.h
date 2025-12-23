@@ -61,5 +61,6 @@ namespace iara {
 		Ref<Texture2D> m_stop_icon;
 
 		float m_frame_interval_acc = 0.0f;
+		float delta_time = 0.0f;
 	};
 }

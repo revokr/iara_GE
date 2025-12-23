@@ -13,10 +13,10 @@
 #include <mutex>
 #include <random>
 #include <condition_variable>
-#include <glad\glad.h>
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
+#include <glm/glm.hpp>
 
 #define rad(x) glm::radians(x)
 #define MAX_MATERIALS 10
@@ -62,6 +62,11 @@ namespace iara {
 		uint32_t scene_plights;
 		DirLight skyLight;
 
+		/// 
+		Ref<VertexBuffer> heightmap_vb;
+		Ref<VertexArray> heightmap_vao;
+		Ref<IndexBuffer> heightmap_ib;
+
 		Ref<VertexArray> vao;
 		Ref<VertexBuffer> vertexBuffer;
 		Ref<Shader> tex_shader;
@@ -96,6 +101,8 @@ namespace iara {
 
 		CameraData camera_buffer;
 		Ref<UniformBuffer> camera_uniform_buffer;
+
+		Ref<UniformBuffer> heightmap_ubo;
 	};
 
 	struct ShadowMapData {
@@ -104,6 +111,31 @@ namespace iara {
 		Ref<IndexBuffer> shadow_quad_ib;
 
 		Ref<Shader> quad_shadowmap_shader;
+	};
+
+	struct AtmosphereData {
+		Ref<Shader> atmosphere_shader;
+
+		struct AtmData {
+			glm::vec4 camera;
+			glm::vec4 white_point;
+			glm::vec4 earth_center;
+			glm::vec4 sun_direction;
+			glm::vec4 sun_size;
+			glm::vec4 viewport_size;
+			float exposure;
+		};
+
+		struct AtmViewData {
+			glm::mat4 model_from_view;
+			glm::mat4 view_from_clip;
+		};
+
+		AtmData atm_data_buffer;
+		Ref<UniformBuffer> atm_data_uniform_buffer;
+
+		AtmViewData atm_view_data_buffer;
+		Ref<UniformBuffer> atm_view_data_unifor_buffer;
 	};
 
 	struct HDRData {
@@ -115,6 +147,9 @@ namespace iara {
 	static Renderer_Storeage s_Data;
 	static HDRData s_hdrData;
 	static ShadowMapData s_shadowMapData;
+	static AtmosphereData s_atmosphereData;
+
+	static Ref<ShaderLibrary> s_shaderLibrary = std::make_shared<ShaderLibrary>();
 
 	void Renderer2D::Init() {
 		IARA_PROFILE_FUNCTION();
@@ -132,6 +167,49 @@ namespace iara {
 			 1.0f, -1.0f, 0.0f,   1.0f, 0.0f, // bottom-right
 			 1.0f,  1.0f, 0.0f,   1.0f, 1.0f  // top-right
 		};
+
+		s_Data.heightmap_vao = VertexArray::Create();
+		int gridW = 848;
+		int gridH = 480;
+
+		std::vector<glm::vec2> vertices;
+		std::vector<unsigned int> indices;
+
+		// Build vertices (UVs in [0,1])
+		for (int y = 0; y < gridH; y++) {
+			for (int x = 0; x < gridW; x++) {
+				float u = (float)x / (gridW - 1);
+				float v = (float)y / (gridH - 1);
+				vertices.push_back(glm::vec2(u, v));
+			}
+		}
+
+		// Build indices (two triangles per quad)
+		for (int y = 0; y < gridH - 1; y++) {
+			for (int x = 0; x < gridW - 1; x++) {
+				int i0 = y * gridW + x;
+				int i1 = i0 + 1;
+				int i2 = i0 + gridW;
+				int i3 = i2 + 1;
+
+				// triangle 1: i0, i2, i1
+				indices.push_back(i0);
+				indices.push_back(i2);
+				indices.push_back(i1);
+
+				// triangle 2: i1, i2, i3
+				indices.push_back(i1);
+				indices.push_back(i2);
+				indices.push_back(i3);
+			}
+		}
+		s_Data.heightmap_ib = IndexBuffer::Create(indices.data(), indices.size());
+		s_Data.heightmap_vb = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(glm::vec2));
+		s_Data.heightmap_vao->setVertexBuffer(s_Data.heightmap_vb);
+		s_Data.heightmap_vao->SetIndexBuffer(s_Data.heightmap_ib);
+
+		s_shaderLibrary->load("lumen", "Shaders/depth_lumen_combined.vert", "Shaders/depth_lumen_combined.frag");
+		s_shaderLibrary->load("lumen-h", "Shaders/heightmap_gen.vert", "Shaders/heightmap_gen.frag");
 		s_shadowMapData.quad_shadowmap_shader = Shader::Create("shadowMapQuad", "Shaders/shadowmap_quad.vert", "Shaders/shadowmap_quad.frag");
 		s_shadowMapData.shadow_quad_vb = VertexBuffer::Create(quadVertices, sizeof(float) * 30);
 
@@ -210,7 +288,13 @@ namespace iara {
 		s_Data.texCoords[3] = { 0.0f, 1.0f };
 
 		s_Data.camera_uniform_buffer = UniformBuffer::Create(sizeof(Renderer_Storeage::CameraData), 0);
+		s_Data.heightmap_ubo = UniformBuffer::Create(sizeof(glm::mat4), 26);
 
+
+		// Atmosphere
+		s_shaderLibrary->load("atmosphere", "Shaders/atm.vert", "Shaders/atm.frag");
+		s_atmosphereData.atm_data_uniform_buffer = UniformBuffer::Create(sizeof(AtmosphereData::AtmData), 24);
+		s_atmosphereData.atm_view_data_unifor_buffer = UniformBuffer::Create(sizeof(AtmosphereData::AtmViewData), 23);
 	}
 
 	void Renderer2D::Shutdown() {
@@ -643,6 +727,102 @@ namespace iara {
 		s_hdrData.quad_ldr_shader->unbind();
 	}
 
+	void Renderer2D::renderLumen(uint32_t tex2198, uint32_t tex2199, uint32_t tex2200) {
+		s_shaderLibrary->get("lumen")->bind();
+		s_shadowMapData.shadow_quad_vao->bind();
+		RenderCommand::BindTextureUnit(0, tex2198);
+		RenderCommand::BindTextureUnit(1, tex2199);
+		RenderCommand::BindTextureUnit(2, tex2200);
+		s_shaderLibrary->get("lumen")->setUniformInt("tex2198", 0);
+		s_shaderLibrary->get("lumen")->setUniformInt("tex2199", 1);
+		s_shaderLibrary->get("lumen")->setUniformInt("tex2200", 2);
+		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 7);
+		s_shaderLibrary->get("lumen")->unbind();
+
+
+
+		/*s_shaderLibrary->get("lumen-h")->bind();
+		s_Data.heightmap_vao->bind();
+		glm::mat4 mvp = glm::perspective(glm::radians(45.0f), 848.0f / 480.0f, 0.1f, 10000.0f) * glm::mat4(1.0f);
+		s_Data.heightmap_ubo->setData(&mvp, sizeof(glm::mat4));
+		RenderCommand::BindTextureUnit(0, tex2198);
+		s_shaderLibrary->get("lumen-h")->setUniformInt("uDepth", 0);
+		RenderCommand::DrawIndexed(s_Data.heightmap_vao, s_Data.heightmap_ib->getCount());
+		s_shaderLibrary->get("lumen-h")->unbind();*/
+	}
+
+	void Renderer2D::drawAtmosphere(uint32_t vp_width, uint32_t vp_height, const glm::mat4& model_from_view, const glm::mat4& view_from_clip, const glm::vec3& camera_pos, const glm::vec3& white_point, const glm::vec3& earth_center, const glm::vec3& sun_dir,
+									const glm::vec2& sun_size, float exposure, uint32_t transmittance_tex, uint32_t scattering_tex,
+									uint32_t mie_scattering_tex, uint32_t irradiance_tex, uint32_t lighting_pass_tex, uint32_t g_depth, uint32_t g_position) {
+
+		s_shaderLibrary->get("atmosphere")->bind();
+		//this_will_dissappear::bindShader(shader);
+		//glUseProgram(shader);
+
+		s_atmosphereData.atm_data_buffer.camera = glm::vec4(camera_pos, 0.0);
+		s_atmosphereData.atm_data_buffer.earth_center = glm::vec4(earth_center, 0.0);
+		s_atmosphereData.atm_data_buffer.white_point = glm::vec4(white_point, 0.0);
+		s_atmosphereData.atm_data_buffer.sun_direction = glm::vec4(sun_dir, 0.0);
+		s_atmosphereData.atm_data_buffer.sun_size = glm::vec4(sun_size, 0.0, 0.0);
+		s_atmosphereData.atm_data_buffer.viewport_size = glm::vec4(vp_width, vp_height, 0.0, 0.0);
+		s_atmosphereData.atm_data_buffer.exposure = exposure;
+		s_atmosphereData.atm_data_uniform_buffer->setData(&s_atmosphereData.atm_data_buffer, sizeof(AtmosphereData::AtmData));
+		
+		s_atmosphereData.atm_view_data_buffer.model_from_view = model_from_view;
+		s_atmosphereData.atm_view_data_buffer.view_from_clip = view_from_clip;
+		s_atmosphereData.atm_view_data_unifor_buffer->setData(&s_atmosphereData.atm_view_data_buffer, sizeof(AtmosphereData::AtmViewData));
+
+		//RenderCommand::BindTextureUnit(0, transmittance_tex);
+		RenderCommand::ActiveBindTexture2D(0, transmittance_tex);
+		s_shaderLibrary->get("atmosphere")->setUniformInt("transmittance_texture", 0);
+		//this_will_dissappear::bindShaderTex(shader, "transmittance_texture", 0);
+		//RenderCommand::BindTextureUnit(1, scattering_tex);
+		RenderCommand::ActiveBindTexture3D(1, scattering_tex);
+		s_shaderLibrary->get("atmosphere")->setUniformInt("scattering_texture", 1);
+		//this_will_dissappear::bindShaderTex(shader, "scattering_texture", 1);
+
+
+		//RenderCommand::BindTextureUnit(2, mie_scattering_tex);
+		RenderCommand::ActiveBindTexture3D(2, mie_scattering_tex);
+		s_shaderLibrary->get("atmosphere")->setUniformInt("single_mie_scattering_texture", 2);
+		//this_will_dissappear::bindShaderTex(shader, "single_mie_scattering_texture", 2);
+
+
+		//RenderCommand::BindTextureUnit(3, irradiance_tex);
+		RenderCommand::ActiveBindTexture2D(3, irradiance_tex);
+		s_shaderLibrary->get("atmosphere")->setUniformInt("irradiance_texture", 3);
+		//this_will_dissappear::bindShaderTex(shader, "irradiance_texture", 3);
+
+		RenderCommand::ActiveBindTexture2D(4, lighting_pass_tex);
+		s_shaderLibrary->get("atmosphere")->setUniformInt("lighting_pass_texture", 4);
+
+		RenderCommand::ActiveBindTexture2D(5, g_depth);
+		s_shaderLibrary->get("atmosphere")->setUniformInt("g_depth_texture", 5);
+
+		RenderCommand::ActiveBindTexture2D(6, g_position);
+		s_shaderLibrary->get("atmosphere")->setUniformInt("g_position_texture", 6);
+
+		s_shadowMapData.shadow_quad_vao->bind();
+		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 6);
+		s_shaderLibrary->get("atmosphere")->unbind();
+	}
+
+	void Renderer2D::drawFullScreenQuad(const std::vector<bool>& enable_blend) {
+		for (unsigned int i = 0; i < enable_blend.size(); ++i) {
+			if (enable_blend[i]) {
+				RenderCommand::BlendEnablei(i);
+			}
+		}
+
+		// shader bound outside of this
+		s_shadowMapData.shadow_quad_vao->bind();
+		RenderCommand::drawArraysStrip(0, 4);
+
+		for (unsigned int i = 0; i < enable_blend.size(); ++i) {
+			RenderCommand::BlendDisablei(i);
+		}
+	}
+
 	void Renderer2D::ResetStats() {
 		memset(&s_Data.stats, 0, sizeof(Statistics));
 	}
@@ -650,13 +830,14 @@ namespace iara {
 	Statistics Renderer2D::getStats() {
 		return s_Data.stats;
 	}
+	
 }
 
 namespace iara {
 
 	struct CubeMap_Resources {
+		Ref<Texture2D> noise_map;
 		Ref<Texture2D> m_cubemap;
-		Ref<Shader> cubemap_shader;
 		Ref<VertexArray> vao_cubemap;
 		Ref<VertexBuffer> vb_cubemap;
 
@@ -664,15 +845,28 @@ namespace iara {
 			glm::mat4 view_projection3D;
 		};
 
+		struct DynamicSkyResources {
+			glm::vec2 resolution;
+			glm::vec2 mouse_pos;
+			float time;
+		};
+
 		CameraData_skybox camera_buffer_skybox;
 		Ref<UniformBuffer> camera_uniform_buffer_skybox;
+
+		Ref<UniformBuffer> sun_direction_uniform_buffer_skybox;
+		DynamicSkyResources dynamic_sky_resources;
+		Ref<UniformBuffer> dynamic_sky_uniform_buffer;
 	};
 
 	static CubeMap_Resources s_cubemap;
 
 	void Renderer3D::Init3D() {
 		s_cubemap.m_cubemap = Texture2D::CreateCubemap("Assets/Textures/skybox2/sky2.png");
-		s_cubemap.cubemap_shader = Shader::Create("cubemap", "Shaders/cubemap.vert", "Shaders/cubemap.frag");
+		s_shaderLibrary->load("cubemap", "Shaders/cubemap.vert", "Shaders/cubemap.frag");
+		s_shaderLibrary->load("dynamic-sky", "Shaders/AtmosLightScatter.vert", "Shaders/AtmosLightScatter.frag");
+
+		s_cubemap.noise_map = Texture2D::Create("Assets/Textures/noise-tex.png");
 
 		float skyboxVertices[] = {
 			// positions          
@@ -730,22 +924,47 @@ namespace iara {
 		s_cubemap.vao_cubemap->AddVertexBuffer(s_cubemap.vb_cubemap);
 
 		s_cubemap.camera_uniform_buffer_skybox = UniformBuffer::Create(sizeof(CubeMap_Resources::CameraData_skybox), 20);
+
+		s_cubemap.sun_direction_uniform_buffer_skybox = UniformBuffer::Create(sizeof(glm::vec4), 17);
+		s_cubemap.dynamic_sky_uniform_buffer = UniformBuffer::Create(sizeof(CubeMap_Resources::DynamicSkyResources), 25);
 	}
 
-	void Renderer3D::drawSkyBox(const glm::mat4& view_proj, const Ref<Texture2D>& skybox) {
+	void Renderer3D::drawSkyBox(const glm::mat4& view_proj, const Ref<Texture2D>& skybox, const glm::vec4& direction) {
 		RenderCommand::setDepthMask(false);
-		s_cubemap.cubemap_shader->bind();
+		s_shaderLibrary->get("cubemap")->bind();
 
 		skybox->bind();
 		s_cubemap.camera_buffer_skybox.view_projection3D = view_proj;
 		s_cubemap.camera_uniform_buffer_skybox->setData(&s_cubemap.camera_buffer_skybox, sizeof(CubeMap_Resources::CameraData_skybox));
 
+		s_cubemap.sun_direction_uniform_buffer_skybox->setData(&direction, sizeof(glm::vec4));
+
 		s_cubemap.vao_cubemap->bind();
 		RenderCommand::drawArrays(s_cubemap.vao_cubemap, 0, 36);
 		RenderCommand::setDepthMask(true);
-		s_cubemap.cubemap_shader->unbind();
+		s_shaderLibrary->get("cubemap")->unbind();
 	}
 
+	void Renderer3D::drawDynamicSky(const glm::vec2& resolution, const glm::vec2& mouse_pos, float time) {
+		RenderCommand::setDepthMask(false);
+		s_shaderLibrary->get("dynamic-sky")->bind();
+		s_cubemap.dynamic_sky_resources.resolution = resolution;
+		s_cubemap.dynamic_sky_resources.mouse_pos = mouse_pos;
+		s_cubemap.dynamic_sky_resources.time = time;
+
+		s_cubemap.dynamic_sky_uniform_buffer->setData(&s_cubemap.dynamic_sky_resources, sizeof(CubeMap_Resources::DynamicSkyResources));
+		//s_cubemap.vao_cubemap->bind();
+		s_shadowMapData.shadow_quad_vao->bind();
+		RenderCommand::BindTextureUnit(1, s_cubemap.noise_map->getRendererID());
+		s_shaderLibrary->get("dynamic-sky")->setUniformInt("iChannel0", 1);
+
+		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 6);
+		RenderCommand::setDepthMask(true);
+		s_shaderLibrary->get("dynamic-sky")->unbind();
+	}
+
+
+	// 
 }
 
 
@@ -769,11 +988,7 @@ namespace iara {
 	struct MeshRendererStoreage {
 		Ref<VertexArray> vao;
 
-		Ref<Shader> mesh_shader;
-		Ref<Shader> shadowmap_shader;
-		Ref<Shader> gbuffer_shader;
-		Ref<Shader> lighting_pass;
-		Ref<Shader> ssao_texture_shader;
+		Ref<ShaderLibrary> s_shaderLibrary;
 
 		Ref<Texture2D> ssao_noise_tex;
 		std::vector<glm::vec4> ssao_kernel;
@@ -783,6 +998,7 @@ namespace iara {
 
 		struct CameraData {
 			glm::mat4 view_projection3D;
+			glm::mat4 view;
 			glm::vec4 camPos;
 		};
 
@@ -832,6 +1048,8 @@ namespace iara {
 		Ref<UniformBuffer> ssao_projection_uniform_buffer;
 		Ref<UniformBuffer> viewport_sizes_uniform_buffer;
 
+		Ref<UniformBuffer> ambient_variables_uniform_buffer;
+
 	};
 
 	static MeshRendererStoreage s_MeshData;
@@ -840,18 +1058,20 @@ namespace iara {
 
 	void MeshRenderer::InitMeshRenderer() {
 		s_MeshData.vao = VertexArray::Create();
+		s_MeshData.s_shaderLibrary = std::make_shared<ShaderLibrary>();
 
-		s_MeshData.mesh_shader = Shader::Create("mesh-light", "Shaders/light-mesh.vert", "Shaders/light-mesh.frag");
-		s_MeshData.shadowmap_shader = Shader::Create("shadowmap", "Shaders/shadowmap.vert", "Shaders/shadowmap.frag");
-		s_MeshData.gbuffer_shader = Shader::Create("gbuffer", "Shaders/deferred_geometry_pass.vert", "Shaders/deferred_geometry_pass.frag");
-		s_MeshData.lighting_pass = Shader::Create("lighting_pass", "Shaders/deferred_lighting_pass.vert", "Shaders/deferred_lighting_pass.frag");
-		s_MeshData.ssao_texture_shader = Shader::Create("ssao_texture", "Shaders/ssao_texture.vert", "Shaders/ssao_texture.frag");
+		s_shaderLibrary->load("mesh_light", "Shaders/light-mesh.vert", "Shaders/light-mesh.frag");
+		s_shaderLibrary->load("shadowmap", "Shaders/shadowmap.vert", "Shaders/shadowmap.frag");
+		s_shaderLibrary->load("gbuffer", "Shaders/deferred_geometry_pass.vert", "Shaders/deferred_geometry_pass.frag");
+		s_shaderLibrary->load("lighting_pass", "Shaders/deferred_lighting_pass.vert", "Shaders/deferred_lighting_pass.frag");
+		s_shaderLibrary->load("ssao_texture", "Shaders/ssao_texture.vert", "Shaders/ssao_texture.frag");
+		s_shaderLibrary->load("ssao_blur_texture", "Shaders/ssao_blur_texture.vert", "Shaders/ssao_blur_texture.frag");
 
 		/// SSAO INIT
 		{
 			std::uniform_real_distribution<float> random_floats(0.0, 1.0);
 			std::default_random_engine generator;
-			for (uint32_t i = 0; i < 16; i++) {
+			for (uint32_t i = 0; i < 64; i++) {
 				glm::vec4 sample(
 					random_floats(generator) * 2.0f - 1.0f,
 					random_floats(generator) * 2.0f - 1.0f,
@@ -861,7 +1081,7 @@ namespace iara {
 
 				sample = glm::normalize(sample);
 				sample *= random_floats(generator);
-				float scale = float(i) / 16.0f;
+				float scale = float(i) / 64.0f;
 				scale = 0.1f + scale * scale * (1.0f - 0.1f); // lerp
 				sample *= scale;
 				s_MeshData.ssao_kernel.push_back(sample);
@@ -894,68 +1114,110 @@ namespace iara {
 		s_MeshData.ssao_random_samples_uniform_buffer = UniformBuffer::Create(sizeof(glm::vec4) * s_MeshData.ssao_kernel.size(), 13);
 		s_MeshData.ssao_projection_uniform_buffer = UniformBuffer::Create(sizeof(glm::mat4) * 2, 14);
 		s_MeshData.viewport_sizes_uniform_buffer = UniformBuffer::Create(sizeof(float) * 2, 15);
+		s_MeshData.ambient_variables_uniform_buffer = UniformBuffer::Create(sizeof(bool), 16);
+	}
+
+	Ref<ShaderLibrary> MeshRenderer::getShaderLibrary() {
+		return s_shaderLibrary;
 	}
 
 	void MeshRenderer::Shutdown() {
 
 	}
 
-	void MeshRenderer::BeginShadowMapPass(const glm::mat4& transform) {
-		s_MeshData.shadowmap_shader->bind();
+	void MeshRenderer::removeMesh(const std::string& path) {
+		s_MeshData.stored_meshes.erase(path);
+	}
+
+	void MeshRenderer::ResetSceneMeshes() {
+		s_MeshData.scene_meshes.clear();
+	}
+
+	void MeshRenderer::ShadowMapPass(const glm::mat4& transform) {
+		s_shaderLibrary->get("shadowmap")->bind();
 
 		MeshRendererStoreage::LightVPData data;
 		data.light_view_projection = transform;
 
 		s_MeshData.light_vp_uniform_buffer_shadowmap->setData(&data, sizeof(MeshRendererStoreage::LightVPData));
+		
+		FlushMeshGeometryPassShadowMap();
 	}
 
-	void MeshRenderer::BeginSceneMesh(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp) {
-		s_MeshData.mesh_shader->bind();
+	void MeshRenderer::ForwardPass(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp, uint32_t shadowmap) {
+		s_shaderLibrary->get("mesh_light")->bind();
 
 		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getProjection() * glm::inverse(transform);
 		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(transform[3][0], transform[3][1], transform[3][2], 1.0f);
+		//s_MeshData.camera_buffer_mesh.view = camera.getViewMatrix();
 		s_MeshData.camera_uniform_buffer_mesh->setData(&s_MeshData.camera_buffer_mesh, sizeof(Renderer_Storeage::CameraData));
 		s_MeshData.light_vp_uniform_buffer_shadowmap->setData(&light_vp, sizeof(MeshRendererStoreage::LightVPData));
 
-		s_MeshData.scene_meshes.clear();
+		for (size_t i = 0; i < s_Data.scene_plights; i++) {
+			s_MeshData.plights_buffer_mesh.point_lights[i] = s_Data.point_lights[i];
+		}
+		s_MeshData.plights_buffer_mesh.nrLights = s_Data.scene_plights;
+
+		s_MeshData.dlight_buffer_mesh.dlight = s_Data.skyLight;
+		s_MeshData.dlight_uniform_buffer_mesh->setData(&s_MeshData.dlight_buffer_mesh, sizeof(MeshRendererStoreage::DirLightData));
+		s_MeshData.plights_uniform_buffer_mesh->setData(&s_MeshData.plights_buffer_mesh, sizeof(MeshRendererStoreage::PointLightsData));
+
+		FlushMesh(shadowmap);
 	}
 
-	void MeshRenderer::BeginSceneMesh(EditorCamera& camera, const glm::mat4& light_vp) {
-		s_MeshData.mesh_shader->bind();
+	void MeshRenderer::ForwardPass(EditorCamera& camera, const glm::mat4& light_vp, uint32_t shadowmap) {
+		s_shaderLibrary->get("mesh_light")->bind();
 
 		s_MeshData.light_vp_uniform_buffer_shadowmap->setData(&light_vp, sizeof(MeshRendererStoreage::LightVPData));
 
 		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getViewProjection();
 		auto camPos = camera.getPosition();
 		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(camPos.x, camPos.y, camPos.z, 1.0f);
+		s_MeshData.camera_buffer_mesh.view = camera.getViewMatrix();
 		s_MeshData.camera_uniform_buffer_mesh->setData(&s_MeshData.camera_buffer_mesh, sizeof(MeshRendererStoreage::CameraData));
 
-		s_MeshData.scene_meshes.clear();
+		for (size_t i = 0; i < s_Data.scene_plights; i++) {
+			s_MeshData.plights_buffer_mesh.point_lights[i] = s_Data.point_lights[i];
+		}
+		s_MeshData.plights_buffer_mesh.nrLights = s_Data.scene_plights;
+
+		s_MeshData.dlight_buffer_mesh.dlight = s_Data.skyLight;
+		s_MeshData.dlight_uniform_buffer_mesh->setData(&s_MeshData.dlight_buffer_mesh, sizeof(MeshRendererStoreage::DirLightData));
+		s_MeshData.plights_uniform_buffer_mesh->setData(&s_MeshData.plights_buffer_mesh, sizeof(MeshRendererStoreage::PointLightsData));
+
+		FlushMesh(shadowmap);
 	}
 
-	void MeshRenderer::BeginGeometryPassGBuffer(EditorCamera& camera) {
-		s_MeshData.gbuffer_shader->bind();
+	void MeshRenderer::GeometryPassGBuffer(EditorCamera& camera) {
+		s_shaderLibrary->get("gbuffer")->bind();
 
-		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getViewProjection();
-		auto camPos = camera.getPosition();
-		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(camPos.x, camPos.y, camPos.z, 1.0f);
-		s_MeshData.camera_uniform_buffer_mesh->setData(&s_MeshData.camera_buffer_mesh, sizeof(MeshRendererStoreage::CameraData));
+		struct camera_data {
+			glm::mat4 view;
+			glm::mat4 proj;
+		} view_proj;
+		view_proj.view = camera.getViewMatrix();
+		view_proj.proj = camera.getProjection();
+		s_MeshData.ssao_projection_uniform_buffer->setData(&view_proj, sizeof(glm::mat4) * 2);
 
-		s_MeshData.scene_meshes.clear();
+		FlushMeshGeometryPass();
 	}
 
-	void MeshRenderer::BeginGeometryPassGBuffer(const Camera& camera, const glm::mat4& transform) {
-		s_MeshData.gbuffer_shader->bind();
+	void MeshRenderer::GeometryPassGBuffer(const Camera& camera, const glm::mat4& transform) {
+		s_shaderLibrary->get("gbuffer")->bind();
 
-		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getProjection() * glm::inverse(transform);
-		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(transform[3][0], transform[3][1], transform[3][2], 1.0f);
-		s_MeshData.camera_uniform_buffer_mesh->setData(&s_MeshData.camera_buffer_mesh, sizeof(Renderer_Storeage::CameraData));
+		struct camera_data {
+			glm::mat4 view;
+			glm::mat4 proj;
+		} view_proj;
+		view_proj.view = glm::inverse(transform);
+		view_proj.proj = camera.getProjection();
+		s_MeshData.ssao_projection_uniform_buffer->setData(&view_proj, sizeof(glm::mat4) * 2);
 
-		s_MeshData.scene_meshes.clear();
+		FlushMeshGeometryPass();
 	}
 
-	void MeshRenderer::BeginGeometryPassSSAO(EditorCamera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map) {
-		s_MeshData.ssao_texture_shader->bind();
+	void MeshRenderer::SSAOPass(EditorCamera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map) {
+		s_shaderLibrary->get("ssao_texture")->bind();
 
 		/// UBO
 		s_MeshData.ssao_random_samples_uniform_buffer->setData(s_MeshData.ssao_kernel.data(), sizeof(glm::vec4) * s_MeshData.ssao_kernel.size());
@@ -978,34 +1240,78 @@ namespace iara {
 
 
 		RenderCommand::BindTextureUnit(0, gposition);
-		s_MeshData.ssao_texture_shader->setUniformInt("gPosition", 0);
+		s_shaderLibrary->get("ssao_texture")->setUniformInt("gPosition", 0);
 		RenderCommand::BindTextureUnit(1, gnormal);
-		s_MeshData.ssao_texture_shader->setUniformInt("gNormal", 1);
+		s_shaderLibrary->get("ssao_texture")->setUniformInt("gNormal", 1);
 		RenderCommand::BindTextureUnit(2, s_MeshData.ssao_noise_tex->getRendererID());
-		s_MeshData.ssao_texture_shader->setUniformInt("noiseTexture", 2);
+		s_shaderLibrary->get("ssao_texture")->setUniformInt("noiseTexture", 2);
 		RenderCommand::BindTextureUnit(3, entityID_map);
-		s_MeshData.ssao_texture_shader->setUniformInt("entityID_map", 3);
+		s_shaderLibrary->get("ssao_texture")->setUniformInt("entityID_map", 3);
 
-		s_MeshData.scene_meshes.clear();
+		s_shadowMapData.shadow_quad_vao->bind();
+		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 6);
+
+		s_shaderLibrary->get("ssao_texture")->unbind();
 	}
 
-	void MeshRenderer::BeginGeometryPassSSAO(const Camera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map) {
-		s_MeshData.ssao_texture_shader->bind();
+	void MeshRenderer::SSAOPass(const Camera& camera, const glm::mat4& transform, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map) {
+		s_shaderLibrary->get("ssao_texture")->bind();
 
-		auto& proj = camera.getProjection();
-		s_MeshData.ssao_projection_uniform_buffer->setData(&proj, sizeof(glm::mat4));
+		/// UBO
+		s_MeshData.ssao_random_samples_uniform_buffer->setData(s_MeshData.ssao_kernel.data(), sizeof(glm::vec4) * s_MeshData.ssao_kernel.size());
+
+		struct camera_data {
+			glm::mat4 view;
+			glm::mat4 proj;
+		} view_proj;
+		view_proj.view = glm::inverse(transform);
+		view_proj.proj = camera.getProjection();
+		s_MeshData.ssao_projection_uniform_buffer->setData(&view_proj, sizeof(glm::mat4) * 2);
+
+		struct VPSizes {
+			float x, y;
+		} sizes;
+		sizes.x = (float)vp_width;
+		sizes.y = (float)vp_height;
+		s_MeshData.viewport_sizes_uniform_buffer->setData(&sizes, sizeof(float) * 2);
+		/// UBO END
 
 
+		RenderCommand::BindTextureUnit(0, gposition);
+		s_shaderLibrary->get("ssao_texture")->setUniformInt("gPosition", 0);
+		RenderCommand::BindTextureUnit(1, gnormal);
+		s_shaderLibrary->get("ssao_texture")->setUniformInt("gNormal", 1);
+		RenderCommand::BindTextureUnit(2, s_MeshData.ssao_noise_tex->getRendererID());
+		s_shaderLibrary->get("ssao_texture")->setUniformInt("noiseTexture", 2);
+		RenderCommand::BindTextureUnit(3, entityID_map);
+		s_shaderLibrary->get("ssao_texture")->setUniformInt("entityID_map", 3);
 
-		s_MeshData.scene_meshes.clear();
+		s_shadowMapData.shadow_quad_vao->bind();
+		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 7);
+
+		s_shaderLibrary->get("ssao_texture")->unbind();
 	}
 
-	void MeshRenderer::LighintgPass(EditorCamera& camera, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp) {
-		s_MeshData.lighting_pass->bind();
+	void MeshRenderer::SSAOBlurPass(uint32_t ssao_input) {
+		s_shaderLibrary->get("ssao_blur_texture")->bind();
+
+		RenderCommand::BindTextureUnit(0, ssao_input);
+		s_shaderLibrary->get("ssao_blur_texture")->setUniformInt("ssao_input", 0);
+
+		s_shadowMapData.shadow_quad_vao->bind();
+		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 7);
+
+		s_shaderLibrary->get("ssao_blur_texture")->unbind();
+	}
+
+	void MeshRenderer::LighintgPass(EditorCamera& camera, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp, bool ssao_state) {
+		s_MeshData.scene_meshes.clear();
+		s_shaderLibrary->get("lighting_pass")->bind();
 
 		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getViewProjection();
 		auto camPos = camera.getPosition();
 		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(camPos.x, camPos.y, camPos.z, 1.0f);
+		s_MeshData.camera_buffer_mesh.view = camera.getViewMatrix();
 		s_MeshData.camera_uniform_buffer_mesh->setData(&s_MeshData.camera_buffer_mesh, sizeof(MeshRendererStoreage::CameraData));
 		s_MeshData.light_vp_uniform_buffer_shadowmap->setData(&light_vp, sizeof(MeshRendererStoreage::LightVPData));
 
@@ -1018,28 +1324,31 @@ namespace iara {
 		s_MeshData.dlight_uniform_buffer_mesh->setData(&s_MeshData.dlight_buffer_mesh, sizeof(MeshRendererStoreage::DirLightData));
 		s_MeshData.plights_uniform_buffer_mesh->setData(&s_MeshData.plights_buffer_mesh, sizeof(MeshRendererStoreage::PointLightsData));
 
+		bool ssao_enabled = ssao_state;
+		s_MeshData.ambient_variables_uniform_buffer->setData(&ssao_enabled, sizeof(bool));
+
 		s_shadowMapData.shadow_quad_vao->bind();
 
 		RenderCommand::BindTextureUnit(0, gposition);
-		s_shadowMapData.quad_shadowmap_shader->setUniformInt("gPosition", 0);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("gPosition", 0);
 		RenderCommand::BindTextureUnit(1, gnormal);
-		s_shadowMapData.quad_shadowmap_shader->setUniformInt("gNormal", 1);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("gNormal", 1);
 		RenderCommand::BindTextureUnit(2, gdiffusespec);
-		s_shadowMapData.quad_shadowmap_shader->setUniformInt("gDiffuseSpec", 2);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("gDiffuseSpec", 2);
 		RenderCommand::BindTextureUnit(3, shadowmap);
-		s_shadowMapData.quad_shadowmap_shader->setUniformInt("shadow_map", 3);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("shadow_map", 3);
 		RenderCommand::BindTextureUnit(4, entityID_map);
-		s_shadowMapData.quad_shadowmap_shader->setUniformInt("entityID_map", 4);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("entityID_map", 4);
 		RenderCommand::BindTextureUnit(5, ssao_map);
-		s_shadowMapData.quad_shadowmap_shader->setUniformInt("ssao_map", 5);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("ssao_map", 5);
 
 		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 7);
 
-		s_MeshData.lighting_pass->unbind();
+		s_shaderLibrary->get("lighting_pass")->unbind();
 	}
 
-	void MeshRenderer::LighintgPass(const Camera& camera, const glm::mat4& transform, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp) {
-		s_MeshData.lighting_pass->bind();
+	void MeshRenderer::LighintgPass(const Camera& camera, const glm::mat4& transform, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp, bool ssao_state) {
+		s_shaderLibrary->get("lighting_pass")->bind();
 
 		s_MeshData.camera_buffer_mesh.view_projection3D = camera.getProjection() * glm::inverse(transform);
 		s_MeshData.camera_buffer_mesh.camPos = glm::vec4(transform[3][0], transform[3][1], transform[3][2], 1.0f);
@@ -1058,49 +1367,19 @@ namespace iara {
 		s_shadowMapData.shadow_quad_vao->bind();
 
 		RenderCommand::BindTextureUnit(0, gposition);
-		s_MeshData.lighting_pass->setUniformInt("gPosition", 0);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("gPosition", 0);
 		RenderCommand::BindTextureUnit(1, gnormal);
-		s_MeshData.lighting_pass->setUniformInt("gNormal", 1);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("gNormal", 1);
 		RenderCommand::BindTextureUnit(2, gdiffusespec);
-		s_MeshData.lighting_pass->setUniformInt("gDiffuseSpec", 2);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("gDiffuseSpec", 2);
 		RenderCommand::BindTextureUnit(3, shadowmap);
-		s_MeshData.lighting_pass->setUniformInt("shadow_map", 3);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("shadow_map", 3);
 		RenderCommand::BindTextureUnit(4, entityID_map);
-		s_MeshData.lighting_pass->setUniformInt("entityID_map", 4);
+		s_shaderLibrary->get("lighting_pass")->setUniformInt("entityID_map", 4);
 
 		RenderCommand::drawArrays(s_shadowMapData.shadow_quad_vao, 0, 7);
 
-		s_MeshData.lighting_pass->unbind();
-	}
-
-	void MeshRenderer::EndGeometryPass() {
-		FlushMeshGeometryPass();
-		s_MeshData.scene_meshes.clear();
-	}
-
-	void MeshRenderer::EndGeometrySSAOPass() {
-		FlushMeshGeometryPassShadowMap();
-		s_MeshData.scene_meshes.clear();
-	}
-
-
-	void MeshRenderer::EndShadowMapPass() {
-		FlushMeshGeometryPassShadowMap();
-		s_MeshData.scene_meshes.clear();
-	}
-
-	void MeshRenderer::EndSceneMesh(uint32_t shadowmap) {
-		for (size_t i = 0; i < s_Data.scene_plights; i++) {
-			s_MeshData.plights_buffer_mesh.point_lights[i] = s_Data.point_lights[i];
-		}
-		s_MeshData.plights_buffer_mesh.nrLights = s_Data.scene_plights;
-
-		s_MeshData.dlight_buffer_mesh.dlight = s_Data.skyLight;
-		s_MeshData.dlight_uniform_buffer_mesh->setData(&s_MeshData.dlight_buffer_mesh, sizeof(MeshRendererStoreage::DirLightData));
-		s_MeshData.plights_uniform_buffer_mesh->setData(&s_MeshData.plights_buffer_mesh, sizeof(MeshRendererStoreage::PointLightsData));
-
-		FlushMesh(shadowmap);
-		s_MeshData.scene_meshes.clear();
+		s_shaderLibrary->get("lighting_pass")->unbind();
 	}
 
 	void MeshRenderer::drawMesh(const glm::mat4& transform, MeshComponent& meshcomp, int entityID) {
@@ -1267,15 +1546,15 @@ namespace iara {
 				Material& material = mesh_entry.materials[mesh.materialInd];
 
 				material.diffuse_map->bind(tex_slot);
-				s_MeshData.gbuffer_shader->setUniformInt("diffuse_map", tex_slot);
+				s_shaderLibrary->get("gbuffer")->setUniformInt("diffuse_map", tex_slot);
 				tex_slot++;
 
 				material.specular_map->bind(tex_slot);
-				s_MeshData.gbuffer_shader->setUniformInt("specular_map", tex_slot);
+				s_shaderLibrary->get("gbuffer")->setUniformInt("specular_map", tex_slot);
 				tex_slot++;
 
 				material.normal_map->bind(tex_slot);
-				s_MeshData.gbuffer_shader->setUniformInt("normal_map", tex_slot);
+				s_shaderLibrary->get("gbuffer")->setUniformInt("normal_map", tex_slot);
 				tex_slot++;
 
 				RenderCommand::DrawIndexedBaseVertex(s_MeshData.vao, mesh.numInd, mesh.baseIndex, mesh.baseVertex);
@@ -1301,6 +1580,11 @@ namespace iara {
 
 	void MeshRenderer::FlushMesh(uint32_t shadowmap) {
 		s_MeshData.vao->bind();
+
+
+		RenderCommand::BindTextureUnit(3, shadowmap);
+		s_shaderLibrary->get("mesh_light")->setUniformInt("shadow_map", 3);
+
 		for (auto& mesh_entry : s_MeshData.scene_meshes) {
 			auto& raw_mesh_data = s_MeshData.stored_meshes[mesh_entry.path];
 			s_MeshData.model_uniform_buffer_mesh->setData(&mesh_entry.transform, sizeof(MeshRendererStoreage::ModelData));
@@ -1315,7 +1599,6 @@ namespace iara {
 			s_MeshData.vao->AddVertexBuffer(mesh_entry.entityID_VB);
 
 			for (auto& mesh : raw_mesh_data.meshes) {
-				uint8_t tex_slot = 0;
 				ShaderMaterial sh_mat;
 				sh_mat.albedo = mesh_entry.materials[mesh.materialInd].diffuse;
 				sh_mat.shininess = mesh_entry.materials[mesh.materialInd].shininess;
@@ -1323,25 +1606,19 @@ namespace iara {
 
 				Material& material = mesh_entry.materials[mesh.materialInd];
 
-				material.diffuse_map->bind(tex_slot);
-				s_MeshData.mesh_shader->setUniformInt("diffuse_map", tex_slot);
-				tex_slot++;
+				material.diffuse_map->bind(0);
+				s_shaderLibrary->get("mesh_light")->setUniformInt("diffuse_map", 0);
 
-				material.specular_map->bind(tex_slot);
-				s_MeshData.mesh_shader->setUniformInt("specular_map", tex_slot);
-				tex_slot++;
+				material.specular_map->bind(1);
+				s_shaderLibrary->get("mesh_light")->setUniformInt("specular_map", 1);
 
-				material.normal_map->bind(tex_slot);
-				s_MeshData.mesh_shader->setUniformInt("normal_map", tex_slot);
-				tex_slot++;
-
-				RenderCommand::BindTextureUnit(tex_slot, shadowmap);
-				s_MeshData.mesh_shader->setUniformInt("shadow_map", tex_slot);
-				tex_slot++;
+				material.normal_map->bind(2);
+				s_shaderLibrary->get("mesh_light")->setUniformInt("normal_map", 2);
 
 				RenderCommand::DrawIndexedBaseVertex(s_MeshData.vao, mesh.numInd, mesh.baseIndex, mesh.baseVertex);
 			}
 		}
-	}
 
+		s_MeshData.scene_meshes.clear();
+	}
 }
