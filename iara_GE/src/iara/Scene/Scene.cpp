@@ -211,6 +211,12 @@ namespace iara {
 	}
 
 	void Scene::onUpdateEditor(float deltaTime, EditorCamera& camera, glm::vec2 mouse_pos) {
+		auto view_mesh = m_registry.view<TransformComponent, MeshComponent>();
+		for (auto entity : view_mesh) {
+			auto [transf, mesh] = view_mesh.get<TransformComponent, MeshComponent>(entity);
+			MeshRenderer::drawMesh(transf.getTransform(), mesh, (int)entity);
+		}
+
 		Timer timer;
 		renderToShadowMapPass(cascade1);
 		renderShadowMapToColorFBO();
@@ -234,7 +240,7 @@ namespace iara {
 				//Renderer3D::drawDynamicSky(camera.getViewProjection(), glm::vec2(m_vp_width, m_vp_height), mouse_pos, deltaTime, 1.0f);
 			}
 			glDisable(GL_DEPTH_TEST);
-			renderAtmosphere(camera);
+			//renderAtmosphere(camera);
 			glEnable(GL_DEPTH_TEST);
 			render2DPassEdit(camera);
 			render3DPassEdit(camera, cascade1);
@@ -274,7 +280,8 @@ namespace iara {
 				Renderer2D::drawDirLight(dlight);
 			}
 			Renderer2D::EndScene();
-
+			
+			
 			
 			MeshRenderer::GeometryPassGBuffer(camera);
 			m_gbuffer_framebuffer->unbind();

@@ -1153,7 +1153,7 @@ namespace iara {
 		view_proj.proj = camera.getProjection();
 		s_MeshData.ssao_projection_uniform_buffer->setData(&view_proj, sizeof(glm::mat4) * 2);
 
-		FlushMeshGeometryPassShadowMap();
+		FlushMeshGeometryPass();
 	}
 
 	void MeshRenderer::GeometryPassGBuffer(const Camera& camera, const glm::mat4& transform) {
@@ -1167,7 +1167,7 @@ namespace iara {
 		view_proj.proj = camera.getProjection();
 		s_MeshData.ssao_projection_uniform_buffer->setData(&view_proj, sizeof(glm::mat4) * 2);
 
-		FlushMeshGeometryPassShadowMap();
+		FlushMeshGeometryPass();
 	}
 
 	void MeshRenderer::SSAOPass(EditorCamera& camera, uint32_t vp_width, uint32_t vp_height, uint32_t gposition, uint32_t gnormal, uint32_t entityID_map) {
@@ -1383,6 +1383,38 @@ namespace iara {
 	//	
 	//}
 
+	void MeshRenderer::drawMesh(const glm::mat4& transform, MeshComponent& meshcomp, int entityID) {
+		if (meshcomp.path == "") return;
+
+		if (s_MeshData.stored_meshes.find(meshcomp.path) == s_MeshData.stored_meshes.end()) {
+			if (meshcomp.path != "") {
+				Mesh& new_mesh = s_MeshData.stored_meshes[meshcomp.path];
+				new_mesh.loadModel(meshcomp.path, entityID);
+				for (auto mat : new_mesh.materials)
+					meshcomp.materials.push_back(mat);
+				meshcomp.first_pass = true;
+			}
+		}
+		else if (!meshcomp.first_pass && meshcomp.path != "") {
+			meshcomp.materials = s_MeshData.stored_meshes[meshcomp.path].materials;
+			meshcomp.first_pass = true;
+		}
+
+		// Adăugăm mesh-ul în lista de randare (asumăm că e încărcat acum)
+		std::vector<int> entityIDBuffer(s_MeshData.stored_meshes[meshcomp.path].m_num_vertices, entityID);
+		SceneMeshData smd;
+		smd.path = meshcomp.path;
+		smd.materials = meshcomp.materials;
+		smd.transform = transform;
+		smd.entityID_VB = VertexBuffer::Create((void*)entityIDBuffer.data(), entityIDBuffer.size() * sizeof(int));
+		smd.entityID_VB->setLayout({
+			{ ShaderDataType::Int, "a_entity_id" }
+			});
+
+		s_MeshData.scene_meshes.push_back(smd);
+
+	}
+
 	void MeshRenderer::FlushMeshGeometryPassShadowMap() {
 		s_MeshData.vao->bind();
 		for (auto& mesh_entry : s_MeshData.scene_meshes) {
@@ -1392,6 +1424,9 @@ namespace iara {
 
 			s_MeshData.vao->setVertexBuffer(raw_mesh_data.vb);
 			s_MeshData.vao->SetIndexBuffer(raw_mesh_data.ib);
+
+			s_MeshData.model_buffer_mesh.model = mesh_entry.transform;
+			s_MeshData.model_uniform_buffer_mesh->setData(&s_MeshData.model_buffer_mesh, sizeof(glm::mat4));
 
 			for (auto& mesh : raw_mesh_data.meshes) {
 				RenderCommand::DrawIndexedBaseVertex(s_MeshData.vao, mesh.numInd, mesh.baseIndex, mesh.baseVertex);
@@ -1441,5 +1476,43 @@ namespace iara {
 		}
 
 		s_MeshData.scene_meshes.clear();
+	}
+	void MeshRenderer::FlushMeshGeometryPass() {
+		s_MeshData.vao->bind();
+
+
+		for (auto& mesh_entry : s_MeshData.scene_meshes) {
+			auto& raw_mesh_data = s_MeshData.stored_meshes[mesh_entry.path];
+			s_MeshData.model_uniform_buffer_mesh->setData(&mesh_entry.transform, sizeof(MeshRendererStoreage::ModelData));
+			/// Setting data in the vertex buffer AND index buffer
+
+			s_MeshData.vao->setVertexBuffer(raw_mesh_data.vb);
+			s_MeshData.vao->SetIndexBuffer(raw_mesh_data.ib);
+
+			//// **Create an Entity ID buffer for this specific instance (all vertices share the same entityID)**
+			/// AYOOOOO IT FUCKING WORKES
+			/// VALID ENTITYIDS FOR EVERYONE YOOHOOOO
+			s_MeshData.vao->AddVertexBuffer(mesh_entry.entityID_VB);
+
+			for (auto& mesh : raw_mesh_data.meshes) {
+				ShaderMaterial sh_mat;
+				sh_mat.albedo = mesh_entry.materials[mesh.materialInd].diffuse;
+				sh_mat.shininess = mesh_entry.materials[mesh.materialInd].shininess;
+				s_MeshData.materials_uniform_buffer_mesh->setData(&sh_mat, sizeof(ShaderMaterial));
+
+				Material& material = mesh_entry.materials[mesh.materialInd];
+
+				material.diffuse_map->bind(0);
+				s_shaderLibrary->get("gbuffer")->setUniformInt("diffuse_map", 0);
+
+				material.specular_map->bind(1);
+				s_shaderLibrary->get("gbuffer")->setUniformInt("specular_map", 1);
+
+				material.normal_map->bind(2);
+				s_shaderLibrary->get("gbuffer")->setUniformInt("normal_map", 2);
+
+				RenderCommand::DrawIndexedBaseVertex(s_MeshData.vao, mesh.numInd, mesh.baseIndex, mesh.baseVertex);
+			}
+		}
 	}
 }
