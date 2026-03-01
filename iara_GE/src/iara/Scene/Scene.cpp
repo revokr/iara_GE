@@ -4,7 +4,7 @@
 #include "Component.h"
 #include "Entity.h"
 #include "../Core/Timer.h"
-#include "iara/Renderer/Renderer2D.h"
+#include "iara/Renderer/Renderer.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glad\glad.h>
 
@@ -20,10 +20,10 @@ namespace iara {
 	{
 		m_registry = {};
 
+		initializeAtmosphere();
+
 		initializeFramebuffers();
 		initializeShadowMap();
-
-		initializeAtmosphere();
 	}
 
 	Scene::~Scene()
@@ -218,9 +218,19 @@ namespace iara {
 		}
 
 		Timer timer;
+		
+		glm::vec3 to_sun = glm::normalize(glm::vec3(sun_direction.x, sun_direction.y, sun_direction.z));
+		glm::vec3 target = camera.getPosition();
+		glm::vec3 light_position = target + to_sun * shadow_map_light_distance;
+		glm::vec3 up_vector = glm::vec3(0.0f, 1.0f, 0.0f);
+		float r = shadow_map_radius;
+		glm::mat4 lightProjection = glm::ortho(-r, r, -r, r, 1.0f, 100.0f);
+		glm::mat4 lightView = glm::lookAt(light_position, target, up_vector);
+
+		cascade1 = lightProjection * lightView;
+
 		renderToShadowMapPass(cascade1);
 		renderShadowMapToColorFBO();
-
 
 		if (rendering_type == RenderingType::MSAA) {
 			// MSAA Forward Pass
@@ -230,7 +240,7 @@ namespace iara {
 
 			m_msaa_framebuffer->bind();
 			iara::Renderer2D::ResetStats();
-			iara::RenderCommand::SetClearColor({ 0.8f, 0.2f, 0.5f, 1.0f });
+			//iara::RenderCommand::SetClearColor({ 0.8f, 0.2f, 0.5f, 1.0f });
 			iara::RenderCommand::Clear();
 			m_msaa_framebuffer->clearAttachment(1, -1);
 
@@ -247,24 +257,25 @@ namespace iara {
 			m_msaa_framebuffer->unbind();
 		}
 		else if (rendering_type == RenderingType::DEFERRED) {
-			//GEOMETRY PASS
-			// SKYBOX RENDERS ON TOP OF EVERYTHING --- FIXED USING ENTITY ID AND PASSING THAT TO THE
-			//									   LIGHTINGSHADER WHERE IT TESTS IF THE PIXEL HAS ENTITYID > 10000 (arbitrary)
+			
+
 			glDisable(GL_BLEND);
 
 			m_gbuffer_framebuffer->bind();
 			iara::RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 			iara::RenderCommand::Clear();
-			//m_main_framebuffer->clearAttachment(0, -1);
-			//m_main_framebuffer->clearAttachment(1, -1);
-			//m_main_framebuffer->clearAttachment(2, -1);
-			//m_gbuffer_framebuffer->clearAttachment(3, -1);
+			m_gbuffer_framebuffer->clearAttachment(0, -1);
+			m_gbuffer_framebuffer->clearAttachment(1, -1);
+			m_gbuffer_framebuffer->clearAttachment(2, -1);
+			m_gbuffer_framebuffer->clearAttachment(3, -1);
 
+			/*
 			if (m_skybox) {
 				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
-				//Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox, sun_direction);
+				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox, sun_direction);
 				//Renderer3D::drawDynamicSky(glm::vec2(m_vp_width, m_vp_height), mouse_pos, deltaTime);
 			}
+			*/
 
 			Renderer2D::BeginScene(camera, m_plights, m_dlight);
 			auto view4 = m_registry.view<TransformComponent, PointLightComponent>();
@@ -282,7 +293,7 @@ namespace iara {
 			Renderer2D::EndScene();
 			
 			
-			
+			depthPassAtmosphere(camera);
 			MeshRenderer::GeometryPassGBuffer(camera);
 			m_gbuffer_framebuffer->unbind();
 
@@ -310,23 +321,13 @@ namespace iara {
 			applyToneMapping(camera.getExposure(), m_deferred_atmosphere_framebuffer->getColorAtt(0));
 		}
 		
-		
-
-		
 	}
 
 	void Scene::renderAtmosphere(EditorCamera& camera) {
-		
-		// 1. Get the camera's position in your engine (Y-up)
 		glm::vec3 enginePos = camera.getPosition();
 
-		// 2. Convert position to Atmosphere Space (Y-up -> Z-up)
-		// If Engine Y+ is Up, then Atmosphere Z+ = Engine Y+, and Atmosphere Y+ = Engine -Z
 		glm::vec3 atmospherePos = glm::vec3(enginePos.x, -enginePos.z, enginePos.y);
 
-		// 3. Construct the View Matrix correction
-		// This matrix maps Engine coords to Atmosphere coords
-		// Engine (X, Y, Z) -> Atmosphere (X, -Z, Y)
 		glm::mat4 engineToAtmosphere = glm::mat4(
 			1.0f, 0.0f, 0.0f, 0.0f, // Atmosphere X = Engine X
 			0.0f, 0.0f, 1.0f, 0.0f, // Atmosphere Z = Engine Y
@@ -334,18 +335,15 @@ namespace iara {
 			0.0f, 0.0f, 0.0f, 1.0f
 		);
 
-		// 4. Combine with your existing camera view
-		// We take the inverse view (World from View) and move it into Atmosphere space
-		glm::mat4 atmosphereModelFromView = engineToAtmosphere * glm::inverse(camera.getViewMatrix());
-		
-		glm::vec3 raw_sun_dir = glm::vec3(
-			cos(atm_sun_direction.y) * sin(atm_sun_direction.x),
-			sin(atm_sun_direction.y) * sin(atm_sun_direction.x),
-			cos(atm_sun_direction.x)
-		);
-
-		glm::vec3 atmosphere_sun_dir = glm::vec3(raw_sun_dir.x, raw_sun_dir.z, raw_sun_dir.y);
+		glm::mat4 atmosphere_model_from_view = engineToAtmosphere * glm::inverse(camera.getViewMatrix());
+		glm::mat4 atmosphere_view_from_model = engineToAtmosphere * camera.getViewMatrix();
 		glm::mat4 view_from_clip_camera = glm::inverse(camera.getProjection());
+		glm::mat4 clip_from_view_camera = camera.getProjection();
+		glm::mat4 inverse_view = glm::inverse(camera.getViewMatrix());
+
+		/// this is engine space
+		glm::vec3 to_sun_dir_y_up = sun_direction;
+		glm::vec3 to_sun_dir_z_up = glm::normalize(glm::vec3(sun_direction.x, -sun_direction.z, sun_direction.y));
 		glm::vec3 earth_center = glm::vec3(0.0f, 0.0f, -6360.0f);
 		glm::vec3 white_point = glm::vec3(1.08236f, 0.96829f, 0.94934f);
 		glm::vec2 sun_size = glm::vec2(tan(m_sun_angular_radius), cos(m_sun_angular_radius));
@@ -359,22 +357,79 @@ namespace iara {
 		Renderer2D::drawAtmosphere(
 			m_deferred_atmosphere_framebuffer->getSpecification().width,
 			m_deferred_atmosphere_framebuffer->getSpecification().height,
-			atmosphereModelFromView,
+			atmosphere_model_from_view,
 			view_from_clip_camera,
+			atmosphere_view_from_model,
+			clip_from_view_camera,
+			inverse_view,
 			atmospherePos,
 			white_point,
 			earth_center,
-			atmosphere_sun_dir, // Use the swizzled sun
+			to_sun_dir_z_up,
+			to_sun_dir_y_up,
 			sun_size,
 			camera.getExposure(),
 			transmittance,
 			scattering,
 			mie_scattering,
 			irradiance,
-			m_deferred_hdr_framebuffer->getColorAtt(0),
+			m_deferred_hdr_framebuffer->getColorAtt(),
 			m_gbuffer_framebuffer->getDepthAtt(),
-			m_gbuffer_framebuffer->getColorAtt(0)
+			m_gbuffer_framebuffer->getColorAtt(0),
+			m_gbuffer_framebuffer->getColorAtt(1),
+			m_ssao_blur_framebuffer->getColorAtt(),
+			m_gbuffer_framebuffer->getColorAtt(3),
+			m_shadow_map->getDepthAtt()
 		);
+	}
+
+	void Scene::depthPassAtmosphere(EditorCamera& camera) {
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+
+		glDrawBuffers(0, nullptr);
+		
+		glm::vec3 enginePos = camera.getPosition();
+
+		glm::vec3 atmospherePos = glm::vec3(enginePos.x, -enginePos.z, enginePos.y);
+
+		glm::mat4 engineToAtmosphere = glm::mat4(
+			1.0f, 0.0f, 0.0f, 0.0f, // Atmosphere X = Engine X
+			0.0f, 0.0f, 1.0f, 0.0f, // Atmosphere Z = Engine Y
+			0.0f, -1.0f, 0.0f, 0.0f, // Atmosphere Y = Engine -Z
+			0.0f, 0.0f, 0.0f, 1.0f
+		);
+
+		glm::mat4 atmosphere_model_from_view = engineToAtmosphere * glm::inverse(camera.getViewMatrix());
+		glm::mat4 atmosphere_view_from_model = glm::inverse(atmosphere_model_from_view);
+		glm::mat4 view_from_clip_camera = glm::inverse(camera.getProjection());
+		glm::mat4 clip_from_view_camera = camera.getProjection();
+
+
+		glm::vec3 to_sun_dir_z_up = glm::normalize(glm::vec3(sun_direction.x, -sun_direction.z, sun_direction.y));
+		glm::vec3 earth_center = glm::vec3(0.0f, 0.0f, -6360.0f);
+		glm::vec3 white_point = glm::vec3(1.08236f, 0.96829f, 0.94934f);
+		glm::vec2 sun_size = glm::vec2(tan(m_sun_angular_radius), cos(m_sun_angular_radius));
+
+
+		uint32_t transmittance = m_atmosphere->getTransmittanceTex()->getRendererID();
+		uint32_t scattering = m_atmosphere->getScatteringTex()->getRendererID();
+		uint32_t mie_scattering = m_atmosphere->getMieScatteringTex()->getRendererID();
+		uint32_t irradiance = m_atmosphere->getIrradianceTex()->getRendererID();
+
+		Renderer2D::depthPassAtmosphere(
+			m_deferred_atmosphere_framebuffer->getSpecification().width,
+			m_deferred_atmosphere_framebuffer->getSpecification().height,
+			atmosphere_model_from_view,
+			view_from_clip_camera,
+			atmosphere_view_from_model,
+			clip_from_view_camera,
+			atmospherePos,
+			earth_center
+		);
+
+		GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+		glDrawBuffers(4, bufs);
 	}
 
 	void Scene::onSunMovedUpdate() {
@@ -436,8 +491,7 @@ namespace iara {
 		Renderer2D::EndScene();
 	}
 
-	void Scene::renderToShadowMapPass(const glm::mat4& light_vp)
-	{
+	void Scene::renderToShadowMapPass(const glm::mat4& light_vp) {
 		m_shadow_map->bind();
 		RenderCommand::Clear();
 		glEnable(GL_CULL_FACE);
@@ -445,9 +499,8 @@ namespace iara {
 
 		MeshRenderer::ShadowMapPass(light_vp);
 
+		//glDisable(GL_CULL_FACE);
 		m_shadow_map->unbind();
-
-		glDisable(GL_CULL_FACE);
 	}
 
 	void Scene::render3DPassEdit(EditorCamera& camera, const glm::mat4& light_vp) {		
@@ -508,28 +561,24 @@ namespace iara {
 		return {};
 	}
 
-	void Scene::initializeShadowMap()
-	{
+	void Scene::initializeShadowMap() {
+		int size = 4096;
+
 		std::string name = "ShadowMap ";
 		FramebufferSpecification specs;
 		specs.attachments = { FramebufferTextureFormat::DEPTH_COMPONENT };
-		specs.width = 2048;
-		specs.height = 2048;
+		specs.width = size;
+		specs.height = size;
+		specs.samples = 1;
 		m_shadow_map = Framebuffer::Create(specs, name);
 
 		std::string name2 = "ShadowMapQuad ";
 		FramebufferSpecification specs2;
 		specs2.attachments = { FramebufferTextureFormat::RGBA8 };
-		specs2.width = 2048;
-		specs2.height = 2048;
+		specs2.width = size;
+		specs2.height = size;
+		specs2.samples = 1;
 		m_shadowmap_quad = Framebuffer::Create(specs2, name2);
-
-		glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 1000.0f);
-		glm::mat4 lightView = glm::lookAt(glm::vec3(-30.0f, 230.0f, -1.0f),
-			glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3(0.0f, 1.0f, 0.0f));
-
-		cascade1 = lightProjection * lightView;
 	}
 
 	void Scene::initializeAtmosphere() {

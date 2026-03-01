@@ -1,12 +1,12 @@
 Scene: Untitled
 Entities:
-  - Entity: 1
+  - Entity: 12345
     TagComponent:
       Tag: Mesh Object
     TransformComponent:
-      Translation: [1.0, 1.0, 1.0]
-      Rotation: [0.3, 0, 0]
-      Scale: [1.0, 1.0, 1.0]
+      Translation: [1, 1, 1]
+      Rotation: [0, 0, 0]
+      Scale: [0.00251550507, 0.00251550507, 0.00251550507]
     MeshComponent:
       path: Assets\Models\sponza\sponza.obj
       Materials:
@@ -478,3 +478,350 @@ Entities:
           shininess: 10
           specular_map_path: ""
           normal_map_path: ""
+        Material78:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material79:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/lion.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material80:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/background.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material81:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material82:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/vase_plant.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material83:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_arch_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material84:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/spnza_bricks_a_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material85:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_ceiling_a_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material86:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/chain_texture.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material87:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_column_a_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material88:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_column_b_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material89:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_column_c_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material90:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_details_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material91:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_fabric_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material92:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_curtain_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material93:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_fabric_blue_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material94:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_fabric_green_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material95:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_curtain_green_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material96:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_curtain_blue_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material97:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_flagpole_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material98:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_floor_a_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material99:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_thorn_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material100:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_roof_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material101:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/vase_dif.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material102:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/vase_hanging.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material103:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/vase_round.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material104:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material105:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/lion.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material106:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/background.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material107:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material108:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/vase_plant.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material109:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_arch_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material110:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/spnza_bricks_a_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material111:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_ceiling_a_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material112:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/chain_texture.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material113:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_column_a_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material114:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_column_b_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material115:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_column_c_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material116:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_details_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material117:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_fabric_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material118:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_curtain_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material119:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_fabric_blue_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material120:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_fabric_green_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material121:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_curtain_green_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material122:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_curtain_blue_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material123:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_flagpole_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material124:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_floor_a_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material125:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_thorn_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material126:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/sponza_roof_diff.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material127:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/vase_dif.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material128:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/vase_hanging.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material129:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\sponza\textures/vase_round.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [-0.175191, 1.46458626, 1.04856038]
+      Rotation: [-0.959519446, -0.263106942, -4.01238196e-07]
+      Scale: [0.117822841, 0.117822871, 0.117822841]
+    MeshComponent:
+      path: Assets\Models\backpack\backpack.obj
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material1:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\backpack\diffuse.jpg
+          shininess: 10
+          specular_map_path: Assets\Models\backpack\specular.jpg
+          normal_map_path: Assets\Models\backpack\normal.png
+        Material2:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: ""
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: ""
+        Material3:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\backpack\diffuse.jpg
+          shininess: 10
+          specular_map_path: Assets\Models\backpack\specular.jpg
+          normal_map_path: Assets\Models\backpack\normal.png
+CubemapPath: ""

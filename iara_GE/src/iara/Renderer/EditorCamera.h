@@ -60,12 +60,12 @@ namespace iara {
 
 		glm::vec2 m_initial_mouse_pos;
 
-		float m_distance = 200.0f;
+		float m_distance = 1.0f;
 		float m_pitch = 0.0f, m_yaw = 0.0f;
 
 		float m_viewport_w = 1280, m_viewport_h = 720;
 
-		float m_exposure = 1.0f;
+		float m_exposure = 10.0f;
 
 	};
 

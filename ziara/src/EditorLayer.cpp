@@ -12,7 +12,7 @@
 #include "iara\Core\Timer.h"
 
 #include "iara\Scene\SceneRenderer.h"
-#include "iara\Renderer\Renderer2D.h"
+#include "iara\Renderer\Renderer.h"
 
 static float g_on_update_time = 0.0f;
 static float g_on_imgui_render_time = 0.0f;
@@ -61,9 +61,6 @@ namespace iara {
         if (m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
             (spec.width != (uint32_t)m_viewportSize.x || spec.height != (uint32_t)m_viewportSize.y)) {
 
-            IARA_CORE_TRACE("Se intampla aici!");
-            IARA_CORE_TRACE("{0} si {1}", m_viewportSize.x, m_viewportSize.y);
-            IARA_CORE_TRACE("{0} si {1}", spec.width, spec.height);
             m_active_scene->resizeFramebuffers((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
             m_active_scene->onViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
           
@@ -344,15 +341,16 @@ namespace iara {
         uint32_t texID = m_active_scene->getShadowMapQuad()->getColorAtt(0);  /// Get the texture from the framebuffer
         ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-        texID = m_active_scene->getAtmFramebuffer()->getColorAtt(0);
+        texID = m_active_scene->getGBufferFramebuffer()->getDepthAtt();
+        ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
         //ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
         /*texID = m_active_scene->getAtmosphere()->getTransmittanceTex()->getRendererID();  /// Get the texture from the framebuffer
         ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
         texID = m_active_scene->getAtmosphere()->getIrradianceTex()->getRendererID();  /// Get the texture from the framebuffer
         ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });*/
-        // SSAO NOISE TEXTURE
-        //ImGui::Image((void*)(intptr_t)3, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
+        /// SSAO NOISE TEXTURE
+        ImGui::Image((void*)(intptr_t)3, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
         //ImGui::Image((void*)(intptr_t)m_active_scene->getDeferredLightingFramebuffer()->getColorAtt(0), ImVec2(300, 300), ImVec2{0,1}, ImVec2{1,0});
 
@@ -513,10 +511,12 @@ namespace iara {
             RenderCommand::polygonMode(m_polygonMode);
         }
 
-        ImGui::DragFloat("Exposure", m_editor_camera.getPExposure(), 0.01f, 0.0f, 10.0f);
+        ImGui::DragFloat("Exposure", m_editor_camera.getPExposure(), 0.01f, 0.0f, 100.0f);
         ImGui::DragFloat3("Camera Position1231421", &m_editor_camera.m_position.x, 1.0f, 0.0f, 10000.0f);
+        ImGui::DragFloat("ShadowMap Radius", &m_active_scene->shadow_map_radius, 0.5f, 1.0f, 100.0f);
+        ImGui::DragFloat("Shadow Light Distance", &m_active_scene->shadow_map_light_distance, 0.5f, 1.0f, 100.0f);
 
-		ImGui::DragFloat2("Sun Direction", glm::value_ptr(m_active_scene->atm_sun_direction), 0.01f, -10.0f, 10.0f);
+        ImGui::DragFloat3("Sun Direction2", glm::value_ptr(m_active_scene->sun_direction), 0.015f, -1.0f, 1.0f);
         ImGui::DragFloat("View Zenith Angle", &m_active_scene->m_view_zenith_angle_radians_, 0.02, 0.0, 10.0);
         ImGui::DragFloat("View Azimuth Angle", &m_active_scene->m_view_azimuth_angle_radians_, 0.02, 0.0, 10.0);
         const char* rendering_types_names[] = { "MSAA", "DEFERRED" };

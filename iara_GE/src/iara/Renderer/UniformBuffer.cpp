@@ -1,7 +1,7 @@
 #include "ir_pch.h"
 #include "UniformBuffer.h"
 
-#include "iara\Renderer\Renderer.h"
+#include "iara\Renderer\RendererAbstract.h"
 #include "platform\openGL\OpenGLUniformBuffer.h"
 
 namespace iara {

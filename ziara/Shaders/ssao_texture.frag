@@ -23,13 +23,13 @@ layout (std140, binding = 14) uniform ProjectionUBO {
 };
 
 void main() {
-	const vec2 noise_scale = vec2(u_vp_size.x / 4.0, u_vp_size.y / 4.0); 
+	const vec2 noise_UV = gl_FragCoord.xy / 4.0;
 
 	int entity = texture(entityID_map, TexCoord).r;
 
 	vec3 frag_pos = texture(gPosition, TexCoord).rgb;
 	vec3 normal = normalize(texture(gNormal, TexCoord).rgb);
-	vec3 random_vec = normalize(texture(noiseTexture, TexCoord * noise_scale).rgb);
+	vec3 random_vec = normalize(texture(noiseTexture, noise_UV).rgb * 2.0 - 1.0);
 
 	vec3 tangent = normalize(random_vec - normal * dot(random_vec, normal));
 	vec3 bitangent = cross(normal, tangent);
@@ -54,7 +54,7 @@ void main() {
 
 	color = 1.0 - (occlusion / 64.0);
 
-	if (entity < 0 || entity > 5) {
+	if (entity < 0 || entity > 10000) {
 		color = 0.0;
 	}
 }

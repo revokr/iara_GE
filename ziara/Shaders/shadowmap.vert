@@ -1,8 +1,7 @@
 #version 450 core
 layout(location = 0) in vec3 a_pos;
 
-layout(std140, binding = 11) uniform lightSpaceMatrix
-{
+layout(std140, binding = 11) uniform lightSpaceMatrix {
 	mat4 u_LightViewProjection;
 };
 

@@ -76,11 +76,12 @@ namespace iara {
 		RenderingType rendering_type = RenderingType::DEFERRED;
 
 		float render_shadowmap_timer = 0.0f;
+		float shadow_map_radius = 10.0f;
+		float shadow_map_light_distance = 20.0f;
+		glm::mat4 m_shadowmap_projection;
 		bool use_ssao = true;
-		glm::vec4 sun_direction = glm::vec4(-0.5f, -1.0f, -0.3f, 0.0f);
-		glm::vec2 atm_sun_direction = glm::vec2(1.3f, 3.0f);
-		float m_sun_zenith_angle = 1.3;
-		float m_sun_azimuth_angle = 3.0;
+
+		glm::vec3 sun_direction = glm::vec3(-0.5f, 0.5f, -0.3f);
 		float m_sun_angular_radius = 0.00935 / 2.0;
 		float m_view_distance = 9000.0;
 		float m_view_zenith_angle_radians_ = 1.47;
@@ -96,6 +97,7 @@ namespace iara {
 
 		/// RENDER PASSES
 		void renderAtmosphere(EditorCamera& camera);
+		void depthPassAtmosphere(EditorCamera& camera);
 
 		void render2DPassEdit(EditorCamera& camera);
 		void renderToShadowMapPass(const glm::mat4& light_vp);

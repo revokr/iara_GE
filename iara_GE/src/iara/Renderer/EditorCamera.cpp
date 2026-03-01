@@ -10,6 +10,7 @@ namespace iara {
         : m_fov{ fov }, m_aspect_ratio{ aspect_ratio }, m_near_clip{ near_clip }, m_far_clip{ far_clip },
         Camera{ glm::perspective(glm::radians(fov), aspect_ratio, near_clip, far_clip) }
     {
+        m_exposure = 10.0f;
         updateView();
     }
 

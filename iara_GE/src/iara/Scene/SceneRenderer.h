@@ -1,6 +1,6 @@
 #pragma once
 
-#include "iara\Renderer\Renderer2D.h"
+#include "iara\Renderer\Renderer.h"
 
 namespace iara {
 	

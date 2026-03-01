@@ -9,7 +9,6 @@ layout(std140, binding = 23) uniform ViewData {
 	mat4 view_from_clip;
 	mat4 view_from_model;
 	mat4 clip_from_view;
-	mat4 inverse_view;
 };
 
 void main() {

@@ -4,23 +4,40 @@ layout(location = 0) in vec3 view_ray;
 
 layout(location = 0) out vec4 color;
 
+layout(std140, binding = 11) uniform lightSpaceMatrix {
+	mat4 u_lightVP;
+};
+
 layout(std140, binding = 24) uniform Data {
     vec4 camera_;
     vec4 white_point_;
     vec4 earth_center_;
     vec4 sun_direction_;
+    vec4 sun_direction_y_up_;
     vec4 sun_size_;
     vec4 viewport_size;
     float exposure;
+};
+
+layout(std140, binding = 23) uniform ViewData {
+	mat4 model_from_view;
+	mat4 view_from_clip;
+	mat4 view_from_model;
+	mat4 clip_from_view;
+    mat4 inverse_view;
 };
 
 layout(binding = 0) uniform sampler2D transmittance_texture;
 layout(binding = 1) uniform sampler3D scattering_texture;
 layout(binding = 2) uniform sampler3D single_mie_scattering_texture;
 layout(binding = 3) uniform sampler2D irradiance_texture;
-layout(binding = 4) uniform sampler2D lighting_pass_texture;
+layout(binding = 4) uniform sampler2D g_color;
 layout(binding = 5) uniform sampler2D g_depth_texture;
 layout(binding = 6) uniform sampler2D g_position_texture;
+layout(binding = 7) uniform sampler2D g_normal;
+layout(binding = 8) uniform sampler2D ssao_map;
+layout(binding = 9) uniform isampler2D entityID_map;
+layout(binding = 10) uniform sampler2D shadow_map;
 
 
 const float kLengthUnitInMeters = 1000.000000;
@@ -1082,11 +1099,45 @@ void GetSphereShadowInOut(vec3 view_direction, vec3 sun_direction,
   }
 }
 
+float calculateShadow(vec3 world_pos, vec3 normal, vec3 sun_dir) {
+    vec4 lp = u_lightVP * vec4(world_pos, 1.0);
+    vec3 ndc = lp.xyz / lp.w;
+    vec3 uvz = ndc * 0.5 + 0.5;
+
+    if (uvz.x < 0.0 || uvz.x > 1.0 ||
+        uvz.y < 0.0 || uvz.y > 1.0 ||
+        uvz.z < 0.0 || uvz.z > 1.0)
+        return 1.0;
+
+    float ndotl = dot(normalize(normal), normalize(-sun_dir));
+    if (ndotl <= 0.0) return 1.0;
+    ndotl = clamp(ndotl, 0.0, 1.0);
+
+    float texel_size = 1.0 / float(textureSize(shadow_map, 0).x);
+    float bias = max(0.5 * texel_size, (2.0 * texel_size) * (1.0 - ndotl));
+    
+    float current_depth = uvz.z - bias;
+    ivec2 size = textureSize(shadow_map, 0);
+    vec2 shadow_map_size = vec2(size);
+    vec2 texel = 1.0 / shadow_map_size;
+    float vis = 0.0;
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            float closest_depth = texture(shadow_map, uvz.xy + vec2(x, y) * texel).r;
+            vis += (current_depth <= closest_depth) ? 1.0 : 0.0;
+        }
+    }
+
+    return vis / 9.0;
+
+}
+
 void main() {
     
     vec3 camera = camera_.xyz;
     vec3 white_point = white_point_.xyz;
-    vec3 sun_direction = sun_direction_.xyz;
+    vec3 sun_direction = normalize(sun_direction_.xyz);
+    vec3 sun_dir_shadow = normalize(sun_direction_y_up_.xyz);
     vec2 sun_size = sun_size_.xy;
     vec3 earth_center = earth_center_.xyz;
 
@@ -1107,94 +1158,67 @@ void main() {
     float p_dot_v = dot(p, view_direction);
     float p_dot_p = dot(p, p);
     float ray_sphere_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-    float discriminant =
-        kSphereRadius * kSphereRadius -ray_sphere_center_squared_distance;
+    float discriminant = kSphereRadius * kSphereRadius -ray_sphere_center_squared_distance;
     float sphere_alpha = 0.0;
     vec3 sphere_radiance = vec3(0.0);
-  
-    // small sphere rendering
-    /*
-    if (discriminant >= 0.0) {
-    float distance_to_intersection = -p_dot_v - sqrt(discriminant);
-    if (distance_to_intersection > 0.0) {
-        float ray_sphere_distance =
-            kSphereRadius - sqrt(ray_sphere_center_squared_distance);
-        float ray_sphere_angular_distance = -ray_sphere_distance / p_dot_v;
-        sphere_alpha =
-            min(ray_sphere_angular_distance / fragment_angular_size, 1.0);
-        vec3 point = camera + view_direction * distance_to_intersection;
-        vec3 normal = normalize(point - kSphereCenter);
-        vec3 sky_irradiance;
-        vec3 sun_irradiance = GetSunAndSkyIrradiance(
-            point - earth_center, normal, sun_direction, sky_irradiance);
-        sphere_radiance =
-            kSphereAlbedo * (1.0 / PI) * (sun_irradiance + sky_irradiance);
-        float shadow_length =
-            max(0.0, min(shadow_out, distance_to_intersection) - shadow_in) *
-            lightshaft_fadein_hack;
-        vec3 transmittance;
-        vec3 in_scatter = GetSkyRadianceToPoint(camera - earth_center,
-            point - earth_center, shadow_length, sun_direction, transmittance);
-        sphere_radiance = sphere_radiance * transmittance + in_scatter;
-    }
-    }
-    */
+
     p = camera - earth_center;
     p_dot_v = dot(p, view_direction);
     p_dot_p = dot(p, p);
     float ray_earth_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-    discriminant = 
-        earth_center.z * earth_center.z - ray_earth_center_squared_distance;
+    discriminant = earth_center.z * earth_center.z - ray_earth_center_squared_distance;
     float ground_alpha = 0.0;
     vec3 ground_radiance = vec3(0.0);
+    
     if (discriminant >= 0.0) {
-    float distance_to_intersection = -p_dot_v - sqrt(discriminant);
-    if (distance_to_intersection > 0.0) {
-        vec3 point = camera + view_direction * distance_to_intersection;
-        vec3 normal = normalize(point - earth_center);
-        vec3 sky_irradiance;
-        vec3 sun_irradiance = GetSunAndSkyIrradiance(
-            point - earth_center, normal, sun_direction, sky_irradiance);
+        float distance_to_intersection = -p_dot_v - sqrt(discriminant);
+        if (distance_to_intersection > 0.0) {
+            vec3 point = camera + view_direction * distance_to_intersection;
+            vec3 normal = normalize(point - earth_center);
+            vec3 sky_irradiance;
+            vec3 sun_irradiance = GetSunAndSkyIrradiance(
+                point - earth_center, normal, sun_direction, sky_irradiance);
 
-        // this was rendering the sphere shadow
-        /*
-        ground_radiance = kGroundAlbedo * (1.0 / PI) * (
-            sun_irradiance * GetSunVisibility(point, sun_direction) +
-            sky_irradiance * GetSkyVisibility(point));
-        */
-        ground_radiance = kGroundAlbedo * (1.0 / PI) * sky_irradiance;
-        float shadow_length =
-            max(0.0, min(shadow_out, distance_to_intersection) - shadow_in) *
-            lightshaft_fadein_hack;
-        shadow_length = 0.0;
-        vec3 transmittance;
-        vec3 in_scatter = GetSkyRadianceToPoint(camera - earth_center,
-            point - earth_center, shadow_length, sun_direction, transmittance);
-        ground_radiance = ground_radiance * transmittance + in_scatter;
-        ground_alpha = 1.0;
+            ground_radiance = kGroundAlbedo * (1.0 / PI) * sky_irradiance;
+            float shadow_length =
+                max(0.0, min(shadow_out, distance_to_intersection) - shadow_in) *
+                lightshaft_fadein_hack;
+            shadow_length = 0.0;
+            vec3 transmittance;
+            vec3 in_scatter = GetSkyRadianceToPoint(camera - earth_center,
+                point - earth_center, shadow_length, sun_direction, transmittance);
+            ground_radiance = ground_radiance * transmittance + in_scatter;
+            ground_alpha = 1.0;
+            
+        }
     }
-    }
-    float shadow_length = max(0.0, shadow_out - shadow_in) *
-        lightshaft_fadein_hack;
+    
+    float shadow_length = max(0.0, shadow_out - shadow_in) * lightshaft_fadein_hack;
     shadow_length = 0.0;
     vec3 transmittance;
-    vec3 radiance = GetSkyRadiance(
-        camera - earth_center, view_direction, shadow_length, sun_direction,
-        transmittance);
+    vec3 radiance = GetSkyRadiance(camera - earth_center, view_direction, shadow_length, sun_direction, transmittance);
     
     if (dot(view_direction, sun_direction) > sun_size.y) {
         radiance = radiance + transmittance * GetSolarRadiance();
     }
        
-    radiance = mix(radiance, ground_radiance, ground_alpha);
-    radiance = mix(radiance, sphere_radiance, sphere_alpha);
+    //radiance = mix(radiance, ground_radiance, ground_alpha);
+    //radiance = mix(radiance, sphere_radiance, sphere_alpha);
     //color.rgb = pow(vec3(1.0) - exp(-radiance / white_point * exposure), vec3(1.0 / 2.2));
     color.rgb = radiance;
 
     float depth = texture(g_depth_texture, gl_FragCoord.xy / viewport_size.xy).r;
-    if (depth < 1.0) {
-        vec3 frag_color = texture(lighting_pass_texture, gl_FragCoord.xy / viewport_size.xy).rgb;
+    int entity = texture(entityID_map, gl_FragCoord.xy / viewport_size.xy).r;
+    if (depth < 1.0 && entity >= 0 && entity < 10000) {
+        vec3 frag_color = texture(g_color, gl_FragCoord.xy / viewport_size.xy).rgb;
         vec3 geometry_pos = texture(g_position_texture, gl_FragCoord.xy / viewport_size.xy).rgb;
+        vec3 normal = normalize(texture(g_normal, gl_FragCoord.xy / viewport_size.xy).rgb);
+        float ambient_occlusion = texture(ssao_map, gl_FragCoord.xy / viewport_size.xy).r;
+
+        vec3 pos_ws = (inverse_view * vec4(geometry_pos, 1.0)).xyz;
+        vec3 normal_ws = normalize(mat3(inverse_view) * normal);
+        float shadow_visibility = calculateShadow(pos_ws, normal_ws, sun_dir_shadow);
+        shadow_visibility = mix(0.25, 1.0, shadow_visibility);
 
         vec3 pos_rel_earth = geometry_pos - earth_center;
         float r = length(pos_rel_earth);
@@ -1205,8 +1229,8 @@ void main() {
         vec3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, geometry_pos - earth_center, shadow_length, 
                                                 sun_direction, transmittance);
 
-        vec3 sun_attenuated_color = frag_color * sun_transmittance;
-        color.rgb = sun_attenuated_color * transmittance + in_scatter;
+        vec3 sun_attenuated_color = frag_color * sun_transmittance * shadow_visibility;
+        color.rgb = sun_attenuated_color * transmittance * 0.3;
     }
     color.a = 1.0;
 }

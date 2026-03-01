@@ -1,6 +1,6 @@
 #include "ir_pch.h"
 #include "shader.h"
-#include "Renderer.h"
+#include "RendererAbstract.h"
 
 #include "glad/glad.h"
 #include "platform/openGL/OpenGLShader.h"

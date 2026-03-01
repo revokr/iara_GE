@@ -29,8 +29,8 @@ namespace iara {
 	}
 
 	void OpenGLRendererAPI::Clear() {
+		glClearDepth(1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearDepth(GL_LESS);
 	}
 
 	void OpenGLRendererAPI::setDepthMask(bool set) {

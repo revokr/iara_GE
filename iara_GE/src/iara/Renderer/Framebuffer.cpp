@@ -1,6 +1,6 @@
 #include "ir_pch.h"
 #include "Framebuffer.h"
-#include "iara/Renderer/Renderer.h"
+#include "iara/Renderer/RendererAbstract.h"
 
 #include "platform/openGL/OpenGLFramebuffer.h"
 

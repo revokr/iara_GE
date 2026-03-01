@@ -1,7 +1,7 @@
 #include "ir_pch.h"
 #include "VertexArray.h"
 
-#include "Renderer.h"
+#include "RendererAbstract.h"
 #include "platform/openGL/OpenGLVertexArray.h"
 
 namespace iara {

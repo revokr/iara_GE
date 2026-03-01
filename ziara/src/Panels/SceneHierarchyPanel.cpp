@@ -1,7 +1,7 @@
 #include "ir_pch.h"
 #include "SceneHierarchyPanel.h"
 #include "iara\Core\Input.h"
-#include "iara/Renderer/Renderer2D.h"
+#include "iara/Renderer/Renderer.h"
 
 #include <glm\gtc\type_ptr.hpp>
 #include <imgui\imgui.h>

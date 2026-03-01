@@ -1,7 +1,7 @@
 #include "ir_pch.h"
 #include "Texture.h"
 
-#include "Renderer.h"
+#include "RendererAbstract.h"
 #include "platform/openGL/OpenGLTexture.h"
 
 namespace iara {

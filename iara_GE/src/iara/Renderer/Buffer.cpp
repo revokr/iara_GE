@@ -1,7 +1,7 @@
 #include "ir_pch.h"
 #include "Buffer.h"
 
-#include "Renderer.h"
+#include "RendererAbstract.h"
 #include "platform/openGL/OpenGLBuffer.h"
 
 namespace iara {

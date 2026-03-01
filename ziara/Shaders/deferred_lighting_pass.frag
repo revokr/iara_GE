@@ -87,7 +87,7 @@ void main() {
 	/// Directional Light
 	vec3 result = lighting;
 	if (skyLight.activeSkyLight == true) {
-		//result += calc_dir_light(skyLight, viewDir, Normal, Diffuse, Specular, pos_light_space, Pos) * 0.8;
+		result += calc_dir_light(skyLight, viewDir, Normal, Diffuse, Specular, pos_light_space, Pos) * 0.2;
 	} else {
 		result = lighting;
 	}
