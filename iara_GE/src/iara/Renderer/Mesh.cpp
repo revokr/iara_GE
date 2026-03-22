@@ -118,6 +118,8 @@ namespace iara {
 			mat.diffuse_map = m_white_tex;
 			mat.specular_map = m_white_tex;
 			mat.normal_map = m_white_tex;
+			mat.metallic_map = m_white_tex;
+			mat.roughness_map = m_white_tex;
 
 			if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
 				aiString path;
@@ -168,6 +170,42 @@ namespace iara {
 
 					//mat.norm_path = fullpath;
 					mat.normal_map = Texture2D::Create(fullpath);
+
+					//IARA_CORE_TRACE("Loaded Normal texture {0}", fullpath);
+				}
+			}
+
+			if (material->GetTextureCount(aiTextureType_METALNESS) > 0) {
+				aiString path2;
+				if (material->GetTexture(aiTextureType_METALNESS, 0, &path2, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
+					std::string p(path2.data);
+
+					if (p.substr(0, 2) == ".\\") {
+						p = p.substr(2, p.size() - 2);
+					}
+
+					std::string fullpath = directory + "\\" + p;
+
+					//mat.norm_path = fullpath;
+					mat.metallic_map = Texture2D::Create(fullpath);
+
+					//IARA_CORE_TRACE("Loaded Normal texture {0}", fullpath);
+				}
+			}
+
+			if (material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0) {
+				aiString path2;
+				if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path2, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
+					std::string p(path2.data);
+
+					if (p.substr(0, 2) == ".\\") {
+						p = p.substr(2, p.size() - 2);
+					}
+
+					std::string fullpath = directory + "\\" + p;
+
+					//mat.norm_path = fullpath;
+					mat.roughness_map = Texture2D::Create(fullpath);
 
 					//IARA_CORE_TRACE("Loaded Normal texture {0}", fullpath);
 				}

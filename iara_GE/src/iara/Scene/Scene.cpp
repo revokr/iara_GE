@@ -849,7 +849,8 @@ namespace iara {
 		/// SALVARE FRAMEBUFFER CA .EXR --- HDR RENDER TARGET
 		/// PENTRU ATMOSPHERIC LIGHT SCATTERING -- SHADERTOY TONE MAPPING
 
-		fb_spec.attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F , FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
+		/// Position, Normal, Diffuse/Specular, EntityID, Metalness & Roughness
+		fb_spec.attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F , FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24STENCIL8 };
 		fb_spec.width = 1920;
 		fb_spec.height = 1080;
 		m_gbuffer_framebuffer = Framebuffer::Create(fb_spec, "G Buffer ");

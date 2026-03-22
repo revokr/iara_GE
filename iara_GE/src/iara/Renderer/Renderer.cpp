@@ -1565,6 +1565,7 @@ namespace iara {
 
 		s_MeshData.scene_meshes.clear();
 	}
+
 	void MeshRenderer::FlushMeshGeometryPass() {
 		s_MeshData.vao->bind();
 
@@ -1577,9 +1578,6 @@ namespace iara {
 			s_MeshData.vao->setVertexBuffer(raw_mesh_data.vb);
 			s_MeshData.vao->SetIndexBuffer(raw_mesh_data.ib);
 
-			//// **Create an Entity ID buffer for this specific instance (all vertices share the same entityID)**
-			/// AYOOOOO IT FUCKING WORKES
-			/// VALID ENTITYIDS FOR EVERYONE YOOHOOOO
 			s_MeshData.vao->AddVertexBuffer(mesh_entry.entityID_VB);
 
 			for (auto& mesh : raw_mesh_data.meshes) {
@@ -1598,6 +1596,12 @@ namespace iara {
 
 				material.normal_map->bind(2);
 				s_shaderLibrary->get("gbuffer")->setUniformInt("normal_map", 2);
+
+				material.metallic_map->bind(3);
+				s_shaderLibrary->get("gbuffer")->setUniformInt("metallic_map", 3);
+
+				material.roughness_map->bind(4);
+				s_shaderLibrary->get("gbuffer")->setUniformInt("roughness_map", 4);
 
 				RenderCommand::DrawIndexedBaseVertex(s_MeshData.vao, mesh.numInd, mesh.baseIndex, mesh.baseVertex);
 			}
