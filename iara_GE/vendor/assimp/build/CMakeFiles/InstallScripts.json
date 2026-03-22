@@ -1,9 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"C:/Users/nrafa/Desktop/iara_GE/iara_GE/vendor/assimp/build/cmake_install.cmake",
-		"C:/Users/nrafa/Desktop/iara_GE/iara_GE/vendor/assimp/build/contrib/zlib/cmake_install.cmake",
-		"C:/Users/nrafa/Desktop/iara_GE/iara_GE/vendor/assimp/build/code/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
