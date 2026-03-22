@@ -1,3 +1,11 @@
+## Build
+
+- General Project is build by running generate.bat file in the root dir
+- Assimp must be built separately inside it's own directory using CMake:
+- cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_ZLIB=ON -DASSIMP_BUILD_ASSIMP_TOOLS=OFF -DASSIMP_BUILD_TESTS=OFF
+- cmake --build build --config Release    and     cmake --build build --config Release
+
+
 # Graphics & Game Engine
 
 A modern, high-performance graphics and game engine written in **C++**, designed with a modular architecture and a strong focus on real-time rendering techniques.  
