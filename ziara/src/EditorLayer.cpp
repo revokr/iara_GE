@@ -37,7 +37,7 @@ namespace iara {
         m_viewportSize.x = (uint32_t)specs.width;
         m_viewportSize.y = (uint32_t)specs.height;
 
-        m_editor_camera = EditorCamera(60.0f, 1.778f, 0.01f, 10000.0f);
+        m_editor_camera = EditorCamera(80.0f, 1.6f, 0.01f, 1000.0f);
 
         m_scene_h_panel.setContext(m_active_scene);
 

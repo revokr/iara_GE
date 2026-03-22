@@ -319,7 +319,7 @@ namespace iara {
 	OpenGLFrameBuffer::OpenGLFrameBuffer(const FramebufferSpecification& frame_buf_specs, const std::string& name)
 		: m_specs{ frame_buf_specs }, m_name{ name }
 	{
-		m_specs.samples = 0;
+		//m_specs.samples = 0;
 		for (auto spec : m_specs.attachments.attachments) {
 			if (!utils::isDepthFormat(spec.texture_format)) {
 				m_color_att_specs.emplace_back(spec);
@@ -445,6 +445,17 @@ namespace iara {
 
 	void OpenGLFrameBuffer::setFramebufferTexture(uint32_t texture, uint32_t index) {
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture, index);
+	}
+
+	void OpenGLFrameBuffer::setFramebufferDepthTexture(uint32_t texture) {
+		bind();
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
+
+		int check = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		IARA_CORE_ERROR("{0}Framebuffer Status: {1} == {2}", m_name, check, GL_FRAMEBUFFER_COMPLETE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	void OpenGLFrameBuffer::setDrawBuffers(uint32_t size) {

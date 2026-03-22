@@ -33,6 +33,7 @@ namespace iara {
 		Entity createPointLight(const std::string& name = std::string());
 		Entity createDirLight(const std::string& name = std::string());
 		Entity createMeshObject(const std::string& name = std::string());
+
 		void destroyEntity(Entity entity);
 		const bool validEntity(Entity ent);
 
@@ -93,20 +94,26 @@ namespace iara {
 		void applyToneMapping(float exposure, uint32_t hdr_texture);
 
 		void initializeShadowMap();
+		void computeLightSpaceMatrices(const EditorCamera& camera);
+		glm::mat4 computeCascadeMatrix(float near_clip, float far_clip, const EditorCamera& camera);
+		std::vector<glm::vec4> computeFrostumCornersWS(const glm::mat4& camera);
+
 		void initializeAtmosphere();
 
 		/// RENDER PASSES
 		void renderAtmosphere(EditorCamera& camera);
 		void depthPassAtmosphere(EditorCamera& camera);
 
-		void render2DPassEdit(EditorCamera& camera);
+		void renderShadowmapCascadesPass();
 		void renderToShadowMapPass(const glm::mat4& light_vp);
+		void render2DPassEdit(EditorCamera& camera);
 		void render3DPassEdit(EditorCamera& camera, const glm::mat4& light_vp);
 
 		void render2DPassRuntime(Camera& camera, const glm::mat4& camera_transform);
 		void render3DPassRuntime(Camera& camera, const glm::mat4& camera_transform, const glm::mat4& light_vp);
 
 		void renderShadowMapToColorFBO();
+		void renderCSMToColorFBO();
 		/// -------------
 	private:
 		entt::registry m_registry;
@@ -116,6 +123,10 @@ namespace iara {
 		Ref<Atmosphere> m_atmosphere = nullptr;
 
 		Ref<Framebuffer> m_shadow_map = nullptr;
+		Ref<Framebuffer> m_shadow_map_cascade2 = nullptr;
+		Ref<Framebuffer> m_shadow_map_cascade3 = nullptr;
+		Ref<Framebuffer> m_shadow_map_cascade4 = nullptr;
+
 		Ref<Framebuffer> m_shadowmap_quad = nullptr;
 
 		Ref<Framebuffer> m_msaa_framebuffer = nullptr;   // used for MSAA 
@@ -128,7 +139,10 @@ namespace iara {
 
 		Ref<Framebuffer> m_atm_fbo = nullptr;
 
+		std::vector<float> m_shadow_cascade_levels;
+		std::vector<glm::mat4> m_cascades;
 		glm::mat4 cascade1;
+
 		uint32_t m_vp_width = 1;
 		uint32_t m_vp_height = 1;
 

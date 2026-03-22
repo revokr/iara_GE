@@ -17,6 +17,8 @@ namespace iara {
 		Ref<Texture2D> diffuse_map = nullptr;
 		Ref<Texture2D> specular_map = nullptr;
 		Ref<Texture2D> normal_map = nullptr;
+		Ref<Texture2D> metallic_map = nullptr;
+		Ref<Texture2D> roughness_map = nullptr;
 	};
 
 	struct MaterialPaths {

@@ -18,6 +18,7 @@ namespace iara {
 		}
 
 		virtual void setFramebufferTexture(uint32_t texture, uint32_t index) override {};
+		virtual void setFramebufferDepthTexture(uint32_t texture) override {};
 		virtual void setDrawBuffers(uint32_t size) override {};
 
 		virtual int readPixel(uint32_t att_index, int x, int y) override;
@@ -57,6 +58,7 @@ namespace iara {
 		}
 
 		virtual void setFramebufferTexture(uint32_t texture, uint32_t index) override;
+		virtual void setFramebufferDepthTexture(uint32_t texture) override;
 		virtual void setDrawBuffers(uint32_t size) override;
 
 		virtual int readPixel(uint32_t att_index, int x, int y) override;

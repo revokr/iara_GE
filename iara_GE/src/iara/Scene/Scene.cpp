@@ -16,8 +16,7 @@
 
 namespace iara {
 
-	Scene::Scene()
-	{
+	Scene::Scene() {
 		m_registry = {};
 
 		initializeAtmosphere();
@@ -26,9 +25,7 @@ namespace iara {
 		initializeShadowMap();
 	}
 
-	Scene::~Scene()
-	{
-	}
+	Scene::~Scene() { }
 
 	Entity Scene::createEntity(const std::string& name) {
 		Entity entity{ m_registry.create(), this };
@@ -228,9 +225,15 @@ namespace iara {
 		glm::mat4 lightView = glm::lookAt(light_position, target, up_vector);
 
 		cascade1 = lightProjection * lightView;
+		//renderToShadowMapPass(cascade1);
+		//renderShadowMapToColorFBO();
 
-		renderToShadowMapPass(cascade1);
+
+		computeLightSpaceMatrices(camera);
+		renderShadowmapCascadesPass();
 		renderShadowMapToColorFBO();
+		/// Wrong Cascade matrix calculation most likely - need to fix
+		
 
 		if (rendering_type == RenderingType::MSAA) {
 			// MSAA Forward Pass
@@ -246,8 +249,7 @@ namespace iara {
 
 			if (m_skybox) {
 				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
-				//Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox, sun_direction);
-				//Renderer3D::drawDynamicSky(camera.getViewProjection(), glm::vec2(m_vp_width, m_vp_height), mouse_pos, deltaTime, 1.0f);
+				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox, glm::vec4(to_sun.x, to_sun.y, to_sun.z, 1.0));
 			}
 			glDisable(GL_DEPTH_TEST);
 			//renderAtmosphere(camera);
@@ -268,14 +270,6 @@ namespace iara {
 			m_gbuffer_framebuffer->clearAttachment(1, -1);
 			m_gbuffer_framebuffer->clearAttachment(2, -1);
 			m_gbuffer_framebuffer->clearAttachment(3, -1);
-
-			/*
-			if (m_skybox) {
-				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
-				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox, sun_direction);
-				//Renderer3D::drawDynamicSky(glm::vec2(m_vp_width, m_vp_height), mouse_pos, deltaTime);
-			}
-			*/
 
 			Renderer2D::BeginScene(camera, m_plights, m_dlight);
 			auto view4 = m_registry.view<TransformComponent, PointLightComponent>();
@@ -394,9 +388,9 @@ namespace iara {
 		glm::vec3 atmospherePos = glm::vec3(enginePos.x, -enginePos.z, enginePos.y);
 
 		glm::mat4 engineToAtmosphere = glm::mat4(
-			1.0f, 0.0f, 0.0f, 0.0f, // Atmosphere X = Engine X
-			0.0f, 0.0f, 1.0f, 0.0f, // Atmosphere Z = Engine Y
-			0.0f, -1.0f, 0.0f, 0.0f, // Atmosphere Y = Engine -Z
+			1.0f, 0.0f, 0.0f, 0.0f, 
+			0.0f, 0.0f, 1.0f, 0.0f, 
+			0.0f, -1.0f, 0.0f, 0.0f, 
 			0.0f, 0.0f, 0.0f, 1.0f
 		);
 
@@ -491,15 +485,67 @@ namespace iara {
 		Renderer2D::EndScene();
 	}
 
+	void Scene::renderShadowmapCascadesPass() {
+		/// Cascade 1
+		glm::mat4 light_vp = m_cascades[0];
+		m_shadow_map->bind();
+		RenderCommand::Clear();
+		//glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		
+		MeshRenderer::ShadowMapPass(light_vp);
+
+		glCullFace(GL_BACK);
+		m_shadow_map->unbind();
+
+		/// Cascade 2
+		light_vp = m_cascades[1];
+		m_shadow_map_cascade2->bind();
+		RenderCommand::Clear();
+		//glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+
+		MeshRenderer::ShadowMapPass(light_vp);
+
+		glCullFace(GL_BACK);
+		m_shadow_map_cascade2->unbind();
+
+		/// Cascade 3
+		light_vp = m_cascades[2];
+		m_shadow_map_cascade3->bind();
+		RenderCommand::Clear();
+		//glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+
+		MeshRenderer::ShadowMapPass(light_vp);
+
+		glCullFace(GL_BACK);
+		m_shadow_map_cascade3->unbind();
+		
+		/// Cascade 4
+		light_vp = m_cascades[3];
+		m_shadow_map_cascade4->bind();
+		RenderCommand::Clear();
+		//glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+
+		MeshRenderer::ShadowMapPass(light_vp);
+
+		glCullFace(GL_BACK);
+		m_shadow_map_cascade4->unbind();
+		
+		
+	}
+
 	void Scene::renderToShadowMapPass(const glm::mat4& light_vp) {
 		m_shadow_map->bind();
 		RenderCommand::Clear();
 		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
+		glCullFace(GL_FRONT);
 
 		MeshRenderer::ShadowMapPass(light_vp);
 
-		//glDisable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 		m_shadow_map->unbind();
 	}
 
@@ -533,18 +579,16 @@ namespace iara {
 		Renderer2D::EndScene();
 	}
 
-	void Scene::render3DPassRuntime(Camera& camera, const glm::mat4& camera_transform, const glm::mat4& light_vp)
-	{
+	void Scene::render3DPassRuntime(Camera& camera, const glm::mat4& camera_transform, const glm::mat4& light_vp) {
 		uint32_t shadowmap = m_shadow_map->getDepthAtt();
 		MeshRenderer::ForwardPass(camera, camera_transform, light_vp, shadowmap);
 	}
 
 	void Scene::renderShadowMapToColorFBO() {
 		m_shadowmap_quad->bind();
-		//RenderCommand::Clear();
-		//RenderCommand::SetClearColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-		uint32_t shadowmap = m_shadow_map->getDepthAtt();
+		RenderCommand::Clear();
+		
+		uint32_t shadowmap = m_shadow_map_cascade2->getDepthAtt();
 		Renderer2D::drawShadowMapToQuad(shadowmap);
 
 		m_shadowmap_quad->unbind();
@@ -572,13 +616,119 @@ namespace iara {
 		specs.samples = 1;
 		m_shadow_map = Framebuffer::Create(specs, name);
 
+		name = "ShadowMap -C2 ";
+		m_shadow_map_cascade2 = Framebuffer::Create(specs, name);
+
+		name = "ShadowMap -C3 ";
+		m_shadow_map_cascade3 = Framebuffer::Create(specs, name);
+
+		name = "ShadowMap -C4 ";
+		m_shadow_map_cascade4 = Framebuffer::Create(specs, name);
+
 		std::string name2 = "ShadowMapQuad ";
 		FramebufferSpecification specs2;
-		specs2.attachments = { FramebufferTextureFormat::RGBA8 };
+		specs2.attachments = { FramebufferTextureFormat::RGBA16F };
 		specs2.width = size;
 		specs2.height = size;
 		specs2.samples = 1;
 		m_shadowmap_quad = Framebuffer::Create(specs2, name2);
+
+
+		float camera_far = 1000.0f;
+		m_shadow_cascade_levels.push_back(camera_far / 50.0f);
+		m_shadow_cascade_levels.push_back(camera_far / 15.0f);
+		m_shadow_cascade_levels.push_back(camera_far / 5.0f);
+		m_cascades.resize(4);
+	}
+
+	void Scene::computeLightSpaceMatrices(const EditorCamera& camera) {
+		for (int i = 0; i < m_shadow_cascade_levels.size() + 1; i++) {
+			if (i == 0) {
+				m_cascades[i] = computeCascadeMatrix(0.1f, m_shadow_cascade_levels[i], camera);
+			}
+			else if (i < m_shadow_cascade_levels.size()) {
+				m_cascades[i] = computeCascadeMatrix(m_shadow_cascade_levels[i - 1], m_shadow_cascade_levels[i], camera);
+			}
+			else {
+				m_cascades[i] = computeCascadeMatrix(m_shadow_cascade_levels[i - 1], 1000.0f, camera);
+			}
+		}
+	}
+
+	glm::mat4 Scene::computeCascadeMatrix(float near_clip, float far_clip, const EditorCamera& camera) {
+		glm::vec3 to_sun = glm::normalize(glm::vec3(sun_direction.x, sun_direction.y, sun_direction.z));
+		glm::mat4 proj = glm::perspective(glm::radians(80.0f), (float)(m_vp_width / m_vp_height), near_clip, far_clip);
+		std::vector<glm::vec4> frostum_corners = computeFrostumCornersWS(proj * camera.getViewMatrix());
+		glm::vec3 target = glm::vec3(0.0f);
+		for (const auto& c : frostum_corners) {
+			target += glm::vec3(c);
+		}
+		target /= frostum_corners.size();
+		//IARA_CORE_INFO("Target vector {0}, {1}, {2}", target.x, target.y, target.z);
+		glm::vec3 light_position = target + to_sun * shadow_map_light_distance;
+		glm::vec3 up_vector = glm::vec3(0.0f, 1.0f, 0.0f);
+		/*if (std::abs(glm::dot(to_sun, up_vector)) > 0.99f) {
+			up_vector = glm::vec3(0.0f, 0.0f, 1.0f);
+		}*/
+		glm::mat4 lightView = glm::lookAt(light_position, camera.getPosition(), up_vector);
+
+
+		float min_x = std::numeric_limits<float>::max();
+		float max_x = std::numeric_limits<float>::lowest();
+		float min_y = std::numeric_limits<float>::max();
+		float max_y = std::numeric_limits<float>::lowest();
+		float min_z = std::numeric_limits<float>::max();
+		float max_z = std::numeric_limits<float>::lowest();
+		for (const auto& c : frostum_corners) {
+			glm::vec4 trf = lightView * c;
+			min_x = std::min(min_x, trf.x);
+			max_x = std::max(max_x, trf.x);
+
+			min_y = std::min(min_y, trf.y);
+			max_y = std::max(max_y, trf.y);
+
+			min_z = std::min(min_z, trf.z);
+			max_z = std::max(max_z, trf.z);
+		}
+
+		float z_padding = 100.0f;
+		/*if (min_z < 0) {
+			min_z *= z_mult;
+		}
+		else {
+			min_z /= z_mult;
+		}
+		if (max_z < 0) {
+			max_z /= z_mult;
+		}
+		else {
+			max_z *= z_mult;
+		}*/
+
+		float r = 8.0f;
+		
+
+		/// nu sunt buni parametrii min_x, min_y etc. cu date hardcodate macar merge
+		//glm::mat4 lightProjection = glm::ortho(-r, r, -r, r, min_z - z_padding, max_z + z_padding);
+		glm::mat4 lightProjection = glm::ortho(min_x, max_x, min_y, max_y, 0.1f, 100.0f);
+
+		return lightProjection * lightView;
+	}
+
+	std::vector<glm::vec4> Scene::computeFrostumCornersWS(const glm::mat4& view_proj) {
+		std::vector<glm::vec4> corners;
+		glm::mat4 view_proj_inverse = glm::inverse(view_proj);
+		
+		for (int x = 0; x < 2; x++) {
+			for (int y = 0; y < 2; y++) {
+				for (int z = 0; z < 2; z++) {
+					glm::vec4 pt = view_proj_inverse * glm::vec4(x * 2.0f - 1.0f, y * 2.0f - 1.0f, z * 2.0f - 1.0f, 1.0f);
+					corners.push_back(pt / pt.w);
+				}
+			}
+		}
+
+		return corners;
 	}
 
 	void Scene::initializeAtmosphere() {
@@ -588,10 +738,10 @@ namespace iara {
 		constexpr double kLengthUnitInMeters = 1000.0;
 
 		// Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column
-  // (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
-  // summed and averaged in each bin (e.g. the value for 360nm is the average
-  // of the ASTM G-173 values for all wavelengths between 360 and 370nm).
-  // Values in W.m^-2.
+		// (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
+		// summed and averaged in each bin (e.g. the value for 360nm is the average
+		// of the ASTM G-173 values for all wavelengths between 360 and 370nm).
+		// Values in W.m^-2.
 		constexpr int kLambdaMin = 360;
 		constexpr int kLambdaMax = 830;
 		constexpr double kSolarIrradiance[48] = {

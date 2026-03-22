@@ -24,7 +24,8 @@ IncludeDir["ENTT"] = "iara_GE/vendor/entt/include"
 IncludeDir["YAML"] = "iara_GE/vendor/yaml/include"
 IncludeDir["SPIRV"] = "iara_GE/vendor/spirv/"
 IncludeDir["VULKANSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["ASSIMP"] = "iara_GE/vendor/assimp_premake/include"
+--IncludeDir["ASSIMP"] = "iara_GE/vendor/assimp_premake/include"
+IncludeDir["ASSIMP2"] = "iara_GE/vendor/assimp/include"
 IncludeDir["SPIRV_Cross"] = "%{wks.location}/Hazel/vendor/SPIRV-Cross"
 
 LibraryDir = {}
@@ -33,6 +34,15 @@ LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
 --Library["VulkanUtils"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
+
+LibraryDir["Assimp_Debug"] = "%{wks.location}/iara_GE/vendor/assimp/build/lib/Debug"
+LibraryDir["Assimp_Release"] = "%{wks.location}/iara_GE/vendor/assimp/build/lib/Release"
+
+Library["Assimp_Debug"] = "%{LibraryDir.Assimp_Debug}/assimp-vc143-mtd.lib"
+Library["Assimp_Release"] = "%{LibraryDir.Assimp_Release}/assimp-vc143-mt.lib"
+
+Library["Zlib_Debug"] = "%{wks.location}/iara_GE/vendor/assimp/build/contrib/zlib/Debug/zlibstaticd.lib"
+Library["Zlib_Release"] = "%{wks.location}/iara_GE/vendor/assimp/build/contrib/zlib/Release/zlibstatic.lib"
 
 Library["ShaderC_Debug"] = "%{LibraryDir.VulkanSDK}/shaderc_sharedd.lib"
 Library["SPIRV_Cross_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-cored.lib"
@@ -47,7 +57,7 @@ include "iara_GE/vendor/glfw"
 include "iara_GE/vendor/glad"
 include "iara_GE/vendor/imgui"
 include "iara_GE/vendor/yaml"
-include "iara_GE/vendor/assimp_premake"
+--include "iara_GE/vendor/assimp_premake"
 
 
 project "iara_GE" 
@@ -93,7 +103,7 @@ project "iara_GE"
 		"%{prj.name}/vendor/Utils/",
 		"%{IncludeDir.ENTT}",
 		"%{IncludeDir.YAML}",
-		"%{IncludeDir.ASSIMP}",
+		"%{IncludeDir.ASSIMP2}",
 		"%{IncludeDir.SPIRV}",
 		"%{IncludeDir.VULKANSDK}"
 	}
@@ -103,7 +113,6 @@ project "iara_GE"
 		"GLAD",
 		"IMGUI",
 		"YAML",
-		"ASSIMP",
 		--"opengl32.lib"
 	}
 
@@ -132,7 +141,9 @@ project "iara_GE"
 			"%{Library.Vulkan}",
 			"%{Library.ShaderC_Debug}",
 			"%{Library.SPIRV_Cross_Debug}",
-			"%{Library.SPIRV_Cross_GLSL_Debug}"
+			"%{Library.SPIRV_Cross_GLSL_Debug}",
+			"%{Library.Assimp_Debug}",
+			"%{Library.Zlib_Debug}"
 		}
 
 	filter "configurations:Release" 
@@ -143,7 +154,9 @@ project "iara_GE"
 		links {
 			"%{Library.ShaderC_Release}",
 			"%{Library.SPIRV_Cross_Release}",
-			"%{Library.SPIRV_Cross_GLSL_Release}"
+			"%{Library.SPIRV_Cross_GLSL_Release}",
+			"%{Library.Assimp_Release}",
+			"%{Library.Zlib_Release}"
 		}
 
 
@@ -226,7 +239,7 @@ project "ziara"
 		"%{IncludeDir.GLM}",
 		"%{IncludeDir.ENTT}",
 		"%{IncludeDir.VULKANSDK}",
-		"%{IncludeDir.ASSIMP}",
+		"%{IncludeDir.ASSIMP2}",
 		"sandbox/Assets",
 		"sandbox/Shaders"
 	}

@@ -40,6 +40,16 @@ namespace iara {
         return nullptr;
     }
 
+    Ref<Texture3D> Texture3D::Create(uint32_t texture_type, uint32_t width, uint32_t height, uint32_t depth, uint32_t internal_format, uint32_t format) {
+        switch (Renderer::getRendererAPI()) {
+        case RendererAPI::API::None:     IARA_CORE_ASSERT(false, "RendererAPI::None is not supported!!");
+        case RendererAPI::API::OpenGL:   return CreateRef<OpenGLTexture3D>(texture_type, width, height, depth, internal_format, format);
+        }
+
+        IARA_CORE_ASSERT(false, "Unknown renderer API");
+        return nullptr;
+    }
+
     Ref<Texture2D> Texture2D::Create(uint32_t width, uint32_t height, uint32_t internal_format, uint32_t format, uint32_t type, void* data) {
         switch (Renderer::getRendererAPI()) {
         case RendererAPI::API::None:     IARA_CORE_ASSERT(false, "RendererAPI::None is not supported!!");

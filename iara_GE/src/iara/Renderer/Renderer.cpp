@@ -111,6 +111,7 @@ namespace iara {
 		Ref<IndexBuffer> shadow_quad_ib;
 
 		Ref<Shader> quad_shadowmap_shader;
+		Ref<Shader> quad_cascaded_shadowmap_shader;
 	};
 
 	struct AtmosphereData {
@@ -212,8 +213,8 @@ namespace iara {
 		s_Data.heightmap_vao->setVertexBuffer(s_Data.heightmap_vb);
 		s_Data.heightmap_vao->SetIndexBuffer(s_Data.heightmap_ib);
 
-		s_shaderLibrary->load("lumen", "Shaders/depth_lumen_combined.vert", "Shaders/depth_lumen_combined.frag");
-		s_shaderLibrary->load("lumen-h", "Shaders/heightmap_gen.vert", "Shaders/heightmap_gen.frag");
+		//s_shaderLibrary->load("lumen", "Shaders/depth_lumen_combined.vert", "Shaders/depth_lumen_combined.frag");
+		//s_shaderLibrary->load("lumen-h", "Shaders/heightmap_gen.vert", "Shaders/heightmap_gen.frag");
 		s_shadowMapData.quad_shadowmap_shader = Shader::Create("shadowMapQuad", "Shaders/shadowmap_quad.vert", "Shaders/shadowmap_quad.frag");
 		s_shadowMapData.shadow_quad_vb = VertexBuffer::Create(quadVertices, sizeof(float) * 30);
 
@@ -705,8 +706,7 @@ namespace iara {
 		//IARA_CORE_ERROR("DE UNDE ESTI AICI????");
 	}
 
-	void Renderer2D::drawShadowMapToQuad(uint32_t shadowmap)
-	{
+	void Renderer2D::drawShadowMapToQuad(uint32_t shadowmap) {
 		s_shadowMapData.quad_shadowmap_shader->bind();
 		s_shadowMapData.shadow_quad_vao->bind();
 
@@ -1060,6 +1060,10 @@ namespace iara {
 			glm::mat4 light_view_projection;
 		};
 
+		struct CSMLightMatrices {
+			std::vector<glm::mat4> light_matrices;
+		};
+
 		CameraData camera_buffer_mesh;
 		Ref<UniformBuffer> camera_uniform_buffer_mesh;
 
@@ -1077,6 +1081,9 @@ namespace iara {
 
 		LightVPData light_vp_buffer_shadowmap;
 		Ref<UniformBuffer> light_vp_uniform_buffer_shadowmap;
+
+		CSMLightMatrices light_vp_buffer_csm_shadowmap;
+		Ref<UniformBuffer> light_vp_uniform_buffer_csm_shadowmap;
 
 		ModelData model_buffer_shadowmap;
 		Ref<UniformBuffer> model_uniform_buffer_shadowmap;
@@ -1107,8 +1114,7 @@ namespace iara {
 		std::uniform_real_distribution<float> random_floats(0.0, 1.0);
 		std::default_random_engine generator;
 		std::vector<glm::vec3> ssao_noise;
-		for (unsigned int i = 0; i < 16; i++)
-		{
+		for (unsigned int i = 0; i < 16; i++) {
 			glm::vec3 noise(
 				random_floats(generator) * 2.0 - 1.0,
 				random_floats(generator) * 2.0 - 1.0,
@@ -1134,6 +1140,7 @@ namespace iara {
 		s_MeshData.viewport_sizes_uniform_buffer = UniformBuffer::Create(sizeof(glm::vec2), 15);
 		s_MeshData.ambient_variables_uniform_buffer = UniformBuffer::Create(sizeof(bool), 16);
 
+		s_MeshData.light_vp_uniform_buffer_csm_shadowmap = UniformBuffer::Create(sizeof(glm::mat4) * 4, 18);
 
 		s_MeshData.ssao_kernel.reserve(64);
 

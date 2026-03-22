@@ -213,6 +213,28 @@ namespace iara {
 		
 	}
 
+	OpenGLTexture3D::OpenGLTexture3D(uint32_t texture_type, uint32_t width, uint32_t height, uint32_t depth, uint32_t internal_format, uint32_t format) {
+		m_width = width;
+		m_height = height;
+		m_internal_format = internal_format;
+		m_data_format = format;
+
+		glGenTextures(1, &m_RendererID);
+		glBindTexture(texture_type, m_RendererID);
+
+		glTexImage3D(texture_type, 0, internal_format, width, height, depth, 0, format, GL_FLOAT, NULL);
+
+		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		
+		float border_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glTexParameterfv(texture_type, GL_TEXTURE_BORDER_COLOR, border_color);
+
+		//glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	}
+
 	OpenGLTexture3D::~OpenGLTexture3D()  {
 		glDeleteTextures(1, &m_RendererID);
 	}

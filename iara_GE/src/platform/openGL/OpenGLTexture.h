@@ -40,6 +40,7 @@ namespace iara {
 	public:
 		OpenGLTexture3D(uint32_t width, uint32_t height, uint32_t depth);
 		OpenGLTexture3D(uint32_t width, uint32_t height, uint32_t depth, uint32_t internal_format, uint32_t format);
+		OpenGLTexture3D(uint32_t texture_type, uint32_t width, uint32_t height, uint32_t depth, uint32_t internal_format, uint32_t format);
 		virtual ~OpenGLTexture3D();
 
 		virtual void bind(uint32_t slot = 0) const override;

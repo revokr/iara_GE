@@ -36,6 +36,7 @@ namespace iara {
 		static Ref<Texture3D> Create(uint32_t width, uint32_t height, uint32_t depth);
 		static Ref<Texture3D> Create(const std::string& path);
 		static Ref<Texture3D> Create(uint32_t width, uint32_t height, uint32_t depth, uint32_t internal_format, uint32_t format);
+		static Ref<Texture3D> Create(uint32_t texture_type, uint32_t width, uint32_t height, uint32_t depth, uint32_t internal_format, uint32_t format);
 	};
 
 }

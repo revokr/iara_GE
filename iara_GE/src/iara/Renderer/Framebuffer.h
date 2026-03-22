@@ -63,6 +63,7 @@ namespace iara {
 		virtual void clearAttachment(uint32_t att_indx, int value) = 0;
 
 		virtual void setFramebufferTexture(uint32_t texture, uint32_t index) = 0;
+		virtual void setFramebufferDepthTexture(uint32_t texture) = 0;
 		virtual void setDrawBuffers(uint32_t size) = 0;
 
 		virtual uint32_t getColorAtt(uint32_t index = 0) const = 0;

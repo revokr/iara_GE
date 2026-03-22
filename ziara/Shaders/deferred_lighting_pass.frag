@@ -47,8 +47,7 @@ layout (std140, binding = 10) uniform DirLightUBO {
 	DirLight skyLight;
 };
 
-layout(std140, binding = 6) uniform Camera
-{
+layout(std140, binding = 6) uniform Camera {
 	mat4 u_ViewProjection;
 	mat4 u_view;
 	vec4 u_camPos;

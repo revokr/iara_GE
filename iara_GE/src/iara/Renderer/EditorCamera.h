@@ -19,10 +19,13 @@ namespace iara {
 		inline float getDistance() const { return m_distance; }
 		inline void setDistance(float dist) { m_distance = dist; }
 
+		inline float getFov() const { return m_fov; }
+		inline float getAspectRation() const { return m_aspect_ratio; }
+
 		inline void setViewportSize(float width, float height) { m_viewport_w = width; m_viewport_h = height; updateProj(); }
 
 		const glm::mat4& getViewMatrix() const { return m_view_matrix; }
-		glm::mat4 getViewProjection() { return m_projection * m_view_matrix; }
+		const glm::mat4& getViewProjection() const { return m_projection * m_view_matrix; }
 
 		glm::vec3 getUpDirection() const;
 		glm::vec3 getRightDirection() const;

@@ -32,6 +32,7 @@ namespace iara {
 	public:
 		void addShader(const Ref<Shader> s);
 		Ref<Shader> load(const std::string& name, const std::string& vert_src, const std::string& frag_src);
+		Ref<Shader> load(const std::string& name, const std::string& vert_src, const std::string& geom_src, const std::string& frag_src);
 		Ref<Shader> get(const std::string& name);
 
 		std::unordered_map<std::string, Ref<Shader>> m_shaders;

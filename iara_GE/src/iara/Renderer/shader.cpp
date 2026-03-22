@@ -39,6 +39,12 @@ namespace iara {
         return shader;
     }
 
+    Ref<Shader> ShaderLibrary::load(const std::string& name, const std::string& vert_src, const std::string& geom_src, const std::string& frag_src){
+        auto shader = Shader::Create(name, vert_src, geom_src, frag_src);
+        addShader(shader);
+        return shader;
+    }
+
     Ref<Shader> ShaderLibrary::get(const std::string& name) {
         //IARA_CORE_ASSERT((m_shaders.find() != m_shaders.end()), "Shader not found!!");
         return m_shaders[name];
