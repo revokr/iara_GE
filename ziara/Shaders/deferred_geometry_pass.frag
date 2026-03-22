@@ -11,11 +11,13 @@ layout(location = 0) out vec4 gPosition;
 layout(location = 1) out vec4 gNormal;
 layout(location = 2) out vec4 gDiffuseSpec;
 layout(location = 3) out int entityID;
-
+layout(location = 4) out vec4 gMetalnessRoughness;
 
 layout(binding = 0) uniform sampler2D diffuse_map;
 layout(binding = 1) uniform sampler2D specular_map;
 layout(binding = 2) uniform sampler2D normal_map;
+layout(binding = 3) uniform sampler2D metallic_map;
+layout(binding = 4) uniform sampler2D roughness_map;
 
 void main() {
 	gPosition = vec4(Pos, 1.0);
@@ -27,6 +29,13 @@ void main() {
 
 	gDiffuseSpec.rgb = texture(diffuse_map, TexCoord).rgb;
 	gDiffuseSpec.a   = texture(specular_map, TexCoord).r;
+
+	gMetalnessRoughness.r = texture(metallic_map, TexCoord).r;
+	gMetalnessRoughness.g = texture(roughness_map, TexCoord).r;
+	gMetalnessRoughness.b = 1.0;
+	gMetalnessRoughness.a = 1.0;
+
+	gMetalnessRoughness = vec4(1.0);
 
 	entityID = v_EntityID;
 }
