@@ -364,7 +364,10 @@ namespace iara {
             texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(2);  /// Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(3);  /// Get the texture from the framebuffer
+            /*texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(3);  /// Get the texture from the framebuffer
+            ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });*/
+
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(4);  /// Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
         }
 

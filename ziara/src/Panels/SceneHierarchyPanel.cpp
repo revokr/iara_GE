@@ -449,11 +449,12 @@ namespace iara {
 
 						std::string path_spec = mat.specular_map->getPath();
 						if (path_spec == "") {
-							ImGui::ImageButton(("Diffuse Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)m_texture_placeholder->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+							ImGui::ImageButton(("Specular Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)m_texture_placeholder->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
 						}
 						else {
-							ImGui::ImageButton(("Diffuse Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)mat.specular_map->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-						}				if (ImGui::BeginDragDropTarget()) {
+							ImGui::ImageButton(("Specular Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)mat.specular_map->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+						}				
+						if (ImGui::BeginDragDropTarget()) {
 							/// this payload can be null, that's why it's going through a check
 							/// "content_browser_item"  --- this payload is created in ContentBrowserPanel
 							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
@@ -471,11 +472,12 @@ namespace iara {
 
 						std::string normal_spec = mat.normal_map->getPath();
 						if (normal_spec == "") {
-							ImGui::ImageButton(("Diffuse Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)m_texture_placeholder->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+							ImGui::ImageButton(("Normal Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)m_texture_placeholder->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
 						}
 						else {
-							ImGui::ImageButton(("Diffuse Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)mat.normal_map->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-						}				if (ImGui::BeginDragDropTarget()) {
+							ImGui::ImageButton(("Normal Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)mat.normal_map->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+						}				
+						if (ImGui::BeginDragDropTarget()) {
 							/// this payload can be null, that's why it's going through a check
 							/// "content_browser_item"  --- this payload is created in ContentBrowserPanel
 							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
@@ -490,6 +492,52 @@ namespace iara {
 							ImGui::EndDragDropTarget();
 						}
 						ImGui::Text(normal_spec.c_str(), mat.normal_map->getPath().size());
+
+						std::string metallic_spec = mat.metallic_map->getPath();
+						if (metallic_spec == "") {
+							ImGui::ImageButton(("Metallic Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)m_texture_placeholder->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+						}
+						else {
+							ImGui::ImageButton(("Metallic Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)mat.metallic_map->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+						}				
+						if (ImGui::BeginDragDropTarget()) {
+							/// this payload can be null, that's why it's going through a check
+							/// "content_browser_item"  --- this payload is created in ContentBrowserPanel
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
+								const wchar_t* path = (const wchar_t*)payload->Data;
+								std::string iara = std::filesystem::path(path).extension().string();
+
+								std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
+								if (iara == ".png" || iara == ".jpg" || iara == ".tga") {
+									mat.metallic_map = Texture2D::Create(tex_path.string());
+								}
+							}
+							ImGui::EndDragDropTarget();
+						}
+						ImGui::Text(metallic_spec.c_str(), mat.metallic_map->getPath().size());
+
+						std::string roughness_spec = mat.roughness_map->getPath();
+						if (roughness_spec == "") {
+							ImGui::ImageButton(("Roughness Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)m_texture_placeholder->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+						}
+						else {
+							ImGui::ImageButton(("Roughness Tex##" + std::to_string(i)).c_str(), (void*)(intptr_t)mat.roughness_map->getRendererID(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+						}				
+						if (ImGui::BeginDragDropTarget()) {
+							/// this payload can be null, that's why it's going through a check
+							/// "content_browser_item"  --- this payload is created in ContentBrowserPanel
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("content_browser_item")) {
+								const wchar_t* path = (const wchar_t*)payload->Data;
+								std::string iara = std::filesystem::path(path).extension().string();
+
+								std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
+								if (iara == ".png" || iara == ".jpg" || iara == ".tga") {
+									mat.roughness_map = Texture2D::Create(tex_path.string());
+								}
+							}
+							ImGui::EndDragDropTarget();
+						}
+						ImGui::Text(roughness_spec.c_str(), mat.roughness_map->getPath().size());
 						
 						ImGui::TreePop();
 					}
