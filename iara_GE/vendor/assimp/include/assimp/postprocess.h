@@ -71,6 +71,8 @@ extern "C" {
 enum aiPostProcessSteps
 {
 
+    aiProcess_None = 0x0,
+
     // -------------------------------------------------------------------------
     /** <hr>Calculates the tangents and bitangents for the imported meshes.
      *

@@ -282,7 +282,7 @@ namespace iara {
 
         // Submit the DockSpace
         ImGuiIO& io = ImGui::GetIO();
-        io.FontGlobalScale = 1.6f;
+        //io.FontGlobalScale = 1.6f;
 
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
@@ -355,19 +355,19 @@ namespace iara {
         //ImGui::Image((void*)(intptr_t)m_active_scene->getDeferredLightingFramebuffer()->getColorAtt(0), ImVec2(300, 300), ImVec2{0,1}, ImVec2{1,0});
 
         if (m_active_scene->rendering_type == RenderingType::DEFERRED) {
-            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(0);  /// Get the texture from the framebuffer
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(0);  /// Get the position texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(1);  /// Get the texture from the framebuffer
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(1);  /// Get the normal texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(2);  /// Get the texture from the framebuffer
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(2);  /// Get the diffuse/specular texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
             /*texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(3);  /// Get the texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });*/
 
-            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(4);  /// Get the texture from the framebuffer
+            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(3);  /// Get the metalness/roughness texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
         }
 

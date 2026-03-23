@@ -408,6 +408,7 @@ namespace iara {
 			}
 
 			glDrawBuffers((GLsizei)m_color_attachments.size(), buffers.data());
+
 		}
 		else if (m_color_attachments.empty()) {
 			/// Only depth pass

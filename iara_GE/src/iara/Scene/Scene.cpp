@@ -270,6 +270,7 @@ namespace iara {
 			m_gbuffer_framebuffer->clearAttachment(1, -1);
 			m_gbuffer_framebuffer->clearAttachment(2, -1);
 			m_gbuffer_framebuffer->clearAttachment(3, -1);
+			m_gbuffer_framebuffer->clearAttachment(4, -1);
 
 			Renderer2D::BeginScene(camera, m_plights, m_dlight);
 			auto view4 = m_registry.view<TransformComponent, PointLightComponent>();
@@ -294,7 +295,7 @@ namespace iara {
 			// SSAO PASS
 			m_ssao_framebuffer->bind();
 			RenderCommand::ClearColorBuffer();
-			MeshRenderer::SSAOPass(camera, m_vp_width, m_vp_height, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(3));
+			MeshRenderer::SSAOPass(camera, m_vp_width, m_vp_height, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(4));
 			m_ssao_framebuffer->unbind();
 
 			m_ssao_blur_framebuffer->bind();
@@ -305,7 +306,7 @@ namespace iara {
 			// LIGHTING PASS
 			m_deferred_hdr_framebuffer->bind();
 			RenderCommand::Clear();
-			MeshRenderer::LighintgPass(camera, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(2), m_gbuffer_framebuffer->getColorAtt(3), m_shadow_map->getDepthAtt(), m_ssao_blur_framebuffer->getColorAtt(0), cascade1, use_ssao);
+			MeshRenderer::LighintgPass(camera, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(2), m_gbuffer_framebuffer->getColorAtt(4), m_shadow_map->getDepthAtt(), m_ssao_blur_framebuffer->getColorAtt(0), cascade1, use_ssao);
 			m_deferred_hdr_framebuffer->unbind();
 
 			m_deferred_atmosphere_framebuffer->bind();
@@ -372,7 +373,7 @@ namespace iara {
 			m_gbuffer_framebuffer->getColorAtt(0),
 			m_gbuffer_framebuffer->getColorAtt(1),
 			m_ssao_blur_framebuffer->getColorAtt(),
-			m_gbuffer_framebuffer->getColorAtt(3),
+			m_gbuffer_framebuffer->getColorAtt(4),
 			m_shadow_map->getDepthAtt()
 		);
 	}
@@ -454,6 +455,7 @@ namespace iara {
 
 	void Scene::resizeFramebuffers(uint32_t width, uint32_t height) {
 		m_msaa_framebuffer->resize(width, height);
+		m_gbuffer_framebuffer->resize(width, height);
 		m_ssao_framebuffer->resize(width, height);
 		m_ssao_blur_framebuffer->resize(width, height);
 		m_deferred_final_ldr_framebuffer->resize(width, height);
@@ -840,17 +842,23 @@ namespace iara {
 	void Scene::initializeFramebuffers() {
 
 		FramebufferSpecification fb_spec;
-		fb_spec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::DEPTH24STENCIL8 };
+		fb_spec.attachments = { 
+			FramebufferTextureFormat::RGBA8,
+			FramebufferTextureFormat::RED_INTEGER,
+			FramebufferTextureFormat::DEPTH24STENCIL8 };
 		fb_spec.width = 1920;
 		fb_spec.height = 1080;
 		m_msaa_framebuffer = Framebuffer::CreateMSAA(fb_spec);
-	
-		/// TERMINA DEFERRED RENDERING
-		/// SALVARE FRAMEBUFFER CA .EXR --- HDR RENDER TARGET
-		/// PENTRU ATMOSPHERIC LIGHT SCATTERING -- SHADERTOY TONE MAPPING
+
 
 		/// Position, Normal, Diffuse/Specular, EntityID, Metalness & Roughness
-		fb_spec.attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F , FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER , FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24STENCIL8 };
+		fb_spec.attachments = { 
+			FramebufferTextureFormat::RGBA16F,
+			FramebufferTextureFormat::RGBA16F,
+			FramebufferTextureFormat::RGBA16F,
+			FramebufferTextureFormat::RGBA16F,
+			FramebufferTextureFormat::RED_INTEGER,
+			FramebufferTextureFormat::DEPTH24STENCIL8 };
 		fb_spec.width = 1920;
 		fb_spec.height = 1080;
 		m_gbuffer_framebuffer = Framebuffer::Create(fb_spec, "G Buffer ");
