@@ -103,7 +103,7 @@ namespace iara {
                 m_hovered_pixel_entity = m_active_scene->getMSAAFramebuffer()->readPixel(1, mousex, mousey);
             }
         }
-        //IARA_CORE_TRACE("Hovored pixel: {0}", m_hovered_pixel_entity);
+        IARA_CORE_TRACE("Hovored pixel: {0}", m_hovered_pixel_entity);
         //g_on_update_time = timer.elapsedMilliseconds();
     }
 
@@ -364,11 +364,6 @@ namespace iara {
             texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(2);  /// Get the diffuse/specular texture from the framebuffer
             ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
-            /*texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(3);  /// Get the texture from the framebuffer
-            ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });*/
-
-            texID = m_active_scene->getGBufferFramebuffer()->getColorAtt(3);  /// Get the metalness/roughness texture from the framebuffer
-            ImGui::Image((void*)(intptr_t)texID, ImVec2(300, 300), ImVec2{ 0,1 }, ImVec2{ 1,0 });
         }
 
 

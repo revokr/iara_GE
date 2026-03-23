@@ -292,10 +292,15 @@ namespace iara {
 			MeshRenderer::GeometryPassGBuffer(camera);
 			m_gbuffer_framebuffer->unbind();
 
+			uint32_t gposition  = m_gbuffer_framebuffer->getColorAtt(0);
+			uint32_t gnormal    = m_gbuffer_framebuffer->getColorAtt(1);
+			uint32_t gdiffuse   = m_gbuffer_framebuffer->getColorAtt(2);
+			uint32_t gentityid  = m_gbuffer_framebuffer->getColorAtt(3);
+
 			// SSAO PASS
 			m_ssao_framebuffer->bind();
 			RenderCommand::ClearColorBuffer();
-			MeshRenderer::SSAOPass(camera, m_vp_width, m_vp_height, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(4));
+			MeshRenderer::SSAOPass(camera, m_vp_width, m_vp_height, gposition, gnormal, gentityid);
 			m_ssao_framebuffer->unbind();
 
 			m_ssao_blur_framebuffer->bind();
@@ -306,7 +311,9 @@ namespace iara {
 			// LIGHTING PASS
 			m_deferred_hdr_framebuffer->bind();
 			RenderCommand::Clear();
-			MeshRenderer::LighintgPass(camera, m_gbuffer_framebuffer->getColorAtt(0), m_gbuffer_framebuffer->getColorAtt(1), m_gbuffer_framebuffer->getColorAtt(2), m_gbuffer_framebuffer->getColorAtt(4), m_shadow_map->getDepthAtt(), m_ssao_blur_framebuffer->getColorAtt(0), cascade1, use_ssao);
+			MeshRenderer::LighintgPass(camera, gposition, gnormal, gdiffuse, gentityid,
+										m_shadow_map->getDepthAtt(), m_ssao_blur_framebuffer->getColorAtt(0),
+										cascade1, use_ssao);
 			m_deferred_hdr_framebuffer->unbind();
 
 			m_deferred_atmosphere_framebuffer->bind();
@@ -373,7 +380,7 @@ namespace iara {
 			m_gbuffer_framebuffer->getColorAtt(0),
 			m_gbuffer_framebuffer->getColorAtt(1),
 			m_ssao_blur_framebuffer->getColorAtt(),
-			m_gbuffer_framebuffer->getColorAtt(4),
+			m_gbuffer_framebuffer->getColorAtt(3),
 			m_shadow_map->getDepthAtt()
 		);
 	}
@@ -851,9 +858,9 @@ namespace iara {
 		m_msaa_framebuffer = Framebuffer::CreateMSAA(fb_spec);
 
 
-		/// Position, Normal, Diffuse/Specular, EntityID, Metalness & Roughness
+		/// Position, Normal, Diffuse/Specular, EntityID || Metalness is stored as Alpha channel inside the gPosition texture
+		/// and Roughness is stored as the Alpha channel inside the gNormal texture || SMART DECISION MADE INTENTIONALLY, CLEARLY NOT BECAUSE IT DIDN'T WORK TO ADD A FIFTH COLOR ATTACHMENT!!!
 		fb_spec.attachments = { 
-			FramebufferTextureFormat::RGBA16F,
 			FramebufferTextureFormat::RGBA16F,
 			FramebufferTextureFormat::RGBA16F,
 			FramebufferTextureFormat::RGBA16F,
