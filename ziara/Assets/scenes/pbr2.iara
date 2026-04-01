@@ -1,0 +1,59 @@
+Scene: Untitled
+Entities:
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, 0.100000001]
+      Rotation: [-1.5202173, 0, 0]
+      Scale: [3.67882395, 3.67882276, 3.67882276]
+    MeshComponent:
+      path: Assets\Models\terrain\source\lush_mountain.fbx
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\terrain\textures\diffuse.png
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: Assets\Models\terrain\textures\Normal Map.png
+          metallic_map_path: Assets\Models\terrain\textures\roughness.png
+          roughness_map_path: Assets\Models\terrain\textures\roughness.png
+  - Entity: 12345
+    TagComponent:
+      Tag: SunLight
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, 0.100000001]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    DirLightComponent:
+      direction: [-0.5, 0.5, -0.300000012, 1]
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [1, 1, 1, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [0.675288439, 1.181759, -0.826994002]
+      Rotation: [-1.67102933, 0.16819635, -0.242086738]
+      Scale: [0.00555905839, 0.00651721284, 0.00555882743]
+    MeshComponent:
+      path: Assets\Models\pbr\Cerberus_LP.fbx
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\pbr\Textures\Cerberus_A.tga
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: Assets\Models\pbr\Textures\Cerberus_N.tga
+          metallic_map_path: Assets\Models\pbr\Textures\Cerberus_M.tga
+          roughness_map_path: Assets\Models\pbr\Textures\Cerberus_R.tga
+  - Entity: 12345
+    TagComponent:
+      Tag: SunLight
+    DirLightComponent:
+      direction: [-0.5, 0.5, -0.300000012, 1]
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [1, 1, 1, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+CubemapPath: Assets\Textures\skybox2\sky1.png

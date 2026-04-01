@@ -4,8 +4,11 @@ layout(location = 0) in vec3 view_ray;
 
 layout(location = 0) out vec4 color;
 
-layout(std140, binding = 11) uniform lightSpaceMatrix {
-	mat4 u_lightVP;
+layout(std140, binding = 18) uniform CSMlightSpaceMatrix {
+	mat4 u_lightVP0;
+    mat4 u_lightVP1;
+    mat4 u_lightVP2;
+    mat4 u_lightVP3;
 };
 
 layout(std140, binding = 24) uniform Data {
@@ -37,7 +40,7 @@ layout(binding = 6) uniform sampler2D g_position_texture;
 layout(binding = 7) uniform sampler2D g_normal;
 layout(binding = 8) uniform sampler2D ssao_map;
 layout(binding = 9) uniform isampler2D entityID_map;
-layout(binding = 10) uniform sampler2D shadow_map;
+layout(binding = 10) uniform sampler2D shadow_map_cascades[4];
 
 
 const float kLengthUnitInMeters = 1000.000000;
@@ -1099,37 +1102,106 @@ void GetSphereShadowInOut(vec3 view_direction, vec3 sun_direction,
   }
 }
 
-float calculateShadow(vec3 world_pos, vec3 normal, vec3 sun_dir) {
-    vec4 lp = u_lightVP * vec4(world_pos, 1.0);
+const float cascades_split[] = {8.0, 30.0, 250.0, 1000.0};
+
+/// Very nice sampling technique called Normal Bias Offset, i heard that this is very used, need to study it further
+float sampleCascadeShadow(int cascade_index, vec3 world_pos, vec3 normal, vec3 sun_dir) {
+    mat4 light_vp;
+
+    if (cascade_index == 0) light_vp = u_lightVP0;
+    else if (cascade_index == 1) light_vp = u_lightVP1;
+    else if (cascade_index == 2) light_vp = u_lightVP2;
+    else light_vp = u_lightVP3;
+
+    vec3 N = normalize(normal);
+    vec3 L = normalize(-sun_dir);
+    float ndotl = clamp(dot(N, L), 0.0, 1.0);
+
+    ivec2 size = textureSize(shadow_map_cascades[cascade_index], 0);
+    vec2 texel = 1.0 / vec2(size);
+    float texel_size = texel.x;
+
+    // primary bias: move the receiver in world space along the normal
+    float normal_bias = mix(0.0005, 0.01, 1.0 - ndotl);
+
+    // optional cascade scaling, because farther cascades cover more world area
+    if (cascade_index == 1) normal_bias *= 2.0;
+    else if (cascade_index == 2) normal_bias *= 4.0;
+    else if (cascade_index == 3) normal_bias *= 8.0;
+
+    vec3 biased_world_pos = world_pos + N * normal_bias;
+
+    vec4 lp = light_vp * vec4(biased_world_pos, 1.0);
     vec3 ndc = lp.xyz / lp.w;
     vec3 uvz = ndc * 0.5 + 0.5;
 
     if (uvz.x < 0.0 || uvz.x > 1.0 ||
         uvz.y < 0.0 || uvz.y > 1.0 ||
-        uvz.z < 0.0 || uvz.z > 1.0)
+        uvz.z < 0.0 || uvz.z > 1.0) {
         return 1.0;
+    }
 
-    float ndotl = dot(normalize(normal), normalize(-sun_dir));
-    if (ndotl <= 0.0) return 1.0;
-    ndotl = clamp(ndotl, 0.0, 1.0);
+    // keep this small now
+    float depth_bias = 0.5 * texel_size;
+    float current_depth = uvz.z - depth_bias;
 
-    float texel_size = 1.0 / float(textureSize(shadow_map, 0).x);
-    float bias = max(0.5 * texel_size, (2.0 * texel_size) * (1.0 - ndotl));
-    
-    float current_depth = uvz.z - bias;
-    ivec2 size = textureSize(shadow_map, 0);
-    vec2 shadow_map_size = vec2(size);
-    vec2 texel = 1.0 / shadow_map_size;
+
+    int radius = 2;
+
     float vis = 0.0;
-    for (int x = -1; x <= 1; x++) {
-        for (int y = -1; y <= 1; y++) {
-            float closest_depth = texture(shadow_map, uvz.xy + vec2(x, y) * texel).r;
+    float count = 0.0;
+    for (int x = -radius; x <= radius; x++) {
+        for (int y = -radius; y <= radius; y++) {
+            float closest_depth = texture(
+                shadow_map_cascades[cascade_index],
+                uvz.xy + vec2(x, y) * texel
+            ).r;
+
             vis += (current_depth <= closest_depth) ? 1.0 : 0.0;
+            count += 1.0;
         }
     }
 
-    return vis / 9.0;
+    return vis / count;
+}
 
+float calculateShadow(vec3 world_pos, vec3 normal, vec3 sun_dir, float view_depth) {
+    const float blend_band = 5.0;
+
+    int cascade_index = 0;
+    if (view_depth < cascades_split[0]) cascade_index = 0;
+    else if (view_depth < cascades_split[1]) cascade_index = 1;
+    else if (view_depth < cascades_split[2]) cascade_index = 2;
+    else cascade_index = 3;
+
+    float shadow0 = sampleCascadeShadow(cascade_index, world_pos, normal, sun_dir);
+
+    if (cascade_index == 0) {
+        float split = cascades_split[0];
+        if (view_depth > split - blend_band) {
+            float shadow1 = sampleCascadeShadow(1, world_pos, normal, sun_dir);
+            float t = smoothstep(split - blend_band, split, view_depth);
+            return mix(shadow0, shadow1, t);
+        }
+    }
+    else if (cascade_index == 1) {
+        float split = cascades_split[1];
+        if (view_depth > split - blend_band) {
+            float shadow1 = sampleCascadeShadow(2, world_pos, normal, sun_dir);
+            float t = smoothstep(split - blend_band, split, view_depth);
+            return mix(shadow0, shadow1, t);
+        }
+    }
+    else if (cascade_index == 2) {
+        float split = cascades_split[2];
+        if (view_depth > split - blend_band) {
+            float shadow1 = sampleCascadeShadow(3, world_pos, normal, sun_dir);
+            float t = smoothstep(split - blend_band, split, view_depth);
+            return mix(shadow0, shadow1, t);
+        }
+    }
+
+    return shadow0;
 }
 
 void main() {
@@ -1199,7 +1271,18 @@ void main() {
     vec3 radiance = GetSkyRadiance(camera - earth_center, view_direction, shadow_length, sun_direction, transmittance);
     
     if (dot(view_direction, sun_direction) > sun_size.y) {
-        radiance = radiance + transmittance * GetSolarRadiance();
+        float cos_theta = dot(view_direction, sun_direction);
+
+        // anti-aliased soft edge based on fragment size
+        float edge = max(fragment_angular_size * 2.0, 0.0005);
+
+        float sun_mask = smoothstep(
+            sun_size.y - edge,
+            sun_size.y + edge,
+            cos_theta
+        );
+
+        radiance += sun_mask * transmittance * GetSolarRadiance();
     }
        
     //radiance = mix(radiance, ground_radiance, ground_alpha);
@@ -1217,8 +1300,8 @@ void main() {
 
         vec3 pos_ws = (inverse_view * vec4(geometry_pos, 1.0)).xyz;
         vec3 normal_ws = normalize(mat3(inverse_view) * normal);
-        float shadow_visibility = calculateShadow(pos_ws, normal_ws, sun_dir_shadow);
-        shadow_visibility = mix(0.25, 1.0, shadow_visibility);
+        float shadow_visibility = calculateShadow(pos_ws, normal_ws, sun_dir_shadow, -geometry_pos.z);
+        shadow_visibility = mix(0.05, 1.0, shadow_visibility);
 
         vec3 pos_rel_earth = geometry_pos - earth_center;
         float r = length(pos_rel_earth);
@@ -1229,8 +1312,8 @@ void main() {
         vec3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, geometry_pos - earth_center, shadow_length, 
                                                 sun_direction, transmittance);
 
-        vec3 sun_attenuated_color = frag_color * sun_transmittance * shadow_visibility;
-        color.rgb = sun_attenuated_color * transmittance * 0.3;
+        vec3 sun_attenuated_color = frag_color * (sun_transmittance * shadow_visibility * (exposure - 9.0));
+        color.rgb = sun_attenuated_color * transmittance;
     }
     color.a = 1.0;
 }

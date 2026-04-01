@@ -1,0 +1,29 @@
+# Blender 3.1.0 MTL File: '003.blend'
+# www.blender.org
+
+newmtl Material.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd  maps\003_diffuse.png
+map_Ns  maps\003_roughness.png
+map_Bump  -bm 1.000000 maps\003_normal.png
+
+newmtl Material.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd  D:\Architecture\MODELING\00. Published\035. PBR Farm_Collection_01\maps_1\axe_01\axe_01_Albedo.png
+map_Ns  D:\Architecture\MODELING\00. Published\035. PBR Farm_Collection_01\maps_1\axe_01\axe_01_Roughness.png
+map_refl  D:\Architecture\MODELING\00. Published\035. PBR Farm_Collection_01\maps_1\axe_01\axe_01_Metalness.png
+map_Bump  -bm 1.000000 D:\Architecture\MODELING\00. Published\035. PBR Farm_Collection_01\maps_1\axe_01\axe_01_Normal.png

@@ -1,0 +1,29 @@
+Scene: Untitled
+Entities:
+  - Entity: 12345
+    TagComponent:
+      Tag: Mesh Object
+    TransformComponent:
+      Translation: [0.100000001, 0.100000001, 0.100000001]
+      Rotation: [-1.57079637, 0, 0]
+      Scale: [14.7975988, 14.7975721, 14.7975721]
+    MeshComponent:
+      path: Assets\Models\terrain\source\lush_mountain.fbx
+      Materials:
+        Material0:
+          diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
+          diffuse_map_path: Assets\Models\terrain\textures\diffuse.png
+          shininess: 10
+          specular_map_path: ""
+          normal_map_path: Assets\Models\terrain\textures\Normal Map.png
+          metallic_map_path: Assets\Models\terrain\textures\roughness.png
+          roughness_map_path: Assets\Models\terrain\textures\roughness.png
+  - Entity: 12345
+    TagComponent:
+      Tag: SunLight
+    DirLightComponent:
+      direction: [-0.5, 0.5, -0.300000012, 1]
+      ambient: [0.300000012, 0.300000012, 0.300000012, 1]
+      diffuse: [1, 1, 1, 1]
+      specular: [0.5, 0.5, 0.5, 1]
+CubemapPath: Assets\Textures\skybox2\sky1.png

@@ -4,9 +4,9 @@ Entities:
     TagComponent:
       Tag: Mesh Object
     TransformComponent:
-      Translation: [0.100000001, 0.100000001, 0.100000001]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Translation: [0.140049085, 0.302391499, -0.41880247]
+      Rotation: [-1.70843637, 0.00696825702, -0.461702228]
+      Scale: [0.0122400196, 0.0122400364, 0.0122399712]
     MeshComponent:
       path: Assets\Models\pbr\Cerberus_LP.fbx
       Materials:
@@ -14,13 +14,15 @@ Entities:
           diffuse: [0.100000001, 0.100000001, 0.100000001, 1]
           diffuse_map_path: Assets\Models\pbr\Textures\Cerberus_A.tga
           shininess: 10
-          specular_map_path: ""
+          specular_map_path: Assets\Models\pbr\Textures\Cerberus_M.tga
           normal_map_path: Assets\Models\pbr\Textures\Cerberus_N.tga
+          metallic_map_path: Assets\Models\pbr\Textures\Cerberus_M.tga
+          roughness_map_path: Assets\Models\pbr\Textures\Cerberus_R.tga
   - Entity: 12345
     TagComponent:
-      Tag: Sky Light
+      Tag: SunLight
     DirLightComponent:
-      direction: [0, -1, 0, 0]
+      direction: [-0.5, 0.5, -0.300000012, 1]
       ambient: [0.300000012, 0.300000012, 0.300000012, 1]
       diffuse: [1, 1, 1, 1]
       specular: [0.5, 0.5, 0.5, 1]

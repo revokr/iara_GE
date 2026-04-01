@@ -408,7 +408,7 @@ namespace iara {
 					std::string iara = std::filesystem::path(path).extension().string();
 
 					std::filesystem::path tex_path = g_assets_path / std::filesystem::path(path);
-					if (iara == ".obj" || iara == ".fbx" || iara == ".gltf") {
+					if (iara == ".obj" || iara == ".fbx" || iara == ".gltf" || iara == ".glb") {
 						component.path = tex_path.string();
 					}
 				}

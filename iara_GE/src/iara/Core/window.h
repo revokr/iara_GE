@@ -36,6 +36,9 @@ namespace iara {
 
 		virtual void* GetNativeWindow() const = 0;
 
+		virtual float getXUIScale() = 0;
+		virtual float getYUIScale() = 0;
+
 		static Scope<Window> Create(const WindowProps& props = WindowProps());
 	};
 }

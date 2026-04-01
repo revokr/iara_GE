@@ -90,11 +90,17 @@ namespace iara {
 			const aiVector3D& pos = mesh->mVertices[i];
 			const aiVector3D& normal = mesh->mNormals[i];
 			const aiVector3D& tc = mesh->HasTextureCoords(0) ? mesh->mTextureCoords[0][i] : zero3D;
-			const aiVector3D& tangent = mesh->mTangents[i];
-			const aiVector3D& bitangent = mesh->mBitangents[i];
+			const aiVector3D& tangent = mesh->HasTangentsAndBitangents() ? mesh->mTangents[i] : zero3D;
+			const aiVector3D& bitangent = mesh->HasTangentsAndBitangents() ? mesh->mBitangents[i] : zero3D;
 
-			mesh_vertex_array.push_back({ {pos.x, pos.y, pos.z} , {tc.x, tc.y}, {normal.x, normal.y, normal.z},
-										  {tangent.x, tangent.y, tangent.z}, {bitangent.x, bitangent.y, bitangent.z}/*, entityID*/ });
+			MeshVertex vertex{};
+			vertex.position = glm::vec3(pos.x, pos.y, pos.z);
+			vertex.tex_coord = glm::vec2(tc.x, tc.y);
+			vertex.normal = glm::vec3(normal.x, normal.y, normal.z);
+			vertex.tangent = glm::vec3(tangent.x, tangent.y, tangent.z);
+			vertex.bitangent = glm::vec3(bitangent.x, bitangent.y, bitangent.z);
+
+			mesh_vertex_array.push_back(vertex);
 		}
 
 		for (size_t i = 0; i < mesh->mNumFaces; i++) {
@@ -108,7 +114,6 @@ namespace iara {
 
 	bool Mesh::initMaterials(const aiScene* scene, const std::string& filename) {
 		std::string directory = filename.substr(0, filename.find_last_of('\\'));
-
 		bool ret = true;
 
 		for (size_t i = 0; i < scene->mNumMaterials; i++) {
@@ -153,13 +158,14 @@ namespace iara {
 					//mat.spec_path = fullpath;
 					mat.specular_map = Texture2D::Create(fullpath);
 
+
 					//IARA_CORE_TRACE("Loaded Specular texture {0}", fullpath);
 				}
 			}
 
-			if (material->GetTextureCount(aiTextureType_HEIGHT) > 0) {
+			if (material->GetTextureCount(aiTextureType_NORMALS) > 0) {
 				aiString path2;
-				if (material->GetTexture(aiTextureType_HEIGHT, 0, &path2, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
+				if (material->GetTexture(aiTextureType_NORMALS, 0, &path2, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
 					std::string p(path2.data);
 
 					if (p.substr(0, 2) == ".\\") {

@@ -13,8 +13,8 @@ namespace iara {
 	
 
 	Application::Application(AppCommandLineArgs args)
-		: m_args{args}
-	{
+		: m_args{args} {
+
 		IARA_PROFILE_FUNCTION();
 
 		IARA_CORE_ASSERT(!s_Instance, "Application already exists!!");

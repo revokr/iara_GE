@@ -10,11 +10,8 @@ layout(location = 0) out vec4 color;
 layout(binding = 0) uniform sampler2D gPosition;
 layout(binding = 1) uniform sampler2D gNormal;
 layout(binding = 2) uniform sampler2D gDiffuseSpec;
-layout(binding = 3) uniform sampler2D gMetallic;
-layout(binding = 4) uniform sampler2D gRoughness;
-layout(binding = 5) uniform sampler2D shadow_map;
-layout(binding = 6) uniform isampler2D entityID_map;
-layout(binding = 7) uniform sampler2D ssao_map;
+layout(binding = 3) uniform isampler2D entityID_map;
+layout(binding = 4) uniform sampler2D ssao_map;
 
 struct PointLight {
 	vec4 position;
@@ -51,12 +48,12 @@ layout(std140, binding = 6) uniform Camera {
 	vec4 u_camPos;
 };
 
-layout(std140, binding = 11) uniform lightSpaceMatrix {
-	mat4 u_LightViewProjection;
-};
-
 layout(std140, binding = 16) uniform Ambient {
 	bool use_ssao;
+};
+
+layout (std140, binding = 10) uniform DirLightUBO {
+	DirLight skyLight;
 };
 
 const float PI = 3.14159265;
@@ -70,25 +67,55 @@ void main() {
 	
 	int entity = texture(entityID_map, TexCoord).r;
 
-	vec3 Pos = texture(gPosition, TexCoord).rgb;
-	vec3 world_pos = (inverse(u_view) * vec4(Pos, 1.0)).xyz;
-    vec3 Normal = texture(gNormal, TexCoord).rgb;
-	vec3 V = normalize(vec3(u_camPos) - world_pos);
+	vec3 sun_direction = -skyLight.direction.xyz;
+
+	vec3 light_dir = (u_view * vec4(sun_direction, 0.0)).xyz;
+
+	vec3 viewPos = texture(gPosition, TexCoord).rgb;
+    vec3 Normal = normalize(texture(gNormal, TexCoord).rgb);
+	vec3 V = normalize(-viewPos);
     vec3 Diffuse = texture(gDiffuseSpec, TexCoord).rgb;
 	float ambient_occlusion = texture(ssao_map, TexCoord).r;
-	float metallic = texture(gMetallic, TexCoord).r;
-	float roughness = texture(gRoughness, TexCoord).r;
+	float metallic = texture(gPosition, TexCoord).a;
+	float roughness = texture(gNormal, TexCoord).a;
+	roughness = clamp(roughness, 0.25, 1.0);
 
 	vec3 F0 = vec3(0.04);
-	F0 = mix(F0, Diffuse, metallic);
-
 	vec3 Lo = vec3(0.0);
+	
+	F0 = mix(F0, Diffuse + 0.1, metallic);
+
+	
+	vec3 L = normalize(-light_dir);
+	vec3 H = normalize(V + L);
+
+	float attenuation = 1.0;
+	vec3 radiance = skyLight.diffuse.xyz * attenuation;
+
+	float NDF = distributionGGX(Normal, H, roughness);
+	float G   = geometrySmith(Normal, V, L, roughness);
+	vec3 F    = fresnelSchilck(max(dot(H, V), 0.0), F0);
+
+	vec3 kS = F;
+	vec3 kD = vec3(1.0) - kS;
+	kD *= 1.0 - metallic;
+
+	vec3 num = NDF * G * F;
+	float denom = 4.0 * max(dot(Normal, V), 0.0) * max(dot(Normal, L), 0.0) + 0.00001;
+	vec3 specular = num / denom;
+
+	float NdotL = max(dot(Normal, L), 0.0);
+	Lo += (kD * Diffuse / PI + specular) * radiance * NdotL;
+	
+
+	
 	for (int i = 0; i < nrLights; i++) {
-		vec3 L = normalize(lights[i].position.xyz - world_pos);
+		vec3 lightViewPos = (u_view * lights[i].position).xyz;
+		vec3 L = normalize(lightViewPos - viewPos);
 		vec3 H = normalize(V + L);
 
-		float dist = length(lights[i].position.xyz - world_pos);
-		float attenuation = 1.0 / (dist * dist);
+		float dist = length(lightViewPos - viewPos);
+		float attenuation = 1.0 / (lights[i].constant + lights[i].linear * dist + lights[i].quadratic * dist * dist);
 		vec3 radiance = lights[i].diffuse.xyz * attenuation;
 
 		float NDF = distributionGGX(Normal, H, roughness);
@@ -106,15 +133,16 @@ void main() {
 		float NdotL = max(dot(Normal, L), 0.0);
 		Lo += (kD * Diffuse / PI + specular) * radiance * NdotL;
 	}
+	
 
-	vec3 ambient = vec3(0.03) * Diffuse * ambient_occlusion;
+	vec3 ambient = vec3(0.1) * Diffuse * ambient_occlusion;
 	
 	color = vec4(ambient + Lo, 1.0);
 }
 
 
 vec3 fresnelSchilck(float cos_theta, vec3 F0) {
-	return F0 * (1.0 - F0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
+	return F0 + (1.0 - F0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
 }
 
 float distributionGGX(vec3 normal, vec3 H, float roughness) {

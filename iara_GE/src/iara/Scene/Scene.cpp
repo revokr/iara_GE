@@ -23,6 +23,10 @@ namespace iara {
 
 		initializeFramebuffers();
 		initializeShadowMap();
+
+		auto& sunlight = createDirLight("SunLight");
+		auto& dirlight_component = sunlight.getComponent<DirLightComponent>();
+		dirlight_component.dlight.direction = glm::vec4(sun_direction.x, sun_direction.y, sun_direction.z, 1.0);
 	}
 
 	Scene::~Scene() { }
@@ -233,7 +237,7 @@ namespace iara {
 		renderShadowmapCascadesPass();
 		renderShadowMapToColorFBO();
 		/// Wrong Cascade matrix calculation most likely - need to fix
-		
+		/// Scratch THAT!! Cascaded Shadow Mapping is officially working ... though is not the best ... but it works!!! YEYOOO
 
 		if (rendering_type == RenderingType::MSAA) {
 			// MSAA Forward Pass
@@ -251,15 +255,13 @@ namespace iara {
 				glm::mat4 view3 = glm::mat4(glm::mat3(camera.getViewMatrix()));
 				Renderer3D::drawSkyBox(camera.getProjection() * view3, m_skybox, glm::vec4(to_sun.x, to_sun.y, to_sun.z, 1.0));
 			}
-			glDisable(GL_DEPTH_TEST);
-			//renderAtmosphere(camera);
-			glEnable(GL_DEPTH_TEST);
+
 			render2DPassEdit(camera);
 			render3DPassEdit(camera, cascade1);
 			m_msaa_framebuffer->unbind();
 		}
 		else if (rendering_type == RenderingType::DEFERRED) {
-			
+			glEnable(GL_DEPTH_TEST);
 
 			glDisable(GL_BLEND);
 
@@ -283,6 +285,7 @@ namespace iara {
 			auto entity = view5.front();
 			for (auto entity : view5) {
 				auto dlight = view5.get<DirLightComponent>(entity);
+				dlight.dlight.direction = glm::vec4(sun_direction.x, sun_direction.y, sun_direction.z, 0.0);
 				Renderer2D::drawDirLight(dlight);
 			}
 			Renderer2D::EndScene();
@@ -311,9 +314,11 @@ namespace iara {
 			// LIGHTING PASS
 			m_deferred_hdr_framebuffer->bind();
 			RenderCommand::Clear();
-			MeshRenderer::LighintgPass(camera, gposition, gnormal, gdiffuse, gentityid,
+			/*MeshRenderer::LighintgPass(camera, gposition, gnormal, gdiffuse, gentityid,
 										m_shadow_map->getDepthAtt(), m_ssao_blur_framebuffer->getColorAtt(0),
-										cascade1, use_ssao);
+										cascade1, use_ssao);*/
+			MeshRenderer::LighintgPassPBR(camera, gposition, gnormal, gdiffuse, gentityid,
+										  m_ssao_blur_framebuffer->getColorAtt(0), use_ssao);
 			m_deferred_hdr_framebuffer->unbind();
 
 			m_deferred_atmosphere_framebuffer->bind();
@@ -381,7 +386,11 @@ namespace iara {
 			m_gbuffer_framebuffer->getColorAtt(1),
 			m_ssao_blur_framebuffer->getColorAtt(),
 			m_gbuffer_framebuffer->getColorAtt(3),
-			m_shadow_map->getDepthAtt()
+			m_shadow_map_cascade0->getDepthAtt(),
+			m_shadow_map_cascade1->getDepthAtt(),
+			m_shadow_map_cascade2->getDepthAtt(),
+			m_shadow_map_cascade3->getDepthAtt(),
+			m_cascades
 		);
 	}
 
@@ -489,6 +498,7 @@ namespace iara {
 		for (auto entity : view5) {
 			//IARA_CORE_INFO("Directional Light detected!!");
 			auto dlight = view5.get<DirLightComponent>(entity);
+			dlight.dlight.direction = glm::vec4(sun_direction.x, sun_direction.y, sun_direction.z, 1.0);
 			Renderer2D::drawDirLight(dlight);
 		}
 		Renderer2D::EndScene();
@@ -497,57 +507,69 @@ namespace iara {
 	void Scene::renderShadowmapCascadesPass() {
 		/// Cascade 1
 		glm::mat4 light_vp = m_cascades[0];
-		m_shadow_map->bind();
+		m_shadow_map_cascade0->bind();
 		RenderCommand::Clear();
 		//glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
-		
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(2.0f, 4.0f);
+
 		MeshRenderer::ShadowMapPass(light_vp);
 
+		glDisable(GL_POLYGON_OFFSET_FILL);
 		glCullFace(GL_BACK);
-		m_shadow_map->unbind();
+		m_shadow_map_cascade0->unbind();
 
 		/// Cascade 2
 		light_vp = m_cascades[1];
+		m_shadow_map_cascade1->bind();
+		RenderCommand::Clear();
+		//glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(2.0f, 4.0f);
+
+		MeshRenderer::ShadowMapPass(light_vp);
+
+		glDisable(GL_POLYGON_OFFSET_FILL);
+		glCullFace(GL_BACK);
+		m_shadow_map_cascade1->unbind();
+
+		/// Cascade 3
+		light_vp = m_cascades[2];
 		m_shadow_map_cascade2->bind();
 		RenderCommand::Clear();
 		//glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(2.0f, 4.0f);
 
 		MeshRenderer::ShadowMapPass(light_vp);
 
+		glDisable(GL_POLYGON_OFFSET_FILL);
 		glCullFace(GL_BACK);
 		m_shadow_map_cascade2->unbind();
-
-		/// Cascade 3
-		light_vp = m_cascades[2];
+		
+		/// Cascade 4
+		light_vp = m_cascades[3];
 		m_shadow_map_cascade3->bind();
 		RenderCommand::Clear();
 		//glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(2.0f, 4.0f);
 
 		MeshRenderer::ShadowMapPass(light_vp);
 
+		glDisable(GL_POLYGON_OFFSET_FILL);
 		glCullFace(GL_BACK);
 		m_shadow_map_cascade3->unbind();
-		
-		/// Cascade 4
-		light_vp = m_cascades[3];
-		m_shadow_map_cascade4->bind();
-		RenderCommand::Clear();
-		//glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
-
-		MeshRenderer::ShadowMapPass(light_vp);
-
-		glCullFace(GL_BACK);
-		m_shadow_map_cascade4->unbind();
 		
 		
 	}
 
 	void Scene::renderToShadowMapPass(const glm::mat4& light_vp) {
-		m_shadow_map->bind();
+		m_shadow_map_cascade0->bind();
 		RenderCommand::Clear();
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
@@ -555,12 +577,12 @@ namespace iara {
 		MeshRenderer::ShadowMapPass(light_vp);
 
 		glCullFace(GL_BACK);
-		m_shadow_map->unbind();
+		m_shadow_map_cascade0->unbind();
 	}
 
 	void Scene::render3DPassEdit(EditorCamera& camera, const glm::mat4& light_vp) {		
-		uint32_t shadowmap = m_shadow_map->getDepthAtt();
-		MeshRenderer::ForwardPass(camera, light_vp, shadowmap);
+		uint32_t shadowmap = m_shadow_map_cascade0->getDepthAtt();
+		MeshRenderer::ForwardPassPBR(camera, light_vp, shadowmap);
 	}
 
 	void Scene::render2DPassRuntime(Camera& camera, const glm::mat4& camera_transform)
@@ -589,7 +611,7 @@ namespace iara {
 	}
 
 	void Scene::render3DPassRuntime(Camera& camera, const glm::mat4& camera_transform, const glm::mat4& light_vp) {
-		uint32_t shadowmap = m_shadow_map->getDepthAtt();
+		uint32_t shadowmap = m_shadow_map_cascade0->getDepthAtt();
 		MeshRenderer::ForwardPass(camera, camera_transform, light_vp, shadowmap);
 	}
 
@@ -597,7 +619,7 @@ namespace iara {
 		m_shadowmap_quad->bind();
 		RenderCommand::Clear();
 		
-		uint32_t shadowmap = m_shadow_map_cascade2->getDepthAtt();
+		uint32_t shadowmap = m_shadow_map_cascade0->getDepthAtt();
 		Renderer2D::drawShadowMapToQuad(shadowmap);
 
 		m_shadowmap_quad->unbind();
@@ -617,22 +639,22 @@ namespace iara {
 	void Scene::initializeShadowMap() {
 		int size = 4096;
 
-		std::string name = "ShadowMap ";
+		std::string name = "ShadowMap -C0 ";
 		FramebufferSpecification specs;
 		specs.attachments = { FramebufferTextureFormat::DEPTH_COMPONENT };
 		specs.width = size;
 		specs.height = size;
 		specs.samples = 1;
-		m_shadow_map = Framebuffer::Create(specs, name);
+		m_shadow_map_cascade0 = Framebuffer::Create(specs, name);
+
+		name = "ShadowMap -C1 ";
+		m_shadow_map_cascade1 = Framebuffer::Create(specs, name);
 
 		name = "ShadowMap -C2 ";
 		m_shadow_map_cascade2 = Framebuffer::Create(specs, name);
 
 		name = "ShadowMap -C3 ";
 		m_shadow_map_cascade3 = Framebuffer::Create(specs, name);
-
-		name = "ShadowMap -C4 ";
-		m_shadow_map_cascade4 = Framebuffer::Create(specs, name);
 
 		std::string name2 = "ShadowMapQuad ";
 		FramebufferSpecification specs2;
@@ -644,9 +666,9 @@ namespace iara {
 
 
 		float camera_far = 1000.0f;
-		m_shadow_cascade_levels.push_back(camera_far / 50.0f);
-		m_shadow_cascade_levels.push_back(camera_far / 15.0f);
-		m_shadow_cascade_levels.push_back(camera_far / 5.0f);
+		m_shadow_cascade_levels.push_back(8.0f);
+		m_shadow_cascade_levels.push_back(30.0f);
+		m_shadow_cascade_levels.push_back(250.0f);
 		m_cascades.resize(4);
 	}
 
@@ -666,20 +688,24 @@ namespace iara {
 
 	glm::mat4 Scene::computeCascadeMatrix(float near_clip, float far_clip, const EditorCamera& camera) {
 		glm::vec3 to_sun = glm::normalize(glm::vec3(sun_direction.x, sun_direction.y, sun_direction.z));
-		glm::mat4 proj = glm::perspective(glm::radians(80.0f), (float)(m_vp_width / m_vp_height), near_clip, far_clip);
+
+		glm::mat4 proj = glm::perspective(glm::radians(80.0f), (float)((float)m_vp_width / (float)m_vp_height), near_clip, far_clip);
+
 		std::vector<glm::vec4> frostum_corners = computeFrostumCornersWS(proj * camera.getViewMatrix());
 		glm::vec3 target = glm::vec3(0.0f);
 		for (const auto& c : frostum_corners) {
 			target += glm::vec3(c);
 		}
 		target /= frostum_corners.size();
+
 		//IARA_CORE_INFO("Target vector {0}, {1}, {2}", target.x, target.y, target.z);
 		glm::vec3 light_position = target + to_sun * shadow_map_light_distance;
 		glm::vec3 up_vector = glm::vec3(0.0f, 1.0f, 0.0f);
 		/*if (std::abs(glm::dot(to_sun, up_vector)) > 0.99f) {
 			up_vector = glm::vec3(0.0f, 0.0f, 1.0f);
 		}*/
-		glm::mat4 lightView = glm::lookAt(light_position, camera.getPosition(), up_vector);
+
+		glm::mat4 lightView = glm::lookAt(light_position, target, up_vector);
 
 
 		float min_x = std::numeric_limits<float>::max();
@@ -700,26 +726,12 @@ namespace iara {
 			max_z = std::max(max_z, trf.z);
 		}
 
-		float z_padding = 100.0f;
-		/*if (min_z < 0) {
-			min_z *= z_mult;
-		}
-		else {
-			min_z /= z_mult;
-		}
-		if (max_z < 0) {
-			max_z /= z_mult;
-		}
-		else {
-			max_z *= z_mult;
-		}*/
-
-		float r = 8.0f;
-		
-
-		/// nu sunt buni parametrii min_x, min_y etc. cu date hardcodate macar merge
-		//glm::mat4 lightProjection = glm::ortho(-r, r, -r, r, min_z - z_padding, max_z + z_padding);
-		glm::mat4 lightProjection = glm::ortho(min_x, max_x, min_y, max_y, 0.1f, 100.0f);
+		float x_extent = max_x - min_x;
+		float y_extent = max_y - min_y;
+		float z_extent = max_z - min_z;
+		float xy_padding = 0.2f * std::max(x_extent, y_extent);
+		float z_padding  = 50.0f;
+		glm::mat4 lightProjection = glm::ortho(min_x - xy_padding, max_x + xy_padding, min_y - xy_padding, max_y + xy_padding, min_z - z_padding, max_z + z_padding);
 
 		return lightProjection * lightView;
 	}
@@ -899,7 +911,6 @@ namespace iara {
 		else if (rendering_type == RenderingType::DEFERRED) {
 			return m_deferred_final_ldr_framebuffer->getColorAtt(0);
 		}
-
 	}
 
 	template<typename T>

@@ -80,12 +80,17 @@ namespace iara {
         auto [x_spd, y_spd] = panSpeed();
         m_focal_point += -getRightDirection() * delta.x * x_spd * m_distance;
         m_focal_point += getUpDirection() * delta.y * y_spd * m_distance;
+
+        m_focal_point.y = std::max(m_focal_point.y, 0.0f);
     }
 
     void EditorCamera::mouseRotate(const glm::vec2& delta) {
         float yaw_sign = getUpDirection().y < 0 ? -1.0f : 1.0f;
-        m_yaw += yaw_sign * delta.x * rotationSpeed();
+        m_yaw += delta.x * rotationSpeed();
         m_pitch += delta.y * rotationSpeed();
+
+        const float limit = glm::radians(89.0f);
+        m_pitch = glm::clamp(m_pitch, -limit, limit);
     }
 
     void EditorCamera::mouseZoom(float delta) {
@@ -97,7 +102,14 @@ namespace iara {
     }
 
     glm::vec3 EditorCamera::calculatePosition() const {
-        return m_focal_point - getForwardDirection() * m_distance;
+        glm::vec3 pos = m_focal_point - getForwardDirection() * m_distance;
+
+        if (pos.y < 0.0f) {
+            float correction = -pos.y;
+            pos.y = 0.0f;
+        }
+
+        return pos;
     }
 
     std::pair<float, float> EditorCamera::panSpeed() const {

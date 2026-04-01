@@ -103,7 +103,7 @@ namespace iara {
                 m_hovered_pixel_entity = m_active_scene->getMSAAFramebuffer()->readPixel(1, mousex, mousey);
             }
         }
-        IARA_CORE_TRACE("Hovored pixel: {0}", m_hovered_pixel_entity);
+        //IARA_CORE_TRACE("Hovored pixel: {0}", m_hovered_pixel_entity);
         //g_on_update_time = timer.elapsedMilliseconds();
     }
 
@@ -282,7 +282,8 @@ namespace iara {
 
         // Submit the DockSpace
         ImGuiIO& io = ImGui::GetIO();
-        //io.FontGlobalScale = 1.6f;
+        float x_ui_scale = Application::Get().getWindow().getXUIScale();
+        io.FontGlobalScale = x_ui_scale;
 
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {

@@ -82,7 +82,8 @@ namespace iara {
 		static void drawAtmosphere(uint32_t vp_width, uint32_t vp_height, const glm::mat4& model_from_view, const glm::mat4& view_from_clip, const glm::mat4& view_from_model, const glm::mat4& clip_from_view, const glm::mat4& inverse_view,
 								const glm::vec3& camera_pos, const glm::vec3& white_point, const glm::vec3& earth_center,
 								const glm::vec3& sun_dir, const glm::vec3& sun_dir_y_up, const glm::vec2& sun_size, float exposure, uint32_t transmittance_tex, uint32_t scattering_tex,
-								uint32_t mie_scattering_tex, uint32_t irradiance_tex, uint32_t g_color, uint32_t g_depth, uint32_t g_position, uint32_t g_normal, uint32_t ssao_map, uint32_t entityid_map, uint32_t shadow_map);
+								uint32_t mie_scattering_tex, uint32_t irradiance_tex, uint32_t g_color, uint32_t g_depth, uint32_t g_position, uint32_t g_normal, uint32_t ssao_map, uint32_t entityid_map,
+								uint32_t shadow_map0, uint32_t shadow_map1, uint32_t shadow_map2, uint32_t shadow_map3, const std::vector<glm::mat4>& light_vp_matrices);
 
 		static void depthPassAtmosphere(uint32_t vp_width, uint32_t vp_height, const glm::mat4& model_from_view, const glm::mat4& view_from_clip, 
 										const glm::mat4& view_from_model, const glm::mat4& clip_from_view, const glm::vec3& camera_pos, const glm::vec3& earth_center);
@@ -122,6 +123,7 @@ namespace iara {
 		static void ShadowMapPass(const glm::mat4& transform);
 		static void ForwardPass(const Camera& camera, const glm::mat4& transform, const glm::mat4& light_vp, uint32_t shadowmap);
 		static void ForwardPass(EditorCamera& camera, const glm::mat4& light_vp, uint32_t shadowmap);
+		static void ForwardPassPBR(EditorCamera& camera, const glm::mat4& light_vp, uint32_t shadowmap);
 
 		static void GeometryPassGBuffer(EditorCamera& camera);
 		static void GeometryPassGBuffer(const Camera& camera, const glm::mat4& transform);
@@ -132,6 +134,7 @@ namespace iara {
 
 		static void LighintgPass(EditorCamera& camera, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp, bool ssao_state);
 		static void LighintgPass(const Camera& camera, const glm::mat4& transform, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t shadowmap, uint32_t ssao_map, const glm::mat4& light_vp, bool ssao_state);
+		static void LighintgPassPBR(const EditorCamera& camera, uint32_t gposition, uint32_t gnormal, uint32_t gdiffusespec, uint32_t entityID_map, uint32_t ssao_map, bool ssao_state);
 
 		/// This will load the mesh, and store the data inside the VAO, VBO and so on, preparing data for flush at the end of the scene
 		static void drawMesh(const glm::mat4& transform, MeshComponent& mesh /*OR STRING PATH*/, int entityID);

@@ -201,6 +201,8 @@ namespace iara {
 					auto shininess = materials[i].shininess;
 					auto specular_map_path = materials[i].specular_map->getPath();
 					auto normal_map_path = materials[i].normal_map->getPath();
+					auto metallic_map_path = materials[i].metallic_map->getPath();
+					auto roughness_map_path = materials[i].roughness_map->getPath();
 
 					out << YAML::Key << "Material" + std::to_string(i);
 					out << YAML::BeginMap;
@@ -210,6 +212,8 @@ namespace iara {
 					out << YAML::Key << "shininess" << YAML::Value << shininess;
 					out << YAML::Key << "specular_map_path" << YAML::Value << specular_map_path;
 					out << YAML::Key << "normal_map_path" << YAML::Value << normal_map_path;
+					out << YAML::Key << "metallic_map_path" << YAML::Value << metallic_map_path;
+					out << YAML::Key << "roughness_map_path" << YAML::Value << roughness_map_path;
 
 					out << YAML::EndMap;
 
@@ -373,24 +377,42 @@ namespace iara {
 							auto& materialValues = material.second;
 							Material mat;
 							mat.diffuse = materialValues["diffuse"].as<glm::vec4>();
+
 							if (materialValues["diffuse_map_path"].as<std::string>() != "") {
 								mat.diffuse_map = Texture2D::Create(materialValues["diffuse_map_path"].as<std::string>());
 							}
 							else {
 								mat.diffuse_map = white_tex;
 							}
+
 							mat.shininess = materialValues["shininess"].as<float>();
+
 							if (materialValues["specular_map_path"].as<std::string>() != "") {
 								mat.specular_map = Texture2D::Create(materialValues["specular_map_path"].as<std::string>());
 							}
 							else {
 								mat.specular_map = white_tex;
 							}
+
 							if (materialValues["normal_map_path"].as<std::string>() != "") {
 								mat.normal_map = Texture2D::Create(materialValues["normal_map_path"].as<std::string>());
 							}
 							else {
 								mat.normal_map = white_tex;
+							}
+
+							if (materialValues["metallic_map_path"].as<std::string>() != "") {
+								mat.metallic_map = Texture2D::Create(materialValues["metallic_map_path"].as<std::string>());
+							}
+							else {
+								mat.metallic_map = white_tex;
+							}
+
+							if (materialValues["roughness_map_path"].as<std::string>() != "") {
+								mat.roughness_map = Texture2D::Create(materialValues["roughness_map_path"].as<std::string>());
+							}
+							else {
+								mat.roughness_map = white_tex;
 							}
 
 							mshcmp.materials.push_back(mat);

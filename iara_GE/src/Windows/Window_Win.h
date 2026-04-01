@@ -26,6 +26,18 @@ namespace iara {
 
 		inline virtual void* GetNativeWindow() const { return m_Window; }
 
+		inline virtual float getXUIScale() override { 
+			float xscale, yscale;
+			glfwGetWindowContentScale(m_Window, &xscale, &yscale);
+			return xscale;
+		}
+
+		inline virtual float getYUIScale() override {
+			float xscale, yscale;
+			glfwGetWindowContentScale(m_Window, &xscale, &yscale);
+			return xscale;
+		}
+
 	private:
 		virtual void Init(const WindowProps& props);
 		virtual void Shutdown();

@@ -56,7 +56,7 @@ namespace iara {
 		void setDirLight() { m_dlight = true; }
 		void clearDirLight() { m_dlight = false; }
 
-		inline const Ref<Framebuffer> getShadowMap() const { return m_shadow_map; }
+		inline const Ref<Framebuffer> getShadowMap() const { return m_shadow_map_cascade0; }
 		inline const Ref<Framebuffer> getShadowMapQuad() const { return m_shadowmap_quad; }
 		inline const Ref<Framebuffer> getMSAAFramebuffer() const { return m_msaa_framebuffer; }
 		inline const Ref<Framebuffer> getGBufferFramebuffer() const { return m_gbuffer_framebuffer; }
@@ -83,7 +83,8 @@ namespace iara {
 		bool use_ssao = true;
 
 		glm::vec3 sun_direction = glm::vec3(-0.5f, 0.5f, -0.3f);
-		float m_sun_angular_radius = 0.00935 / 2.0;
+		//float m_sun_angular_radius = 0.00935 / 2.0;
+		float m_sun_angular_radius = 0.01;
 		float m_view_distance = 9000.0;
 		float m_view_zenith_angle_radians_ = 1.47;
 		float m_view_azimuth_angle_radians_ = 0.0;
@@ -122,10 +123,10 @@ namespace iara {
 		Ref<Texture2D> m_skybox = nullptr;
 		Ref<Atmosphere> m_atmosphere = nullptr;
 
-		Ref<Framebuffer> m_shadow_map = nullptr;
+		Ref<Framebuffer> m_shadow_map_cascade0 = nullptr;
+		Ref<Framebuffer> m_shadow_map_cascade1 = nullptr;
 		Ref<Framebuffer> m_shadow_map_cascade2 = nullptr;
 		Ref<Framebuffer> m_shadow_map_cascade3 = nullptr;
-		Ref<Framebuffer> m_shadow_map_cascade4 = nullptr;
 
 		Ref<Framebuffer> m_shadowmap_quad = nullptr;
 
